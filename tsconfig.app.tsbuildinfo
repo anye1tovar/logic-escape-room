@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/vite-env.d.ts","./src/components/qr-core-modal.component.tsx","./src/components/social-media-view.componen.tsx","./src/models/qr-core-modal.props.ts","./src/models/social-media-link.props.ts"],"version":"5.6.3"}
