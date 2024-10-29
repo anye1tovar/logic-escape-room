@@ -1,50 +1,94 @@
-# React + TypeScript + Vite
+# Logic Escape Room Landing Page
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Welcome to the **Logic Escape Room** landing page project! This project is a single-page website designed to showcase an exciting escape room experience with a captivating and user-friendly interface. It is built using modern frontend technologies and is hosted on AWS for global reach and scalability.
 
-Currently, two official plugins are available:
+## 🌐 Live Demo
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+Access the live site [here](https://d1y236odjfkrll.cloudfront.net/)
 
-## Expanding the ESLint configuration
+## 🚀 Features
 
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
+- **Responsive Design**: Ensures a seamless experience across desktop, tablet, and mobile devices.
+- **QR Code Generation**: Allows users to generate a QR code for quick access to the landing page from mobile devices.
+- **Dynamic Styling with Tailwind CSS and Sass**: For custom, scalable, and maintainable styles.
+- **Secure Hosting on AWS**: Leveraging AWS S3 for static hosting and CloudFront for global content delivery over HTTPS.
 
-- Configure the top-level `parserOptions` property like this:
+## 🛠️ Technologies Used
 
-```js
-export default tseslint.config({
-  languageOptions: {
-    // other options...
-    parserOptions: {
-      project: ['./tsconfig.node.json', './tsconfig.app.json'],
-      tsconfigRootDir: import.meta.dirname,
-    },
-  },
-})
+- **React & TypeScript**: Core library for building a type-safe and maintainable UI.
+- **Vite**: Fast and optimized build tool for a quick development experience.
+- **Tailwind CSS & Sass**: Combination for responsive and customizable styling.
+- **AWS S3**: Used as a static file storage for hosting.
+- **AWS CloudFront**: Content Delivery Network (CDN) for secure and fast global distribution of the website.
+
+## 📂 Project Structure
+
+```plaintext
+logic-escape-room/
+├── public/             # Static assets
+├── src/
+│   ├── components/     # Reusable UI components (e.g., QR Code modal)
+│   ├── assets/         # Project images and logo
+│   ├── App.tsx         # Main app component
+│   └── index.tsx       # App entry point
+├── .gitignore          # Files and directories to ignore in Git
+├── package.json        # Project dependencies and scripts
+└── README.md           # Project documentation
 ```
 
-- Replace `tseslint.configs.recommended` to `tseslint.configs.recommendedTypeChecked` or `tseslint.configs.strictTypeChecked`
-- Optionally add `...tseslint.configs.stylisticTypeChecked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and update the config:
+## 📦 Installation
 
-```js
-// eslint.config.js
-import react from 'eslint-plugin-react'
+1. **Clone the repository**:
 
-export default tseslint.config({
-  // Set the react version
-  settings: { react: { version: '18.3' } },
-  plugins: {
-    // Add the react plugin
-    react,
-  },
-  rules: {
-    // other rules...
-    // Enable its recommended rules
-    ...react.configs.recommended.rules,
-    ...react.configs['jsx-runtime'].rules,
-  },
-})
-```
+   ```bash
+   git clone https://github.com/anye1tovar/logic-escape-room.git
+   cd logic-escape-room
+   ```
+
+2. **Install dependencies**:
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the development server**:
+
+   ```bash
+   npm run dev
+   ```
+
+4. **Build for production**:
+   ```bash
+   npm run build
+   ```
+
+## 🚢 Deployment on AWS
+
+1. **Build the Project**:
+
+   ```bash
+   npm run build
+   ```
+
+   This command creates a `dist` directory with the production-ready files.
+
+2. **Deploy to AWS S3**:
+
+   - Upload the `dist` folder contents to your S3 bucket.
+   - Enable static website hosting.
+
+3. **Set Up CloudFront for HTTPS**:
+   - Create a CloudFront distribution for your S3 bucket.
+   - Configure HTTPS and adjust settings for optimized cost using the appropriate PriceClass.
+
+## 📜 License
+
+This project is open-source and available under the [MIT License](LICENSE).
+
+## 🤝 Contributing
+
+Feel free to submit pull requests to improve this project. For major changes, please open an issue first to discuss what you’d like to change.
+
+## 📧 Contact
+
+For questions or feedback, please reach out to me on [LinkedIn](https://www.linkedin.com/in/angelica-tovar/).
