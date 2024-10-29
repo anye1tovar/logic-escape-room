@@ -1,10 +1,8 @@
-import { DataView } from "primereact/dataview";
-import { classNames } from "primereact/utils";
-import googleIcon from "../../assets/google_icon.png";
-import instagramIcon from "../../assets/instagram_icon.webp";
-import tiktokIcon from "../../assets/tiktok_icon.png";
-import whatsappIcon from "../../assets/whatsapp_icon.png";
-import { SocialMediaLinkProps } from "../../models/social-media-link.props";
+import googleIcon from "../assets/google_icon.png";
+import instagramIcon from "../assets/instagram_icon.webp";
+import tiktokIcon from "../assets/tiktok_icon.png";
+import whatsappIcon from "../assets/whatsapp_icon.png";
+import { SocialMediaLinkProps } from "../models/social-media-link.props";
 
 const socialMedia: SocialMediaLinkProps[] = [
   {
@@ -50,7 +48,7 @@ export default function SocialMediaView() {
             <img
               src={item.icon}
               alt={`${item.platform} icon`}
-              className="w-14"
+              className="w-14 h-14"
             />
             <div className="text-left">
               <h2 className="font-bold text-lg">{item.platform}</h2>
@@ -65,7 +63,7 @@ export default function SocialMediaView() {
 
   return (
     <section className="w-full max-w-md px-6">
-      <h2 className="text-xl font-semibold mb-4 text-left">Encuentranos en:</h2>
+      <h2 className="text-xl font-semibold mb-4 text-left">Encuéntranos en:</h2>
       {socialMedia.map((item) => socialMediaLink(item))}
     </section>
   );
