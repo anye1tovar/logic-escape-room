@@ -62,9 +62,25 @@ export default function SocialMediaView() {
   };
 
   return (
-    <section className="w-full max-w-md px-6">
-      <h2 className="text-xl font-semibold mb-4 text-left">Encuéntranos en:</h2>
-      {socialMedia.map((item) => socialMediaLink(item))}
+    <section className="w-full max-w-4xl px-6 mt-8">
+      <h2 className="text-xl font-semibold mb-4 text-left text-[#ecbb0c]">Encuéntranos en:</h2>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {socialMedia.map((item) => (
+          <a
+            key={item.platform}
+            href={item.link}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center space-x-4 p-4 rounded-lg bg-white shadow-md hover:bg-gray-100 transition"
+          >
+            <img src={item.icon} alt={`${item.platform} icon`} className="w-14 h-14" />
+            <div className="text-left">
+              <h2 className="font-bold text-lg text-black">{item.platform}</h2>
+              <p className="text-sm text-gray-600">{item.text}</p>
+            </div>
+          </a>
+        ))}
+      </div>
     </section>
   );
 }
