@@ -3,7 +3,7 @@ import SignLanguageABC from "../components/sign-language-abc.component";
 
 export default function SignLanguageWorkshop() {
   return (
-    <div className="bg-[#231f20] text-white min-h-screen p-6 pb-[150px]">
+    <div className="bg-[#231f20] text-white min-h-screen p-6">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-[#ecbb0c] mb-4">
           Taller básico de lengua de señas
@@ -87,7 +87,7 @@ export default function SignLanguageWorkshop() {
               className="text-[#00b2ed] underline"
               target="_blank"
             >
-              Página oficial diccionarion INSOR
+              Página oficial diccionario INSOR
             </a>
           </li>
           <li>

@@ -12,7 +12,7 @@ const waLink = "https://wa.me/573181278688";
 
 function App() {
   return (
-    <div className="bg-[#231f20]">
+    <div className="bg-[#231f20] pb-[140px]">
       {/* Top Header */}
       <div className="w-full bg-[#00b2ed] text-center py-2 text-sm">
         Reserva a través de nuestro{" "}

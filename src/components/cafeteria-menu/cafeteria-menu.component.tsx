@@ -29,7 +29,7 @@ export default function CafeteriaMenu() {
   const categories = [...new Set(menuItems.map((item) => item.category))];
 
   return (
-    <div>
+    <>
       <h1 className="text-3xl font-bold text-[#ecbb0c] mb-6 text-center">
         Carta de la Cafetería
       </h1>
@@ -78,6 +78,6 @@ export default function CafeteriaMenu() {
           })}
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -91,7 +91,7 @@ export default function FAQsPage() {
   };
 
   return (
-    <div className="bg-[#231f20] text-white min-h-screen p-6 pb-[150px]">
+    <div className="bg-[#231f20] text-white min-h-screen p-6">
       <div className="max-w-3xl mx-auto">
         <h1 className="text-3xl font-bold text-[#ecbb0c] mb-6 text-center">
           Preguntas Frecuentes
