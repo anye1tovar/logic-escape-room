@@ -1,6 +1,6 @@
 import QRCodeStyling, { FileExtension } from "qr-code-styling";
 import React, { useEffect, useRef, useState } from "react";
-import { QrCodeModalProps } from "../models/qr-core-modal.props";
+import { QrCodeModalProps } from "../../../models/qr-core-modal.props";
 import logicLogo from "/logo-logic.png";
 
 const QrCodeModal: React.FC<QrCodeModalProps> = ({ url, isOpen, onClose }) => {

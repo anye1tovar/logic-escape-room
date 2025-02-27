@@ -1,40 +1,46 @@
-import { useState } from "react";
-import QrCodeModal from "./components/qr-core-modal.component";
-import SocialMediaView from "./components/social-media-view.componen";
-import logicLogo from "/logo-logic.png";
+import { Route, BrowserRouter as Router, Routes } from "react-router";
+import CafeteriaMenu from "./components/cafeteria-menu/cafeteria-menu.component";
+import FAQsPage from "./components/faqs/faqs-page.component";
 import HomePage from "./components/home/home.component";
+import NavBar from "./components/nav-bar/nav-bar.component";
+import RubikWorkshop from "./components/workshops/pages/rubiks-cube.component";
+import SignLanguageWorkshop from "./components/workshops/pages/sign-language.component";
+import WorkshopsPage from "./components/workshops/workshops-page.component";
+import logicLogo from "/logic_full_logo.png";
+
+const waLink = "https://wa.me/573181278688";
 
 function App() {
-  const [isQrModalOpen, setQrModalOpen] = useState(false);
-  const pageUrl = window.location.href;
-
   return (
-    // <div className="min-h-screen flex flex-col items-center bg-gray-100 text-center">
-    //   <header className="py-10">
-    //     <img
-    //       src={logicLogo}
-    //       alt="Logic Escape Room Logo"
-    //       className="w-24 h-24 mx-auto mb-4"
-    //     />
-    //     <h1 className="text-2xl font-bold">LOGIC ESCAPE ROOM TUNJA</h1>
-    //   </header>
-    //   <SocialMediaView />
-    //   <footer className="w-full py-6 flex justify-center">
-    //     <button
-    //       onClick={() => setQrModalOpen(true)}
-    //       className="text-blue-500 hover:underline"
-    //     >
-    //       Generar QR de esta página
-    //     </button>
-    //   </footer>
+    <div className="bg-[#231f20]">
+      {/* Top Header */}
+      <div className="w-full bg-[#00b2ed] text-center py-2 text-sm">
+        Reserva a través de nuestro{" "}
+        <a href={waLink} className="underline" target="_blank">
+          WhatsApp
+        </a>
+      </div>
 
-    //   <QrCodeModal
-    //     url={pageUrl}
-    //     isOpen={isQrModalOpen}
-    //     onClose={() => setQrModalOpen(false)}
-    //   />
-    // </div>
-    <HomePage/>
+      {/* Header */}
+      <div className="py-6">
+        <img src={logicLogo} alt="Logic Escape Room" className="h-16 mx-auto" />
+      </div>
+
+      <Router>
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/cafeteria" element={<CafeteriaMenu />} />
+          <Route path="/talleres" element={<WorkshopsPage />} />
+          <Route
+            path="/talleres/lengua-de-senas"
+            element={<SignLanguageWorkshop />}
+          />
+          <Route path="/talleres/desafio-rubik" element={<RubikWorkshop />} />
+          <Route path="/preguntas-frecuentes" element={<FAQsPage />} />
+        </Routes>
+        <NavBar />
+      </Router>
+    </div>
   );
 }
 
