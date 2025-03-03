@@ -7,12 +7,13 @@ const faqs = [
   },
   {
     question: "¿Cuántas personas pueden jugar en una sala de escape?",
-    answer: "El mínimo es 2 personas y el máximo 6 por sala.",
+    answer:
+      "El mínimo es 2 personas y el máximo 6 por sala. Para la sala Caníbal, deben ser minimo 4 personas, maximo 6.",
   },
   {
     question: "¿Es necesario reservar con anticipación?",
     answer:
-      "Los domingos es necesario reservar con al menos un día de anticipación. El resto de los días no es obligatorio, pero recomendamos hacerlo para asegurar tu sala. Reservar es gratis.",
+      "Los domingos es necesario reservar con al menos un día de anticipación. El resto de los días no es obligatorio, pero recomendamos hacerlo para asegurar tu sala.",
   },
   {
     question: "¿Cuánto dura una sesión en el escape room?",

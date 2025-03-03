@@ -14,7 +14,7 @@ export default function SignLanguageWorkshop() {
           desarrollar nuevas habilidades comunicativas.
         </p>
         <p className="text-lg mb-4">
-          <strong>📅 Fecha:</strong> Jueves, 27 de febrero de 2024
+          <strong>📅 Fecha:</strong> Jueves, 13 de marzo de 2024
         </p>
         <p className="text-lg mb-4">
           <strong>🕒 Hora:</strong> 7:00 PM - 8:00 PM

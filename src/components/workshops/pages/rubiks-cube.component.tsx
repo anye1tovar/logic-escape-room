@@ -14,10 +14,10 @@ export default function RubikWorkshop() {
           precisión.
         </p>
         <p className="text-lg mb-4">
-          <strong>📅 Fecha:</strong> Sábado, 22 de marzo de 2024
+          <strong>📅 Fecha:</strong> Jueves, 6 de marzo de 2024
         </p>
         <p className="text-lg mb-4">
-          <strong>🕒 Hora:</strong> 4:00 PM
+          <strong>🕒 Hora:</strong> 7:00 PM - 8:00 PM
         </p>
         <p className="text-lg mb-4">
           <strong>⏳ Duración:</strong> 1 hora
@@ -27,7 +27,13 @@ export default function RubikWorkshop() {
         </p>
         <p className="text-lg mb-4">
           <strong>🔗 Inscripción:</strong>{" "}
-          <span className="text-[#00b2ed] underline">[Próximamente]</span>
+          <a
+            href="https://forms.gle/ZqZYF73vaydJcBLv6"
+            className="text-[#00b2ed] underline"
+            target="_blank"
+          >
+            Haz clic aquí para inscribirte
+          </a>
         </p>
         <h2 className="text-2xl font-semibold text-[#ecbb0c] mt-6 mb-4">
           Material del taller
@@ -45,18 +51,19 @@ export default function RubikWorkshop() {
         </h2>
         <ul className="list-disc pl-6">
           <li>
-            <a href="#" className="text-[#00b2ed] underline">
+            <a
+              href="https://www.youtube.com/watch?v=GyY0OxDk5lI&ab_channel=Cuby"
+              className="text-[#00b2ed] underline"
+            >
               Tutorial interactivo en línea
             </a>
           </li>
           <li>
-            <a href="#" className="text-[#00b2ed] underline">
+            <a
+              href="https://igaciencia.eu/sites/default/files/rubik.pdf"
+              className="text-[#00b2ed] underline"
+            >
               PDF con los movimientos clave
-            </a>
-          </li>
-          <li>
-            <a href="#" className="text-[#00b2ed] underline">
-              Videos recomendados
             </a>
           </li>
         </ul>
