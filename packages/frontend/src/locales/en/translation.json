@@ -1,0 +1,34 @@
+{
+  "header": {
+    "menu": ["Home", "Rooms", "About", "Pricing", "Contact"],
+    "bookNow": "Book Now",
+    "logo": "Logic Escape"
+  },
+  "topHeader": {
+    "announcement": "🎉 20% off on bookings Monday to Thursday!",
+    "bookNow": "Book now",
+    "closeAria": "Close announcement"
+  },
+  "hero": {
+    "badge": "The best escape room experience in Tunja",
+    "titlePrefix": "Challenge your mind at",
+    "titleHighlights": [
+      "Logic Escape Room",
+      "A Unique Adventure",
+      "An Unforgettable Challenge"
+    ],
+    "description": "Immerse yourself in a world of puzzles, mysteries and teamwork. Do you have what it takes to escape in 60 minutes?",
+    "reserve": "Reserve Now",
+    "viewRooms": "View Rooms",
+    "stats": {
+      "teams": "Teams Escaped",
+      "rating": "Rating",
+      "time": "Minutes of Fun"
+    },
+    "scrollText": "Discover more"
+  },
+  "app": {
+    "moreContent": "More content here...",
+    "sectionsPlaceholder": "The following sections will go here"
+  }
+}
