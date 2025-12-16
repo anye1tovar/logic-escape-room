@@ -1,0 +1,37 @@
+.booking-page {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4rem 1rem;
+  min-height: 70vh;
+}
+
+.booking-page__container {
+  max-width: 900px;
+  width: 100%;
+  background: var(--bg-card, #fff);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
+}
+
+.booking-page__title {
+  margin: 0 0 0.5rem 0;
+}
+
+.booking-page__intro {
+  margin: 0 0 1.5rem 0;
+  color: var(--muted, #6b7280);
+}
+
+.booking-page__card {
+  padding: 1.25rem;
+  border-radius: 8px;
+  background: linear-gradient(180deg, rgba(139, 92, 246, 0.05), transparent);
+}
+
+.booking-page__back {
+  display: inline-block;
+  margin-top: 1rem;
+  color: var(--primary, #7c3aed);
+}

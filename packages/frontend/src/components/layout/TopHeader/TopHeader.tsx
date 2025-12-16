@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useBookingModal } from "../../../contexts/BookingModalContext";
 import "./TopHeader.scss";
 
 const TopHeader = () => {
@@ -18,6 +19,7 @@ const TopHeader = () => {
   ];
 
   const currentAnnouncement = announcements[0];
+  const { openBooking } = useBookingModal();
 
   const handleClose = () => {
     setIsVisible(false);
@@ -48,9 +50,10 @@ const TopHeader = () => {
               <span className="top-header__text">
                 {currentAnnouncement.text}
               </span>
-              <motion.a
-                href={currentAnnouncement.link}
+              <motion.button
+                type="button"
                 className="top-header__link"
+                onClick={() => openBooking()}
                 whileHover={{ scale: 1.05, x: 5 }}
                 whileTap={{ scale: 0.95 }}
               >
@@ -66,7 +69,7 @@ const TopHeader = () => {
                 >
                   →
                 </motion.span>
-              </motion.a>
+              </motion.button>
             </motion.div>
 
             <motion.button

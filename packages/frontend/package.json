@@ -12,6 +12,11 @@
   "dependencies": {
     "framer-motion": "^12.23.26",
     "i18next": "^25.7.3",
+    "react-router-dom": "^6.14.1",
+    "@emotion/react": "^11.12.0",
+    "@emotion/styled": "^11.12.0",
+    "@mui/icons-material": "^5.14.0",
+    "@mui/material": "^5.14.0",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-i18next": "^16.5.0",

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useBookingModal } from "../../../contexts/BookingModalContext";
 import "./Header.scss";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -45,6 +46,8 @@ const Header = () => {
   ];
   const otherLang =
     i18n.language && i18n.language.startsWith("en") ? "es" : "en";
+
+  const { openBooking } = useBookingModal();
 
   return (
     <motion.header
@@ -113,9 +116,10 @@ const Header = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <motion.a
-            href="#booking"
+          <motion.button
+            type="button"
             className="header__cta-button"
+            onClick={() => openBooking()}
             whileHover={{
               scale: 1.05,
               boxShadow: "0 10px 30px rgba(139, 92, 246, 0.4)",
@@ -123,7 +127,7 @@ const Header = () => {
             whileTap={{ scale: 0.95 }}
           >
             {t("header.bookNow")}
-          </motion.a>
+          </motion.button>
         </motion.div>
 
         {/* Mobile Menu Button */}
@@ -190,10 +194,13 @@ const Header = () => {
             />
           </button>
         </div>
-        <motion.a
-          href="#booking"
+        <motion.button
+          type="button"
           className="header__nav-link header__nav-link--cta"
-          onClick={() => setIsMenuOpen(false)}
+          onClick={() => {
+            setIsMenuOpen(false);
+            openBooking();
+          }}
           initial={{ opacity: 0, x: -20 }}
           animate={{
             opacity: isMenuOpen ? 1 : 0,
@@ -202,7 +209,7 @@ const Header = () => {
           transition={{ delay: menuItems.length * 0.1 }}
         >
           {t("header.bookNow")}
-        </motion.a>
+        </motion.button>
       </motion.nav>
     </motion.header>
   );

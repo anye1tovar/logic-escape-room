@@ -1,6 +1,7 @@
 import { motion } from "framer-motion";
 import { TypeAnimation } from "react-type-animation";
 import { useTranslation } from "react-i18next";
+import { useBookingModal } from "../../../contexts/BookingModalContext";
 import "./Hero.scss";
 
 const Hero = () => {
@@ -43,6 +44,7 @@ const Hero = () => {
   };
 
   const { t } = useTranslation();
+  const { openBooking } = useBookingModal();
 
   const typeSequence = [
     ...(t("hero.titleHighlights", { returnObjects: true }) as string[]),
@@ -119,9 +121,10 @@ const Hero = () => {
           </motion.p>
 
           <motion.div className="hero__cta" variants={itemVariants}>
-            <motion.a
-              href="#booking"
+            <motion.button
+              type="button"
               className="hero__button hero__button--primary"
+              onClick={() => openBooking()}
               whileHover={{
                 scale: 1.05,
                 boxShadow: "0 20px 40px rgba(139, 92, 246, 0.4)",
@@ -136,7 +139,7 @@ const Hero = () => {
               >
                 →
               </motion.span>
-            </motion.a>
+            </motion.button>
 
             <motion.a
               href="#rooms"
