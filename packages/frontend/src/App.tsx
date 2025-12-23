@@ -1,6 +1,7 @@
 import TopHeader from "./components/layout/TopHeader";
 import Header from "./components/layout/Header";
 import Hero from "./components/landing/Hero";
+import Rooms from "./components/landing/Rooms";
 import About from "./components/landing/About/About";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
@@ -21,6 +22,7 @@ function HomeContent() {
       <Hero />
       <main>
         <About />
+        <Rooms />
       </main>
     </div>
   );

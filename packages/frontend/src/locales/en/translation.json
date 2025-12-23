@@ -1,28 +1,18 @@
 {
   "header": {
-    "menu": [
-      "Home",
-      "Rooms",
-      "About",
-      "Pricing",
-      "Contact"
-    ],
+    "menu": ["Home", "Rooms", "About", "Pricing", "Contact"],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },
   "topHeader": {
-    "announcement": "Explora nuestras salas de escape y vive una aventura donde cada detalle importa. Encuentra códigos, resuelve acertijos y demuestra tu ingenio... ¿Listo para escapar?",
+    "announcement": "Explore our escape rooms and live an adventure where every detail matters. Find codes, solve riddles, and prove your wit... Ready to escape?",
     "bookNow": "Book now",
     "closeAria": "Close announcement"
   },
   "hero": {
     "badge": "The best escape room experience in Tunja",
     "titlePrefix": "Challenge your mind at",
-    "titleHighlights": [
-      "Logic Escape Room",
-      "A Unique Adventure",
-      "An Unforgettable Challenge"
-    ],
+    "titleHighlights": ["Logic Escape Room", "A Unique Adventure", "An Unforgettable Challenge"],
     "description": "Immerse yourself in a world of puzzles, mysteries and teamwork. Do you have what it takes to escape in 60 minutes?",
     "reserve": "Reserve Now",
     "viewRooms": "View Rooms",
@@ -32,6 +22,45 @@
       "time": "Minutes of Fun"
     },
     "scrollText": "Discover more"
+  },
+  "rooms": {
+    "eyebrow": "OUR ADVENTURES",
+    "title": { "line1": "OUR", "line2": "ADVENTURES" },
+    "lead": {
+      "primary": "Step into a world where every detail is a clue and every second counts. Discover unique challenges and puzzles that put your mind to the test.",
+      "secondary": "Gather your crew, spark your curiosity, and let the journey pull you in."
+    },
+    "badges": {
+      "featured": "Featured",
+      "comingSoon": "Coming Soon"
+    },
+    "labels": {
+      "difficulty": "Difficulty",
+      "duration": "Duration",
+      "minutes": "min",
+      "players": "Players",
+      "flex": "Flexible",
+      "age": "Age",
+      "anyAge": "All ages"
+    },
+    "actions": { "book": "Book now" },
+    "loading": "Loading rooms...",
+    "loadError": "We couldn't load the rooms. Showing our favorites.",
+    "emptyFallback": "Showing our favorites.",
+    "comingSoonTitle": "Coming soon",
+    "comingSoonCopy": "A new mission is under construction, ready to test you.",
+    "comingSoonTagline": "Coming soon",
+    "difficulty": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "unknown": "Secret"
+    },
+    "fallback": {
+      "portal": "Jump across worlds, solve puzzles and beat the clock.",
+      "canibal": "Stay silent, stay sharp, and escape with your nerves intact.",
+      "manicomio": "A psychological escape where every detail matters."
+    }
   },
   "app": {
     "moreContent": "More content here...",
@@ -62,10 +91,7 @@
   },
   "about": {
     "title": "WELCOME TO OUR WORLD",
-    "titleLines": [
-      "WELCOME",
-      "TO OUR WORLD"
-    ],
+    "titleLines": ["WELCOME", "TO OUR WORLD"],
     "sections": [
       {
         "title": "WHO WE ARE",

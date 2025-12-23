@@ -12,11 +12,7 @@
   "hero": {
     "badge": "La mejor experiencia de escape room en Tunja",
     "titlePrefix": "Desafía tu mente en",
-    "titleHighlights": [
-      "Logic Escape Room",
-      "Una Aventura Única",
-      "Un Reto Inolvidable"
-    ],
+    "titleHighlights": ["Logic Escape Room", "Una Aventura Única", "Un Reto Inolvidable"],
     "description": "Sumérgete en un mundo de acertijos, misterios y trabajo en equipo. ¿Tienes lo necesario para escapar en 60 minutos?",
     "reserve": "Reservar Ahora",
     "viewRooms": "Ver Salas",
@@ -26,6 +22,45 @@
       "time": "De Diversión"
     },
     "scrollText": "Descubre más"
+  },
+  "rooms": {
+    "eyebrow": "NUESTRAS AVENTURAS",
+    "title": { "line1": "NUESTRAS", "line2": "AVENTURAS" },
+    "lead": {
+      "primary": "Entra a un mundo donde cada detalle es una pista y cada segundo cuenta. Descubre desafíos únicos, enigmas que pondrán a prueba tu mente.",
+      "secondary": "Reúne a tu equipo, enciende tu curiosidad y déjate llevar por la aventura que te espera."
+    },
+    "badges": {
+      "featured": "Destacada",
+      "comingSoon": "Próximamente"
+    },
+    "labels": {
+      "difficulty": "Dificultad",
+      "duration": "Duración",
+      "minutes": "min",
+      "players": "Jugadores",
+      "flex": "Flexible",
+      "age": "Edad",
+      "anyAge": "Todas las edades"
+    },
+    "actions": { "book": "Reservar" },
+    "loading": "Cargando salas...",
+    "loadError": "No pudimos cargar las salas. Mostramos las destacadas.",
+    "emptyFallback": "Mostramos nuestras favoritas.",
+    "comingSoonTitle": "Próximamente",
+    "comingSoonCopy": "Una nueva misión está en construcción, lista para ponerte a prueba.",
+    "comingSoonTagline": "Muy pronto",
+    "difficulty": {
+      "low": "Baja",
+      "medium": "Media",
+      "high": "Alta",
+      "unknown": "Secreto"
+    },
+    "fallback": {
+      "portal": "Cruza universos, resuelve acertijos y vence al tiempo.",
+      "canibal": "Silencio, sigilo y nervios de acero para escapar.",
+      "manicomio": "Un escape psicológico donde cada detalle cuenta."
+    }
   },
   "app": {
     "moreContent": "Más contenido aquí...",
@@ -64,7 +99,7 @@
       },
       {
         "title": "QUÉ HACEMOS",
-        "body": "En Logic diseáamos y operamos experiencias de escape inmersivas, donde grupos de amigos, familias, parejas o equipos de trabajo deben resolver enigmas, buscar pistas y completar misiones antes de que el tiempo se acabe. Creamos salas temáticas originales, elaboramos acertijos únicos y construimos ambientes que mezclan tecnología, narrativa y juego. Nuestro objetivo es que vivas una aventura intensa, emocionante y diferente."
+        "body": "En Logic diseñamos y operamos experiencias de escape inmersivas, donde grupos de amigos, familias, parejas o equipos de trabajo deben resolver enigmas, buscar pistas y completar misiones antes de que el tiempo se acabe. Creamos salas temáticas originales, elaboramos acertijos únicos y construimos ambientes que mezclan tecnología, narrativa y juego. Nuestro objetivo es que vivas una aventura intensa, emocionante y diferente."
       }
     ]
   }
