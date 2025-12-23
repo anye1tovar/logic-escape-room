@@ -6,6 +6,7 @@ import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar
 import About from "./components/landing/About/About";
 import Guidelines from "./components/landing/Guidelines";
 import Hero from "./components/landing/Hero";
+import Pricing from "./components/landing/Pricing";
 import Rooms from "./components/landing/Rooms";
 import Header from "./components/layout/Header";
 import { BookingModalProvider } from "./contexts/BookingModalContext";
@@ -26,6 +27,7 @@ function HomeContent() {
         <Rooms />
         <Guidelines />
         <AnnouncementBar text={t("topHeader.announcement")} />
+        <Pricing />
       </main>
     </div>
   );

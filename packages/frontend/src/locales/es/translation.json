@@ -85,6 +85,47 @@
       "manicomio": "Un escape psicológico donde cada detalle cuenta."
     }
   },
+  "pricing": {
+    "eyebrow": "NUESTRAS TARIFAS",
+    "title": { "line1": "NUESTRAS", "line2": "TARIFAS" },
+    "lead": [
+      "Entre mÇ­s grande sea el grupo, menor es el costo por persona.",
+      "Los precios varÇðan segÇðn si vienes entre semana o fin de semana."
+    ],
+    "weekday": {
+      "label": "Entre semana",
+      "range": "Lunes a Jueves",
+      "note": "Precio por persona",
+      "items": [
+        { "players": 7, "price": 27000 },
+        { "players": 6, "price": 27000 },
+        { "players": 5, "price": 30000 },
+        { "players": 4, "price": 33000 },
+        { "players": 3, "price": 35000 },
+        { "players": 2, "price": 37000 }
+      ]
+    },
+    "weekend": {
+      "label": "Fines de semana y festivos",
+      "range": "Viernes a Domingo",
+      "note": "Precio por persona",
+      "items": [
+        { "players": 7, "price": 30000 },
+        { "players": 6, "price": 30000 },
+        { "players": 5, "price": 33000 },
+        { "players": 4, "price": 36000 },
+        { "players": 3, "price": 38000 },
+        { "players": 2, "price": 40000 }
+      ]
+    },
+    "highlight": {
+      "title": "Una experiencia épica",
+      "subtitle": "Con tarifas pensadas para todos.",
+      "cta": "Reserva tu aventura"
+    },
+    "loading": "Cargando tarifas...",
+    "error": "No pudimos cargar las tarifas. Mostramos valores de referencia."
+  },
   "app": {
     "moreContent": "Más contenido aquí...",
     "sectionsPlaceholder": "Las siguientes secciones irán aquí"

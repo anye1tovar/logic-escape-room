@@ -85,6 +85,47 @@
       "manicomio": "A psychological escape where every detail matters."
     }
   },
+  "pricing": {
+    "eyebrow": "OUR RATES",
+    "title": { "line1": "OUR", "line2": "RATES" },
+    "lead": [
+      "The larger the group, the lower the cost per person.",
+      "Prices change for groups of 2, 3, 4 or more players and by day."
+    ],
+    "weekday": {
+      "label": "Weekdays",
+      "range": "Monday to Thursday",
+      "note": "Price per person",
+      "items": [
+        { "players": 7, "price": 27000 },
+        { "players": 6, "price": 27000 },
+        { "players": 5, "price": 30000 },
+        { "players": 4, "price": 33000 },
+        { "players": 3, "price": 35000 },
+        { "players": 2, "price": 37000 }
+      ]
+    },
+    "weekend": {
+      "label": "Weekend & Holidays",
+      "range": "Friday to Sunday",
+      "note": "Price per person",
+      "items": [
+        { "players": 7, "price": 30000 },
+        { "players": 6, "price": 30000 },
+        { "players": 5, "price": 33000 },
+        { "players": 4, "price": 36000 },
+        { "players": 3, "price": 38000 },
+        { "players": 2, "price": 40000 }
+      ]
+    },
+    "highlight": {
+      "title": "An epic experience",
+      "subtitle": "Rates designed for every team size.",
+      "cta": "Book your adventure"
+    },
+    "loading": "Loading rates...",
+    "error": "We could not load the rates. Showing reference values."
+  },
   "app": {
     "moreContent": "More content here...",
     "sectionsPlaceholder": "The following sections will go here"

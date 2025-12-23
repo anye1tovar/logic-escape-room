@@ -25,14 +25,23 @@ async function start() {
   const buildRoomsService = require("./services/roomsService");
   const buildRoomsController = require("./controllers/roomsController");
   const createRoomsRouter = require("./routes/rooms");
+  const initRatesConsumer = require("./consumers/ratesConsumer");
+  const buildRatesService = require("./services/ratesService");
+  const buildRatesController = require("./controllers/ratesController");
+  const createRatesRouter = require("./routes/rates");
 
   const roomsConsumer = await initRoomsConsumer();
   const roomsService = buildRoomsService(roomsConsumer);
   const roomsController = buildRoomsController(roomsService);
   const roomsRouter = createRoomsRouter(roomsController);
+  const ratesConsumer = await initRatesConsumer();
+  const ratesService = buildRatesService(ratesConsumer);
+  const ratesController = buildRatesController(ratesService);
+  const ratesRouter = createRatesRouter(ratesController);
 
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/rooms", roomsRouter);
+  app.use("/api/rates", ratesRouter);
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 
