@@ -1,15 +1,16 @@
-import TopHeader from "./components/layout/TopHeader";
-import Header from "./components/layout/Header";
+import { ThemeProvider } from "@mui/material/styles";
+import { useTranslation } from "react-i18next";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
+import BookingModal from "./components/BookingModal/BookingModal";
+import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
+import About from "./components/landing/About/About";
+import Guidelines from "./components/landing/Guidelines";
 import Hero from "./components/landing/Hero";
 import Rooms from "./components/landing/Rooms";
-import About from "./components/landing/About/About";
-import { useTranslation } from "react-i18next";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
-import Booking from "./pages/Booking/Booking";
+import Header from "./components/layout/Header";
 import { BookingModalProvider } from "./contexts/BookingModalContext";
-import BookingModal from "./components/BookingModal/BookingModal";
+import Booking from "./pages/Booking/Booking";
 import BookingConfirm from "./pages/Booking/BookingConfirm";
-import { ThemeProvider } from "@mui/material/styles";
 import theme from "./theme";
 
 function HomeContent() {
@@ -17,12 +18,14 @@ function HomeContent() {
 
   return (
     <div>
-      <TopHeader />
       <Header />
       <Hero />
+      <AnnouncementBar text={t("topHeader.announcement")} />
       <main>
         <About />
         <Rooms />
+        <Guidelines />
+        <AnnouncementBar text={t("topHeader.announcement")} />
       </main>
     </div>
   );

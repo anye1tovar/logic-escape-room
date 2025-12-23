@@ -23,6 +23,29 @@
     },
     "scrollText": "Descubre más"
   },
+  "guidelines": {
+    "title": "Debes tener en cuenta",
+    "subtitle": "Si vas a entrar a alguna de nuestras salas es de suma importancia que conozcas nuestras reglas básicas.",
+    "rules": [
+      {
+        "title": "Hay un límite de edad de 12 años",
+        "lines": ["Content strategy"]
+      },
+      {
+        "title": "No revelar pistas ni spoilers",
+        "lines": ["a otros grupos"]
+      },
+      {
+        "title": "No distraer ni ignorar",
+        "lines": ["al Game-Master"]
+      }
+    ],
+    "fact": {
+      "label": "Dato curioso:",
+      "copy": "El tiempo promedio para encontrar la primera pista es de 6 a 7 minutos. Los primeros 120 segundos juegan un papel importante."
+    },
+    "cta": "Solo valientes descubren el misterio"
+  },
   "rooms": {
     "eyebrow": "NUESTRAS AVENTURAS",
     "title": { "line1": "NUESTRAS", "line2": "AVENTURAS" },

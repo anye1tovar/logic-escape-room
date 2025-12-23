@@ -23,6 +23,29 @@
     },
     "scrollText": "Discover more"
   },
+  "guidelines": {
+    "title": "Things you must know",
+    "subtitle": "Before entering any of our rooms, it's important to know these basic rules.",
+    "rules": [
+      {
+        "title": "There is a minimum age of 12",
+        "lines": ["Content strategy"]
+      },
+      {
+        "title": "Don't reveal clues or spoilers",
+        "lines": ["to other groups"]
+      },
+      {
+        "title": "Do not distract or ignore",
+        "lines": ["the Game Master"]
+      }
+    ],
+    "fact": {
+      "label": "Fun fact:",
+      "copy": "Average time to find the first clue is 6 to 7 minutes. The first 120 seconds play a key role."
+    },
+    "cta": "Only the brave uncover the mystery"
+  },
   "rooms": {
     "eyebrow": "OUR ADVENTURES",
     "title": { "line1": "OUR", "line2": "ADVENTURES" },

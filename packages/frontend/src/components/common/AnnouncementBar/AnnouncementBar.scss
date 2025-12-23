@@ -1,17 +1,26 @@
 @use "../../../assets/styles/variables" as *;
 
-.top-header {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  z-index: 1001;
-  height: 48px;
+.announcement-bar {
+  position: relative;
+  width: 100%;
   background: $primary-color;
   font-family: "Inter", "Inter Display", "Segoe UI", sans-serif;
+  color: $text-dark;
+  overflow: hidden;
   backdrop-filter: blur(4px);
   -webkit-backdrop-filter: blur(4px);
-  overflow: hidden;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  z-index: 10;
+
+  &--fixed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1001;
+  }
 
   &__container {
     max-width: 1280px;
@@ -86,16 +95,10 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(
-      90deg,
-      $secondary-color,
-      $primary-color,
-      $secondary-color
-    );
+    background: linear-gradient(90deg, $secondary-color, $primary-color, $secondary-color);
   }
 }
 
-// Sparkle animation effect
 @keyframes sparkle {
   0%,
   100% {
