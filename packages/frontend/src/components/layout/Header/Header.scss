@@ -64,7 +64,7 @@
       display: none;
       gap: $spacing-lg;
 
-      @media (min-width: $tablet) {
+      @media (min-width: $desktop) {
         display: flex;
       }
     }
@@ -84,7 +84,7 @@
       overflow: hidden;
       border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-      @media (min-width: $tablet) {
+      @media (min-width: $desktop) {
         display: none;
       }
 
@@ -139,7 +139,7 @@
   &__cta {
     display: none;
 
-    @media (min-width: $tablet) {
+    @media (min-width: $desktop) {
       display: block;
     }
 
@@ -215,7 +215,7 @@
     padding: $spacing-xs;
     z-index: 1001;
 
-    @media (min-width: $tablet) {
+    @media (min-width: $desktop) {
       display: none;
     }
 

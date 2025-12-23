@@ -6,27 +6,26 @@
   left: 0;
   right: 0;
   z-index: 1001;
-  background: linear-gradient(
-    135deg,
-    rgba(99, 102, 241, 0.95),
-    rgba(139, 92, 246, 0.95)
-  );
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  height: 48px;
+  background: $primary-color;
+  font-family: "Inter", "Inter Display", "Segoe UI", sans-serif;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
   overflow: hidden;
 
   &__container {
     max-width: 1280px;
     margin: 0 auto;
-    padding: $spacing-sm $spacing-lg;
+    padding: 0 $spacing-lg;
     display: flex;
     justify-content: center;
     align-items: center;
     position: relative;
     gap: $spacing-md;
+    height: 100%;
 
     @media (max-width: $mobile) {
-      padding: $spacing-sm $spacing-md;
+      padding: 0 $spacing-md;
       gap: $spacing-sm;
     }
   }
@@ -37,89 +36,48 @@
     gap: $spacing-md;
     flex-wrap: wrap;
     justify-content: center;
+    width: 100%;
+    min-width: 0;
 
     @media (max-width: $mobile) {
-      gap: $spacing-xs;
-      flex-direction: column;
-      text-align: center;
+      gap: $spacing-sm;
     }
+  }
+
+  &__marquee {
+    position: relative;
+    overflow: hidden;
+    flex: 1;
+    white-space: nowrap;
+    min-width: 0;
+    mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.9) 12%,
+      rgba(0, 0, 0, 0.9) 88%,
+      transparent 100%
+    );
+    -webkit-mask-image: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(0, 0, 0, 0.9) 12%,
+      rgba(0, 0, 0, 0.9) 88%,
+      transparent 100%
+    );
+  }
+
+  &__marquee-track {
+    display: inline-flex;
+    gap: 2rem;
+    min-width: 200%;
   }
 
   &__text {
-    color: $text-light;
+    color: $text-dark;
     font-weight: 500;
-    font-size: 0.95rem;
-    text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
-
-    @media (max-width: $mobile) {
-      font-size: 0.85rem;
-    }
-  }
-
-  &__link {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    color: $text-light;
-    text-decoration: none;
-    font-weight: 700;
-    font-size: 0.95rem;
-    padding: 0.4rem 1rem;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 20px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    transition: all 0.3s ease;
-    cursor: pointer;
-    white-space: nowrap;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: $mobile) {
-      font-size: 0.85rem;
-      padding: 0.3rem 0.8rem;
-    }
-  }
-
-  &__arrow {
+    font-size: 0.8rem;
     display: inline-block;
-    font-size: 1.2rem;
-  }
-
-  &__close {
-    position: absolute;
-    right: $spacing-lg;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
-    color: $text-light;
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 1.2rem;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.3);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    }
-
-    @media (max-width: $mobile) {
-      right: $spacing-md;
-      width: 25px;
-      height: 25px;
-      font-size: 1rem;
-    }
+    white-space: nowrap;
   }
 
   &__gradient-border {
@@ -128,7 +86,12 @@
     left: 0;
     right: 0;
     height: 2px;
-    background: linear-gradient(90deg, #6366f1, #8b5cf6, #ec4899);
+    background: linear-gradient(
+      90deg,
+      $secondary-color,
+      $primary-color,
+      $secondary-color
+    );
   }
 }
 
@@ -143,8 +106,4 @@
     opacity: 0.5;
     transform: scale(1.05);
   }
-}
-
-.top-header__content {
-  animation: sparkle 3s ease-in-out infinite;
 }

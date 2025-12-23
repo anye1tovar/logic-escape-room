@@ -1,11 +1,17 @@
 {
   "header": {
-    "menu": ["Home", "Rooms", "About", "Pricing", "Contact"],
+    "menu": [
+      "Home",
+      "Rooms",
+      "About",
+      "Pricing",
+      "Contact"
+    ],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },
   "topHeader": {
-    "announcement": "🎉 20% off on bookings Monday to Thursday!",
+    "announcement": "Explora nuestras salas de escape y vive una aventura donde cada detalle importa. Encuentra códigos, resuelve acertijos y demuestra tu ingenio... ¿Listo para escapar?",
     "bookNow": "Book now",
     "closeAria": "Close announcement"
   },
@@ -35,7 +41,6 @@
     "title": "Booking",
     "intro": "Here you can choose your room and complete your booking.",
     "chooseRoom": "Choose your room",
-    "chooseRoom": "Choose your room",
     "chooseRoomDesc": "Select the room you'd like to book and follow the steps.",
     "back": "Back to home",
     "step1": "Date, Room & Time",
@@ -54,5 +59,22 @@
     "submit": "Confirm booking",
     "success": "Booking confirmed!",
     "error": "There was an error creating the booking"
+  },
+  "about": {
+    "title": "WELCOME TO OUR WORLD",
+    "titleLines": [
+      "WELCOME",
+      "TO OUR WORLD"
+    ],
+    "sections": [
+      {
+        "title": "WHO WE ARE",
+        "body": "At Logic Escape Room we are creators of hidden worlds, stories you live up close, and challenges that awaken your wit. We were born to turn a simple game into a memorable experience: detailed environments, clever puzzles, and an atmosphere where nothing is what it seems."
+      },
+      {
+        "title": "WHAT WE DO",
+        "body": "At Logic we design and operate immersive escape experiences where groups of friends, families, couples, or teams must solve riddles, find clues, and complete missions before time runs out. We build original themed rooms, craft unique puzzles, and create environments that blend technology, narrative, and gameplay. Our goal is to give you an intense, exciting, and different adventure."
+      }
+    ]
   }
 }

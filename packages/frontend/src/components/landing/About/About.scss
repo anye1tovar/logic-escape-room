@@ -1,0 +1,60 @@
+@use "../../../assets/styles/variables" as *;
+
+.about {
+  padding: 6rem $spacing-lg;
+  background: $dark-bg;
+  color: $text-light;
+
+  @media (max-width: $tablet) {
+    padding: 4rem $spacing-md;
+  }
+
+  &__container {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  &__title {
+    text-align: left;
+    margin: 0;
+  }
+
+  &__image-wrapper {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+  }
+
+  &__image {
+    height: 100%;
+    max-width: 480px;
+    object-fit: cover;
+  }
+
+  &__text {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-lg;
+  }
+
+  &__subtitle {
+    margin: 0 0 $spacing-xs 0;
+    color: $secondary-color;
+    font-size: 0.95rem;
+    letter-spacing: 0.08em;
+  }
+
+  &__title-line {
+    display: block;
+  }
+
+  p {
+    margin: 0;
+    color: $text-light;
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+}

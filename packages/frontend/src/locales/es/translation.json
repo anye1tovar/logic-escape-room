@@ -5,7 +5,7 @@
     "logo": "Logic Escape"
   },
   "topHeader": {
-    "announcement": "🎉 ¡20% de descuento en reservas de lunes a jueves!",
+    "announcement": "Explora nuestras salas de escape y vive una aventura donde cada detalle importa. Encuentra códigos, resuelve acertijos y demuestra tu ingenio... ¿Listo para escapar?",
     "bookNow": "Reservar ahora",
     "closeAria": "Cerrar anuncio"
   },
@@ -53,5 +53,19 @@
     "submit": "Confirmar reserva",
     "success": "¡Reserva confirmada!",
     "error": "Hubo un error al crear la reserva"
+  },
+  "about": {
+    "title": "BIENVENIDOS A NUESTRO MUNDO",
+    "titleLines": ["BIENVENIDOS", "A NUESTRO MUNDO"],
+    "sections": [
+      {
+        "title": "QUIÉNES SOMOS",
+        "body": "En Logic Escape Room somos creadores de mundos ocultos, historias que se viven de cerca y desafíos que despiertan tu ingenio. Nacimos con la idea de transformar un simple juego en una experiencia memorable: ambientes detallados, acertijos inteligentes y una atmósfera donde nada es lo que parece."
+      },
+      {
+        "title": "QUÉ HACEMOS",
+        "body": "En Logic diseáamos y operamos experiencias de escape inmersivas, donde grupos de amigos, familias, parejas o equipos de trabajo deben resolver enigmas, buscar pistas y completar misiones antes de que el tiempo se acabe. Creamos salas temáticas originales, elaboramos acertijos únicos y construimos ambientes que mezclan tecnología, narrativa y juego. Nuestro objetivo es que vivas una aventura intensa, emocionante y diferente."
+      }
+    ]
   }
 }
