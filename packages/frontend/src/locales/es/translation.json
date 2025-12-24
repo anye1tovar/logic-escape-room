@@ -10,20 +10,21 @@
     "closeAria": "Cerrar anuncio"
   },
   "hero": {
-    "badge": "La mejor experiencia de escape room en Tunja",
+    "badge": "Experiencia inmersiva en Tunja",
     "titlePrefix": "Desafía tu mente en",
     "titleHighlights": [
       "Logic Escape Room",
-      "Una Aventura Única",
-      "Un Reto Inolvidable"
+      "Una aventura única",
+      "Un reto inolvidable"
     ],
-    "description": "Sumérgete en un mundo de acertijos, misterios y trabajo en equipo. ¿Tienes lo necesario para escapar en 60 minutos?",
-    "reserve": "Reservar Ahora",
-    "viewRooms": "Ver Salas",
+    "description": "Sumérgete en una aventura llena de acertijos, luz tenue y suspenso. Reúne a tu equipo, sigue las pistas y demuestra que puedes escapar antes de que el reloj marque cero. ¿Tienes lo necesario para escapar en 60 minutos?",
+    "reserve": "Reservar ahora",
+    "viewRooms": "Ver salas disponibles",
+    "tourInteractive": "Tour interactivo (video)",
     "stats": {
-      "teams": "Equipos Escapados",
+      "teams": "Equipos victoriosos",
       "rating": "Calificación",
-      "time": "De Diversión"
+      "time": "Cuenta regresiva"
     },
     "scrollText": "Descubre más"
   },
@@ -36,12 +37,12 @@
         "lines": ["Niños desde 9 años", " pueden entrar con un adulto"]
       },
       {
-        "title": "No revelar pistas ni spoilers",
-        "lines": ["a otros grupos, deja que todos disfruten del misterio"]
+        "title": "No revelar pistas ni spoilers a otros grupos",
+        "lines": ["deja que todos disfruten del misterio"]
       },
       {
-        "title": "No distraer ni ignorar",
-        "lines": ["al Game-Master, está para ayudarte"]
+        "title": "No distraer ni ignorar al Game-Master",
+        "lines": ["estamos siempre para ayudarte"]
       },
       {
         "title": "Ven con ropa cómoda",
@@ -120,7 +121,6 @@
     }
   },
   "pricing": {
-    "eyebrow": "UNA EXPERIENCIA ÉPICA CON TARIFAS PENSADAS PARA TODOS",
     "title": {
       "line1": "NUESTRAS",
       "line2": "TARIFAS"

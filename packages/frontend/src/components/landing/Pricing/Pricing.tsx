@@ -213,7 +213,6 @@ const Pricing = () => {
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <p className="pricing__eyebrow">{t("pricing.eyebrow")}</p>
           <h2 className="pricing__title">
             <span>{t("pricing.title.line1")}</span>
             <span className="pricing__title-accent">

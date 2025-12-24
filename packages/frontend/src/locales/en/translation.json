@@ -26,6 +26,7 @@
     "description": "Immerse yourself in a world of puzzles, mysteries and teamwork. Do you have what it takes to escape in 60 minutes?",
     "reserve": "Reserve Now",
     "viewRooms": "View Rooms",
+    "tourInteractive": "Interactive tour (video)",
     "stats": {
       "teams": "Teams Escaped",
       "rating": "Rating",
