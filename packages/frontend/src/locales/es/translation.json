@@ -1,6 +1,6 @@
 {
   "header": {
-    "menu": ["Inicio", "Salas", "Nosotros", "Precios", "Contacto"],
+    "menu": ["Inicio", "Salas", "Nosotros", "Precios", "Contacto", "Cafetería"],
     "bookNow": "Reservar Ahora",
     "logo": "Logic Escape"
   },
@@ -248,5 +248,47 @@
     "phone": "3181278688",
     "email": "escaperoom.logic@gmail.com",
     "note": "Escríbenos y reserva tu aventura"
+  },
+  "cafeteria": {
+    "eyebrow": "Cafetería",
+    "title": "LOGIC CAFÉ & SNACKS",
+    "subtitle": "Recarga energías antes o después de tu misión, o para acompañar un buen juego de mesa. Opciones frescas para tu equipo.",
+    "pricesNote": "Precios en",
+    "backHome": "Volver al inicio",
+    "availabilityNote": "Sujeto a disponibilidad.",
+    "filters": {
+      "label": "Filtros de categoría",
+      "all": "Todas"
+    },
+    "labels": {
+      "unavailable": "Agotado"
+    },
+    "sections": {
+      "hotDrinks": "Bebidas calientes",
+      "coldDrinks": "Bebidas frías",
+      "snacks": "Snacks",
+      "combos": "Combos"
+    },
+    "items": {
+      "espresso": { "name": "Espresso", "desc": "Fuerte y corto." },
+      "cappuccino": {
+        "name": "Capuchino",
+        "desc": "Espresso con espuma de leche."
+      },
+      "chocolate": {
+        "name": "Chocolate caliente",
+        "desc": "Cremoso y clásico."
+      },
+      "lemonade": {
+        "name": "Limonada artesanal",
+        "desc": "Refrescante y suave."
+      },
+      "soda": { "name": "Gaseosa", "desc": "Sabores surtidos." },
+      "cookies": { "name": "Galletas", "desc": "Perfectas para compartir." },
+      "brownie": { "name": "Brownie", "desc": "Chocolate y suave." },
+      "nachos": { "name": "Nachos", "desc": "Crujientes con salsa." },
+      "combo1": { "name": "Combo 1", "desc": "Bebida + galletas." },
+      "combo2": { "name": "Combo 2", "desc": "Bebida + brownie o nachos." }
+    }
   }
 }

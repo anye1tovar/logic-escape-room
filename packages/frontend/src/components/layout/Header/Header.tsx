@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import { useLocation, useNavigate } from "react-router-dom";
 import { useBookingModal } from "../../../contexts/BookingModalContext";
 import "./Header.scss";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
@@ -14,6 +15,8 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const { scrollY } = useScroll();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   // Efecto de blur en el header al hacer scroll
   const headerBlur = useTransform(
@@ -37,13 +40,34 @@ const Header = () => {
 
   const { t, i18n } = useTranslation();
 
-  const menuItems = [
-    { name: t("header.menu.0"), href: "#home" },
-    { name: t("header.menu.1"), href: "#rooms" },
-    { name: t("header.menu.2"), href: "#about" },
-    { name: t("header.menu.3"), href: "#pricing" },
-    { name: t("header.menu.4"), href: "#contact" },
-  ];
+  const menuItems: Array<{ name: string; href: string; kind: "hash" | "route" }> =
+    [
+      { name: t("header.menu.0"), href: "#home", kind: "hash" },
+      { name: t("header.menu.1"), href: "#rooms", kind: "hash" },
+      { name: t("header.menu.2"), href: "#about", kind: "hash" },
+      { name: t("header.menu.3"), href: "#pricing", kind: "hash" },
+      { name: t("header.menu.4"), href: "#contact", kind: "hash" },
+      { name: t("header.menu.5"), href: "/cafeteria", kind: "route" },
+    ];
+
+  const handleMenuItemClick = (
+    item: (typeof menuItems)[number],
+    opts?: { closeMobileMenu?: boolean }
+  ) => {
+    if (opts?.closeMobileMenu) setIsMenuOpen(false);
+
+    if (item.kind === "route") {
+      navigate(item.href);
+      return;
+    }
+
+    if (location.pathname !== "/") {
+      navigate("/");
+      setTimeout(() => {
+        window.location.hash = item.href;
+      }, 0);
+    }
+  };
   const otherLang =
     i18n.language && i18n.language.startsWith("en") ? "es" : "en";
 
@@ -64,7 +88,18 @@ const Header = () => {
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
         >
-          <a href="#home">
+          <a
+            href={location.pathname === "/" ? "#home" : "/"}
+            onClick={(e) => {
+              if (location.pathname !== "/") {
+                e.preventDefault();
+                navigate("/");
+                setTimeout(() => {
+                  window.location.hash = "#home";
+                }, 0);
+              }
+            }}
+          >
             <span className="header__logo-icon">🔐</span>
             <span className="header__logo-text">
               LOGIC <span className="header__logo-highlight">Escape Room</span>
@@ -77,13 +112,29 @@ const Header = () => {
           {menuItems.map((item, index) => (
             <motion.a
               key={item.name}
-              href={item.href}
+              href={
+                item.kind === "hash" && location.pathname !== "/"
+                  ? `/${item.href}`
+                  : item.href
+              }
               className="header__nav-link"
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.1 }}
               whileHover={{ scale: 1.1, color: "#8b5cf6" }}
               whileTap={{ scale: 0.95 }}
+              onClick={(e) => {
+                if (item.kind === "route") {
+                  e.preventDefault();
+                  handleMenuItemClick(item);
+                  return;
+                }
+
+                if (item.kind === "hash" && location.pathname !== "/") {
+                  e.preventDefault();
+                  handleMenuItemClick(item);
+                }
+              }}
             >
               {item.name}
             </motion.a>
@@ -160,9 +211,27 @@ const Header = () => {
         {menuItems.map((item, index) => (
           <motion.a
             key={item.name}
-            href={item.href}
+            href={
+              item.kind === "hash" && location.pathname !== "/"
+                ? `/${item.href}`
+                : item.href
+            }
             className="header__nav-link"
-            onClick={() => setIsMenuOpen(false)}
+            onClick={(e) => {
+              if (item.kind === "route") {
+                e.preventDefault();
+                handleMenuItemClick(item, { closeMobileMenu: true });
+                return;
+              }
+
+              if (item.kind === "hash" && location.pathname !== "/") {
+                e.preventDefault();
+                handleMenuItemClick(item, { closeMobileMenu: true });
+                return;
+              }
+
+              setIsMenuOpen(false);
+            }}
             initial={{ opacity: 0, x: -20 }}
             animate={{
               opacity: isMenuOpen ? 1 : 0,

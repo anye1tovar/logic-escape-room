@@ -19,6 +19,7 @@ import PinZoomOverlay from "./components/PinnedZoomOverlay/PinnedZoomOverlay";
 import { BookingModalProvider } from "./contexts/BookingModalContext";
 import Booking from "./pages/Booking/Booking";
 import BookingConfirm from "./pages/Booking/BookingConfirm";
+import CafeteriaMenu from "./pages/CafeteriaMenu/CafeteriaMenu";
 import theme from "./theme";
 
 function HomeContent() {
@@ -54,6 +55,7 @@ function App() {
             <Route path="/" element={<HomeContent />} />
             <Route path="/booking" element={<Booking />} />
             <Route path="/booking/confirm" element={<BookingConfirm />} />
+            <Route path="/cafeteria" element={<CafeteriaMenu />} />
           </Routes>
           <BookingModal />
         </BookingModalProvider>

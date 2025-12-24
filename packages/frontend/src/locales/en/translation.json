@@ -5,7 +5,8 @@
       "Rooms",
       "About",
       "Pricing",
-      "Contact"
+      "Contact",
+      "Cafeteria"
     ],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
@@ -266,5 +267,68 @@
     "phone": "3181278688",
     "email": "escaperoom.logic@gmail.com",
     "note": "Write to us and book your adventure"
+  },
+  "cafeteria": {
+    "eyebrow": "Cafeteria",
+    "title": "Cafeteria Menu",
+    "subtitle": "Recharge before or after your mission. Freshly made options for your team.",
+    "pricesNote": "Prices in",
+    "backHome": "Back to home",
+    "availabilityNote": "Availability may vary by day.",
+    "filters": {
+      "label": "Category filters",
+      "all": "All"
+    },
+    "labels": {
+      "unavailable": "Unavailable"
+    },
+    "sections": {
+      "hotDrinks": "Hot drinks",
+      "coldDrinks": "Cold drinks",
+      "snacks": "Snacks",
+      "combos": "Combos"
+    },
+    "items": {
+      "espresso": {
+        "name": "Espresso",
+        "desc": "Strong and short."
+      },
+      "cappuccino": {
+        "name": "Cappuccino",
+        "desc": "Espresso with steamed milk foam."
+      },
+      "chocolate": {
+        "name": "Hot chocolate",
+        "desc": "Creamy, classic comfort."
+      },
+      "lemonade": {
+        "name": "Homemade lemonade",
+        "desc": "Refreshing and slightly sweet."
+      },
+      "soda": {
+        "name": "Soda",
+        "desc": "Assorted flavors."
+      },
+      "cookies": {
+        "name": "Cookies",
+        "desc": "Perfect for sharing."
+      },
+      "brownie": {
+        "name": "Brownie",
+        "desc": "Chocolatey and soft."
+      },
+      "nachos": {
+        "name": "Nachos",
+        "desc": "Crunchy with sauce."
+      },
+      "combo1": {
+        "name": "Combo 1",
+        "desc": "Drink + cookies."
+      },
+      "combo2": {
+        "name": "Combo 2",
+        "desc": "Drink + brownie or nachos."
+      }
+    }
   }
 }
