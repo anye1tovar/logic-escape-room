@@ -3,9 +3,9 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { fetchRooms } from "../../../api/rooms";
-import portalImg from "../../../assets/rooms/portal-jumanji.jpg";
-import canibalImg from "../../../assets/rooms/canibal.jpg";
-import manicomioImg from "../../../assets/rooms/manicomio.jpg";
+import portalImg from "../../../assets/rooms/portal.png";
+import canibalImg from "../../../assets/rooms/canibal.png";
+import manicomioImg from "../../../assets/rooms/manicomio.png";
 import "./Rooms.scss";
 
 type ApiRoom = {
@@ -285,7 +285,9 @@ const Rooms = () => {
             <div className="room-card__body">
               <div className="room-card__title-row">
                 <h3>{room.name}</h3>
-                {room.theme && <span className="room-card__tag">{room.theme}</span>}
+                {room.theme && (
+                  <span className="room-card__tag">{room.theme}</span>
+                )}
               </div>
               {room.description && (
                 <p className="room-card__description">{room.description}</p>
@@ -293,7 +295,9 @@ const Rooms = () => {
               <div className="room-card__stats">
                 <div className="room-card__stat">
                   <span className="label">{t("rooms.labels.difficulty")}</span>
-                  <span className="value">{difficultyLabel(room.difficulty)}</span>
+                  <span className="value">
+                    {difficultyLabel(room.difficulty)}
+                  </span>
                 </div>
                 <div className="room-card__stat">
                   <span className="label">{t("rooms.labels.duration")}</span>
@@ -331,7 +335,9 @@ const Rooms = () => {
           </motion.article>
         ))}
         {loading && (
-          <div className="rooms__loading">{t("rooms.loading", "Cargando salas...")}</div>
+          <div className="rooms__loading">
+            {t("rooms.loading", "Cargando salas...")}
+          </div>
         )}
       </div>
     </section>

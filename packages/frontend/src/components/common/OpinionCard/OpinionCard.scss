@@ -1,0 +1,116 @@
+@use "../../../assets/styles/variables" as *;
+
+.opinion-card {
+  position: relative;
+  padding: $spacing-lg;
+  background: rgba(6, 4, 15, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.48);
+  color: $text-light;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-md;
+  min-height: 230px;
+  overflow: hidden;
+
+  &::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: radial-gradient(circle at 20% 20%, rgba(239, 187, 61, 0.08), transparent 35%),
+      radial-gradient(circle at 80% 10%, rgba(203, 171, 255, 0.16), transparent 40%);
+    pointer-events: none;
+    opacity: 0.9;
+  }
+
+  &__stars {
+    position: relative;
+    display: flex;
+    gap: 0.25rem;
+    color: $secondary-color;
+    font-size: 1.05rem;
+    letter-spacing: 0.1em;
+  }
+
+  &__star {
+    color: $secondary-color;
+  }
+
+  &__star--muted {
+    color: rgba(255, 255, 255, 0.25);
+  }
+
+  &__text {
+    position: relative;
+    margin: 0;
+    font-family: "Indie Flower", "Comic Sans MS", "Segoe UI", cursive;
+    font-size: 1.05rem;
+    line-height: 1.6;
+    color: rgba(255, 255, 255, 0.95);
+  }
+
+  &__footer {
+    position: relative;
+    margin-top: auto;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+  }
+
+  &__avatar {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    overflow: hidden;
+    border: 2px solid rgba(255, 255, 255, 0.08);
+    background: linear-gradient(135deg, #1f143a, #0b0818);
+    display: grid;
+    place-items: center;
+    flex-shrink: 0;
+  }
+
+  &__avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+
+  &__initial {
+    color: $secondary-color;
+    font-weight: 800;
+    font-size: 1.1rem;
+  }
+
+  &__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+  }
+
+  &__name {
+    margin: 0;
+    font-weight: 800;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  &__role {
+    margin: 0;
+    color: rgba(255, 255, 255, 0.75);
+    font-size: 0.95rem;
+  }
+}
+
+@media (max-width: $mobile) {
+  .opinion-card {
+    padding: $spacing-md;
+    min-height: 200px;
+    gap: $spacing-sm;
+  }
+
+  .opinion-card__text {
+    font-size: 1rem;
+  }
+}

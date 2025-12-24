@@ -1,0 +1,121 @@
+@use "../../../assets/styles/variables" as *;
+
+.opinions {
+  position: relative;
+  padding: 5.5rem $spacing-lg;
+  background: radial-gradient(circle at 12% 12%, rgba(239, 187, 61, 0.12), transparent 32%),
+    radial-gradient(circle at 85% 18%, rgba(203, 171, 255, 0.18), transparent 36%),
+    linear-gradient(180deg, #0a0516 0%, #130b2d 100%);
+  overflow: hidden;
+
+  @media (max-width: $tablet) {
+    padding: 4rem $spacing-md;
+  }
+
+  @media (max-width: $mobile) {
+    padding: 3.5rem $spacing-sm;
+  }
+
+  &__halo {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    background: radial-gradient(circle at 50% 55%, rgba(203, 171, 255, 0.12), transparent 50%);
+    filter: blur(60px);
+  }
+
+  &__content {
+    position: relative;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    align-items: center;
+    text-align: center;
+  }
+
+  &__eyebrow {
+    margin: 0;
+    color: $secondary-color;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+  }
+
+  h2 {
+    margin: 0;
+    letter-spacing: 0.04em;
+  }
+
+  &__lead {
+    margin: 0;
+    max-width: 780px;
+    font-family: "Indie Flower", "Comic Sans MS", "Segoe UI", cursive;
+    font-size: 1.05rem;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: center;
+    margin-top: $spacing-sm;
+  }
+
+  &__reviews-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.6rem 1.4rem;
+    border-radius: 999px;
+    border: 1px solid rgba(239, 187, 61, 0.35);
+    color: $text-light;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    background: linear-gradient(135deg, rgba(239, 187, 61, 0.12), rgba(203, 171, 255, 0.12));
+    transition: transform 0.2s ease, border-color 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      border-color: $secondary-color;
+    }
+  }
+
+  &__carousel {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+  }
+
+  &__viewport {
+    flex: 1;
+    overflow: hidden;
+  }
+
+  &__track {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+    gap: $spacing-lg;
+  }
+
+  &__arrow {
+    border: none;
+    background: transparent;
+    color: $text-light;
+    font-size: 2rem;
+    cursor: pointer;
+    padding: $spacing-xs;
+    transition: transform 0.2s ease, color 0.2s ease;
+
+    &:hover {
+      transform: translateY(-2px);
+      color: $secondary-color;
+    }
+  }
+}

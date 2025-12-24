@@ -54,6 +54,7 @@ const Header = () => {
       className={`header ${isScrolled ? "header--scrolled" : ""}`}
       initial={{ y: -100 }}
       animate={{ y: 0 }}
+      style={{ backdropFilter: headerBlur }}
       transition={{ duration: 0.5 }}
     >
       <div className="header__container">

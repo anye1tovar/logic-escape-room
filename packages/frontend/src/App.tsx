@@ -6,9 +6,12 @@ import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar
 import About from "./components/landing/About/About";
 import Guidelines from "./components/landing/Guidelines";
 import Hero from "./components/landing/Hero";
+import Opinions from "./components/landing/Opinions";
 import Pricing from "./components/landing/Pricing";
+import Location from "./components/landing/Location";
 import Rooms from "./components/landing/Rooms";
 import Header from "./components/layout/Header";
+import Footer from "./components/layout/Footer";
 import { BookingModalProvider } from "./contexts/BookingModalContext";
 import Booking from "./pages/Booking/Booking";
 import BookingConfirm from "./pages/Booking/BookingConfirm";
@@ -26,9 +29,12 @@ function HomeContent() {
         <About />
         <Rooms />
         <Guidelines />
-        <AnnouncementBar text={t("topHeader.announcement")} />
         <Pricing />
+        <Opinions />
+        <Location />
+        <AnnouncementBar text={t("topHeader.announcement")} />
       </main>
+      <Footer />
     </div>
   );
 }

@@ -23,7 +23,7 @@ export const BookingModalProvider: React.FC<{ children: React.ReactNode }> = ({
 }) => {
   const [open, setOpen] = useState(false);
   const openBooking = useCallback(
-    (opts?: { roomId?: string; date?: string; time?: string }) => {
+    (_opts?: { roomId?: string; date?: string; time?: string }) => {
       setOpen(true);
       // we could store opts in state later if needed
     },

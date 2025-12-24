@@ -1,0 +1,7 @@
+[
+  { "platform": "Instagram", "url": "https://instagram.com/logic_escape_room", "icon": "IG" },
+  { "platform": "WhatsApp", "url": "https://wa.me/573001234567", "icon": "WA" },
+  { "platform": "Facebook", "url": "https://facebook.com/logic_escape_room", "icon": "FB" },
+  { "platform": "TikTok", "url": "https://tiktok.com/@logic_escape_room", "icon": "TT" },
+  { "platform": "YouTube", "url": "https://youtube.com/@logic_escape_room", "icon": "YT" }
+]
