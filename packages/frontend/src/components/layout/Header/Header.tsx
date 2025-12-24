@@ -67,7 +67,7 @@ const Header = () => {
           <a href="#home">
             <span className="header__logo-icon">🔐</span>
             <span className="header__logo-text">
-              Logic <span className="header__logo-highlight">Escape</span>
+              LOGIC <span className="header__logo-highlight">Escape Room</span>
             </span>
           </a>
         </motion.div>

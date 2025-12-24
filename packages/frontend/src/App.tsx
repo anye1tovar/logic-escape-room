@@ -1,17 +1,21 @@
 import { ThemeProvider } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
+import wallmapImg from "./assets/landing/wallmap.png";
+import jugadoresImg from "./assets/landing/jugadores.png";
+import notasImg from "./assets/landing/notas.png";
 import BookingModal from "./components/BookingModal/BookingModal";
 import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
 import About from "./components/landing/About/About";
 import Guidelines from "./components/landing/Guidelines";
 import Hero from "./components/landing/Hero";
+import Location from "./components/landing/Location";
 import Opinions from "./components/landing/Opinions";
 import Pricing from "./components/landing/Pricing";
-import Location from "./components/landing/Location";
 import Rooms from "./components/landing/Rooms";
-import Header from "./components/layout/Header";
 import Footer from "./components/layout/Footer";
+import Header from "./components/layout/Header";
+import PinZoomOverlay from "./components/PinnedZoomOverlay/PinnedZoomOverlay";
 import { BookingModalProvider } from "./contexts/BookingModalContext";
 import Booking from "./pages/Booking/Booking";
 import BookingConfirm from "./pages/Booking/BookingConfirm";
@@ -26,13 +30,14 @@ function HomeContent() {
       <Hero />
       <AnnouncementBar text={t("topHeader.announcement")} />
       <main>
-        <About />
+        <PinZoomOverlay imageUrl={wallmapImg} overlay={<About />} />
         <Rooms />
         <Guidelines />
         <AnnouncementBar text={t("topHeader.announcement")} />
-        <Pricing />
+        <PinZoomOverlay imageUrl={jugadoresImg} overlay={<Pricing />} />
         <Opinions />
         <AnnouncementBar text={t("topHeader.announcement")} />
+        <PinZoomOverlay imageUrl={notasImg} overlay={<Pricing />} />
         <Location />
       </main>
       <Footer />
