@@ -1,7 +1,23 @@
 [
-  { "platform": "Instagram", "url": "https://instagram.com/logic_escape_room", "icon": "IG" },
-  { "platform": "WhatsApp", "url": "https://wa.me/573001234567", "icon": "WA" },
-  { "platform": "Facebook", "url": "https://facebook.com/logic_escape_room", "icon": "FB" },
-  { "platform": "TikTok", "url": "https://tiktok.com/@logic_escape_room", "icon": "TT" },
-  { "platform": "YouTube", "url": "https://youtube.com/@logic_escape_room", "icon": "YT" }
+  {
+    "platform": "Instagram",
+    "url": "https://www.instagram.com/logic.escapetunja/",
+    "icon": "IG"
+  },
+  { "platform": "WhatsApp", "url": "https://wa.me/573181278688", "icon": "WA" },
+  {
+    "platform": "Facebook",
+    "url": "https://www.facebook.com/61575512330311",
+    "icon": "FB"
+  },
+  {
+    "platform": "TikTok",
+    "url": "https://www.tiktok.com/@logic.escaperoom",
+    "icon": "TT"
+  },
+  {
+    "platform": "YouTube",
+    "url": "https://www.youtube.com/channel/UC_oXGwea8rRPW0ISeP41NLQ",
+    "icon": "YT"
+  }
 ]

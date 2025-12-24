@@ -41,7 +41,7 @@
       },
       {
         "title": "No distraer ni ignorar",
-        "lines": ["al Game-Master, él está para ayudarte"]
+        "lines": ["al Game-Master, está para ayudarte"]
       },
       {
         "title": "Ven con ropa cómoda",
@@ -56,7 +56,10 @@
   },
   "rooms": {
     "eyebrow": "JUEGOS DE ESCAPE",
-    "title": { "line1": "NUESTRAS", "line2": "AVENTURAS" },
+    "title": {
+      "line1": "NUESTRAS",
+      "line2": "AVENTURAS"
+    },
     "lead": {
       "primary": "Entra a un mundo donde cada detalle es una pista y cada segundo cuenta. Descubre desafíos únicos, enigmas que pondrán a prueba tu mente.",
       "secondary": "REÚNE A TU EQUIPO, ENCIENDE TU CURIOSIDAD Y DÉJATE LLEVAR POR LA AVENTURA QUE TE ESPERA."
@@ -74,7 +77,9 @@
       "age": "Edad",
       "anyAge": "Todas las edades"
     },
-    "actions": { "book": "Reservar" },
+    "actions": {
+      "book": "Reservar"
+    },
     "loading": "Cargando salas...",
     "loadError": "No pudimos cargar las salas. Mostramos las destacadas.",
     "emptyFallback": "Mostramos nuestras favoritas.",
@@ -93,9 +98,33 @@
       "manicomio": "Un escape psicológico donde cada detalle cuenta."
     }
   },
+  "location": {
+    "eyebrow": "Encuéntranos",
+    "title": {
+      "start": "Aquí puede iniciar tu",
+      "highlight": "aventura"
+    },
+    "link": "Abrir en Google Maps ↗",
+    "mapTitle": "Mapa Logic Escape Room"
+  },
+  "opinions": {
+    "eyebrow": "Testimonios",
+    "title": "Opiniones de nuestros usuarios",
+    "lead": "Historias reales de grupos que ya vivieron la experiencia Logic.",
+    "actions": {
+      "viewAll": "Ver todas en Google Reviews ↗",
+      "prev": "‹",
+      "next": "›",
+      "prevAria": "Opiniones anteriores",
+      "nextAria": "Opiniones siguientes"
+    }
+  },
   "pricing": {
     "eyebrow": "UNA EXPERIENCIA ÉPICA CON TARIFAS PENSADAS PARA TODOS",
-    "title": { "line1": "NUESTRAS", "line2": "TARIFAS" },
+    "title": {
+      "line1": "NUESTRAS",
+      "line2": "TARIFAS"
+    },
     "lead": [
       "Entre más grande sea el grupo, menor es el costo por persona.",
       "Los precios varían según si vienes entre semana o fin de semana."
@@ -105,12 +134,30 @@
       "range": "Lunes a Jueves",
       "note": "Precio por persona",
       "items": [
-        { "players": 7, "price": 27000 },
-        { "players": 6, "price": 27000 },
-        { "players": 5, "price": 30000 },
-        { "players": 4, "price": 33000 },
-        { "players": 3, "price": 35000 },
-        { "players": 2, "price": 37000 }
+        {
+          "players": 7,
+          "price": 27000
+        },
+        {
+          "players": 6,
+          "price": 27000
+        },
+        {
+          "players": 5,
+          "price": 30000
+        },
+        {
+          "players": 4,
+          "price": 33000
+        },
+        {
+          "players": 3,
+          "price": 35000
+        },
+        {
+          "players": 2,
+          "price": 37000
+        }
       ]
     },
     "weekend": {
@@ -118,16 +165,34 @@
       "range": "Viernes a Domingo",
       "note": "Precio por persona",
       "items": [
-        { "players": 7, "price": 30000 },
-        { "players": 6, "price": 30000 },
-        { "players": 5, "price": 33000 },
-        { "players": 4, "price": 36000 },
-        { "players": 3, "price": 38000 },
-        { "players": 2, "price": 40000 }
+        {
+          "players": 7,
+          "price": 30000
+        },
+        {
+          "players": 6,
+          "price": 30000
+        },
+        {
+          "players": 5,
+          "price": 33000
+        },
+        {
+          "players": 4,
+          "price": 36000
+        },
+        {
+          "players": 3,
+          "price": 38000
+        },
+        {
+          "players": 2,
+          "price": 40000
+        }
       ]
     },
     "highlight": {
-      "title": "Una experiencia épica",
+      "title": "Una experiencia Ã©pica",
       "subtitle": "Con tarifas pensadas para todos.",
       "cta": "Reserva tu aventura"
     },
@@ -147,7 +212,7 @@
     "step1": "Fecha, Sala y Horario",
     "step2": "Asistentes",
     "step3": "Datos Personales",
-    "step4": "Confirmación",
+    "step4": "ConfirmaciÃ³n",
     "selectDate": "Selecciona fecha",
     "selectRoom": "Selecciona una sala",
     "selectTime": "Selecciona horario",
@@ -174,5 +239,14 @@
         "body": "En Logic diseñamos y operamos experiencias de escape inmersivas, donde grupos de amigos, familias, parejas o equipos de trabajo deben resolver enigmas, buscar pistas y completar misiones antes de que el tiempo se acabe. Creamos salas temáticas originales, elaboramos acertijos únicos y construimos ambientes que mezclan tecnología, narrativa y juego. Nuestro objetivo es que vivas una aventura intensa, emocionante y diferente."
       }
     ]
+  },
+  "footer": {
+    "cta": "Contáctanos",
+    "titleLine1": "Comunícate",
+    "titleLine2": "con nosotros.",
+    "address": "Cl. 32 #5-72 3 piso, Tunja, Boyacá",
+    "phone": "3181278688",
+    "email": "escaperoom.logic@gmail.com",
+    "note": "Escríbenos y reserva tu aventura"
   }
 }

@@ -29,10 +29,11 @@ function HomeContent() {
         <About />
         <Rooms />
         <Guidelines />
+        <AnnouncementBar text={t("topHeader.announcement")} />
         <Pricing />
         <Opinions />
-        <Location />
         <AnnouncementBar text={t("topHeader.announcement")} />
+        <Location />
       </main>
       <Footer />
     </div>

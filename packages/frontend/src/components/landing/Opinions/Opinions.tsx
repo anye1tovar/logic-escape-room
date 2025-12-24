@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import { useTranslation } from "react-i18next";
 import opinionsData from "../../../assets/data/opinions.json";
 import OpinionCard from "../../common/OpinionCard";
 import type { Opinion } from "../../common/OpinionCard";
@@ -16,6 +17,7 @@ const getPerView = () => {
 };
 
 const Opinions = () => {
+  const { t } = useTranslation();
   const opinions = useMemo(
     () =>
       (opinionsData as Opinion[]).filter(
@@ -57,10 +59,15 @@ const Opinions = () => {
       <div className="opinions__halo" />
       <div className="opinions__content">
         <header className="opinions__header">
-          <p className="opinions__eyebrow">Testimonios</p>
-          <h2>Opiniones de nuestros usuarios</h2>
+          <p className="opinions__eyebrow">
+            {t("opinions.eyebrow", "Testimonios")}
+          </p>
+          <h2>{t("opinions.title", "Opiniones de nuestros usuarios")}</h2>
           <p className="opinions__lead">
-            Historias reales de grupos que ya vivieron la experiencia Logic.
+            {t(
+              "opinions.lead",
+              "Historias reales de grupos que ya vivieron la experiencia Logic."
+            )}
           </p>
           <div className="opinions__actions">
             <a
@@ -69,7 +76,10 @@ const Opinions = () => {
               target="_blank"
               rel="noreferrer"
             >
-              Ver todas en Google Reviews →
+              {t(
+                "opinions.actions.viewAll",
+                "Ver todas en Google Reviews \u2197"
+              )}
             </a>
           </div>
         </header>
@@ -79,9 +89,12 @@ const Opinions = () => {
             type="button"
             className="opinions__arrow opinions__arrow--prev"
             onClick={showPrev}
-            aria-label="Opiniones anteriores"
+            aria-label={t(
+              "opinions.actions.prevAria",
+              "Opiniones anteriores"
+            )}
           >
-            ‹
+            {t("opinions.actions.prev", "\u2039")}
           </button>
           <div className="opinions__viewport">
             <AnimatePresence
@@ -123,9 +136,9 @@ const Opinions = () => {
             type="button"
             className="opinions__arrow opinions__arrow--next"
             onClick={showNext}
-            aria-label="Opiniones siguientes"
+            aria-label={t("opinions.actions.nextAria", "Opiniones siguientes")}
           >
-            ›
+            {t("opinions.actions.next", "\u203a")}
           </button>
         </div>
       </div>

@@ -1,6 +1,12 @@
 {
   "header": {
-    "menu": ["Home", "Rooms", "About", "Pricing", "Contact"],
+    "menu": [
+      "Home",
+      "Rooms",
+      "About",
+      "Pricing",
+      "Contact"
+    ],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },
@@ -12,7 +18,11 @@
   "hero": {
     "badge": "The best escape room experience in Tunja",
     "titlePrefix": "Challenge your mind at",
-    "titleHighlights": ["Logic Escape Room", "A Unique Adventure", "An Unforgettable Challenge"],
+    "titleHighlights": [
+      "Logic Escape Room",
+      "A Unique Adventure",
+      "An Unforgettable Challenge"
+    ],
     "description": "Immerse yourself in a world of puzzles, mysteries and teamwork. Do you have what it takes to escape in 60 minutes?",
     "reserve": "Reserve Now",
     "viewRooms": "View Rooms",
@@ -28,16 +38,28 @@
     "subtitle": "Before entering any of our rooms, it's important to know these basic rules.",
     "rules": [
       {
-        "title": "There is a minimum age of 12",
-        "lines": ["Content strategy"]
+        "title": "There is a minimum age per room",
+        "lines": [
+          "Kids 9+ can enter with an adult"
+        ]
       },
       {
         "title": "Don't reveal clues or spoilers",
-        "lines": ["to other groups"]
+        "lines": [
+          "to other groups; let everyone enjoy the mystery"
+        ]
       },
       {
         "title": "Do not distract or ignore",
-        "lines": ["the Game Master"]
+        "lines": [
+          "the Game Master; they are there to help you"
+        ]
+      },
+      {
+        "title": "Wear comfortable clothes",
+        "lines": [
+          "and be ready to move and crouch"
+        ]
       }
     ],
     "fact": {
@@ -48,7 +70,10 @@
   },
   "rooms": {
     "eyebrow": "OUR ADVENTURES",
-    "title": { "line1": "OUR", "line2": "ADVENTURES" },
+    "title": {
+      "line1": "OUR",
+      "line2": "ADVENTURES"
+    },
     "lead": {
       "primary": "Step into a world where every detail is a clue and every second counts. Discover unique challenges and puzzles that put your mind to the test.",
       "secondary": "Gather your crew, spark your curiosity, and let the journey pull you in."
@@ -66,7 +91,9 @@
       "age": "Age",
       "anyAge": "All ages"
     },
-    "actions": { "book": "Book now" },
+    "actions": {
+      "book": "Book now"
+    },
     "loading": "Loading rooms...",
     "loadError": "We couldn't load the rooms. Showing our favorites.",
     "emptyFallback": "Showing our favorites.",
@@ -85,24 +112,66 @@
       "manicomio": "A psychological escape where every detail matters."
     }
   },
+  "location": {
+    "eyebrow": "Find us",
+    "title": {
+      "start": "This is where your",
+      "highlight": "adventure begins"
+    },
+    "link": "Open in Google Maps ↗",
+    "mapTitle": "Logic Escape Room map"
+  },
+  "opinions": {
+    "eyebrow": "Testimonials",
+    "title": "What our players say",
+    "lead": "Real stories from teams who already lived the Logic experience.",
+    "actions": {
+      "viewAll": "See all on Google Reviews ↗",
+      "prev": "‹",
+      "next": "›",
+      "prevAria": "Previous opinions",
+      "nextAria": "Next opinions"
+    }
+  },
   "pricing": {
     "eyebrow": "OUR RATES",
-    "title": { "line1": "OUR", "line2": "RATES" },
+    "title": {
+      "line1": "OUR",
+      "line2": "RATES"
+    },
     "lead": [
       "The larger the group, the lower the cost per person.",
-      "Prices change for groups of 2, 3, 4 or more players and by day."
+      "Prices vary depending on whether you come on weekdays or weekends."
     ],
     "weekday": {
       "label": "Weekdays",
       "range": "Monday to Thursday",
       "note": "Price per person",
       "items": [
-        { "players": 7, "price": 27000 },
-        { "players": 6, "price": 27000 },
-        { "players": 5, "price": 30000 },
-        { "players": 4, "price": 33000 },
-        { "players": 3, "price": 35000 },
-        { "players": 2, "price": 37000 }
+        {
+          "players": 7,
+          "price": 27000
+        },
+        {
+          "players": 6,
+          "price": 27000
+        },
+        {
+          "players": 5,
+          "price": 30000
+        },
+        {
+          "players": 4,
+          "price": 33000
+        },
+        {
+          "players": 3,
+          "price": 35000
+        },
+        {
+          "players": 2,
+          "price": 37000
+        }
       ]
     },
     "weekend": {
@@ -110,12 +179,30 @@
       "range": "Friday to Sunday",
       "note": "Price per person",
       "items": [
-        { "players": 7, "price": 30000 },
-        { "players": 6, "price": 30000 },
-        { "players": 5, "price": 33000 },
-        { "players": 4, "price": 36000 },
-        { "players": 3, "price": 38000 },
-        { "players": 2, "price": 40000 }
+        {
+          "players": 7,
+          "price": 30000
+        },
+        {
+          "players": 6,
+          "price": 30000
+        },
+        {
+          "players": 5,
+          "price": 33000
+        },
+        {
+          "players": 4,
+          "price": 36000
+        },
+        {
+          "players": 3,
+          "price": 38000
+        },
+        {
+          "players": 2,
+          "price": 40000
+        }
       ]
     },
     "highlight": {
@@ -155,7 +242,10 @@
   },
   "about": {
     "title": "WELCOME TO OUR WORLD",
-    "titleLines": ["WELCOME", "TO OUR WORLD"],
+    "titleLines": [
+      "WELCOME",
+      "TO OUR WORLD"
+    ],
     "sections": [
       {
         "title": "WHO WE ARE",
@@ -166,5 +256,14 @@
         "body": "At Logic we design and operate immersive escape experiences where groups of friends, families, couples, or teams must solve riddles, find clues, and complete missions before time runs out. We build original themed rooms, craft unique puzzles, and create environments that blend technology, narrative, and gameplay. Our goal is to give you an intense, exciting, and different adventure."
       }
     ]
+  },
+  "footer": {
+    "cta": "Contact us",
+    "titleLine1": "Reach out",
+    "titleLine2": "to us.",
+    "address": "Cl. 32 #5-72 3rd floor, Tunja, Boyacá",
+    "phone": "3181278688",
+    "email": "escaperoom.logic@gmail.com",
+    "note": "Write to us and book your adventure"
   }
 }
