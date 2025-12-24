@@ -263,6 +263,12 @@
     "labels": {
       "unavailable": "Agotado"
     },
+    "banner": {
+      "title": "¿Quieres jugar mientras esperas?",
+      "copy": "Tenemos juegos de mesa para la cafetería. Mira cómo se juegan en 30 segundos.",
+      "cta": "Ver playlist de juegos",
+      "playlistUrl": "#"
+    },
     "sections": {
       "hotDrinks": "Bebidas calientes",
       "coldDrinks": "Bebidas frías",

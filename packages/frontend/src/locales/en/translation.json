@@ -282,6 +282,12 @@
     "labels": {
       "unavailable": "Unavailable"
     },
+    "banner": {
+      "title": "Want to play while you wait?",
+      "copy": "We have board games for the cafeteria. Learn how to play in 30 seconds.",
+      "cta": "Watch the games playlist",
+      "playlistUrl": "#"
+    },
     "sections": {
       "hotDrinks": "Hot drinks",
       "coldDrinks": "Cold drinks",

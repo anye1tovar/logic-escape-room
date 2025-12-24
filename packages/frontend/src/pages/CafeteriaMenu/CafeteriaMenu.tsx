@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { useNavigate } from "react-router-dom";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import menuData from "../../assets/data/cafeteria-menu.json";
@@ -46,7 +45,6 @@ function isImageUrl(value: string) {
 
 export default function CafeteriaMenu() {
   const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
 
   useEffect(() => {
@@ -56,9 +54,36 @@ export default function CafeteriaMenu() {
   const data = menuData as CafeteriaMenuData;
   const currency = data.currency || "COP";
 
-  const locale = i18n.language && i18n.language.startsWith("en") ? "en-US" : "es-CO";
+  const locale =
+    i18n.language && i18n.language.startsWith("en") ? "en-US" : "es-CO";
 
   const categories = useMemo(() => data.categories || [], [data.categories]);
+  const titleLines = useMemo(() => {
+    const maybeLines = t("cafeteria.titleLines", {
+      returnObjects: true,
+      defaultValue: null,
+    }) as unknown;
+
+    if (
+      Array.isArray(maybeLines) &&
+      maybeLines.every((value) => typeof value === "string")
+    ) {
+      return maybeLines as string[];
+    }
+
+    const title = t("cafeteria.title");
+    const separators = [" & ", " - ", " – ", " | ", ": "];
+    for (const separator of separators) {
+      const idx = title.indexOf(separator);
+      if (idx > 0) {
+        const left = title.slice(0, idx).trim();
+        const right = title.slice(idx + separator.length).trim();
+        if (left && right) return [left, right];
+      }
+    }
+
+    return [title];
+  }, [t]);
 
   const visibleCategories = useMemo(() => {
     if (selectedCategory === "all") return categories;
@@ -71,32 +96,59 @@ export default function CafeteriaMenu() {
       <main className="cafeteria-menu__main">
         <div className="cafeteria-menu__container">
           <div className="cafeteria-menu__header">
-            <div>
+            <div className="cafeteria-menu__title-block">
               <p className="cafeteria-menu__eyebrow">
                 {t("cafeteria.eyebrow")}
               </p>
-              <h1 className="cafeteria-menu__title">{t("cafeteria.title")}</h1>
+              <h1 className="cafeteria-menu__title">
+                {titleLines.map((line, idx) => (
+                  <span
+                    key={`${idx}-${line}`}
+                    className={
+                      idx === titleLines.length - 1
+                        ? "cafeteria-menu__title-accent"
+                        : undefined
+                    }
+                  >
+                    {line}
+                  </span>
+                ))}
+              </h1>
+            </div>
+
+            <div className="cafeteria-menu__copy">
               <p className="cafeteria-menu__subtitle">
                 {t("cafeteria.subtitle")}
               </p>
-              <p className="cafeteria-menu__meta">
-                {t("cafeteria.pricesNote")} {currency}.
-              </p>
+
+              <div className="cafeteria-menu__banner" role="region">
+                <div className="cafeteria-menu__banner-text">
+                  <h3 className="cafeteria-menu__banner-title">
+                    {t("cafeteria.banner.title")}
+                  </h3>
+                </div>
+                <a
+                  className="cafeteria-menu__banner-cta"
+                  href={t("cafeteria.banner.playlistUrl", "#")}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  {t("cafeteria.banner.cta")}
+                </a>
+              </div>
             </div>
-            <button
-              type="button"
-              className="cafeteria-menu__back"
-              onClick={() => navigate("/")}
-            >
-              {t("cafeteria.backHome")}
-            </button>
           </div>
 
-          <div className="cafeteria-menu__filters" aria-label={t("cafeteria.filters.label")}>
+          <div
+            className="cafeteria-menu__filters"
+            aria-label={t("cafeteria.filters.label")}
+          >
             <button
               type="button"
               className={`cafeteria-menu__filter ${
-                selectedCategory === "all" ? "cafeteria-menu__filter--active" : ""
+                selectedCategory === "all"
+                  ? "cafeteria-menu__filter--active"
+                  : ""
               }`}
               aria-pressed={selectedCategory === "all"}
               onClick={() => setSelectedCategory("all")}
@@ -131,7 +183,9 @@ export default function CafeteriaMenu() {
                     <article
                       key={item.name}
                       className={`cafeteria-menu__card ${
-                        item.available === false ? "cafeteria-menu__card--disabled" : ""
+                        item.available === false
+                          ? "cafeteria-menu__card--disabled"
+                          : ""
                       }`}
                     >
                       <div className="cafeteria-menu__media">
@@ -141,8 +195,9 @@ export default function CafeteriaMenu() {
                             alt={item.name}
                             loading="lazy"
                             onError={(e) => {
-                              (e.currentTarget as HTMLImageElement).style.display =
-                                "none";
+                              (
+                                e.currentTarget as HTMLImageElement
+                              ).style.display = "none";
                             }}
                           />
                         ) : (

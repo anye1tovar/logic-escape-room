@@ -11,25 +11,40 @@
     max-width: 1100px;
     margin: 0 auto;
     padding: $spacing-xl $spacing-lg;
+
+    @media (max-width: $mobile) {
+      padding: $spacing-lg $spacing-md;
+    }
   }
 
   &__eyebrow {
-    letter-spacing: 0.18em;
-    text-transform: uppercase;
-    opacity: 0.85;
+    letter-spacing: 0.12em;
     font-size: 0.95rem;
+    color: $secondary-color;
+    margin: 0;
   }
 
   &__title {
-    margin-top: $spacing-sm;
-    font-size: 3.2rem;
-    line-height: 1;
+    margin: 0;
+    font-size: 3.5rem;
+    line-height: 0.95;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    @media (max-width: $tablet) {
+      font-size: 3rem;
+    }
+  }
+
+  &__title-accent {
+    color: $primary-color;
+    text-shadow: 0 8px 25px rgba(203, 171, 255, 0.35);
   }
 
   &__subtitle {
-    margin-top: $spacing-sm;
+    margin: 0;
     opacity: 0.9;
-    max-width: 60ch;
   }
 
   &__meta {
@@ -38,34 +53,91 @@
     opacity: 0.85;
   }
 
-  &__header {
+  &__banner {
+    margin-top: 0;
+    padding: $spacing-md;
+    border-radius: 14px;
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     justify-content: space-between;
-    gap: $spacing-lg;
-    padding: $spacing-lg;
-    border-radius: 16px;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+    gap: $spacing-md;
+    background: linear-gradient(
+      135deg,
+      rgba(203, 171, 255, 0.16),
+      rgba(239, 187, 61, 0.1)
+    );
+    border: 1px solid rgba(255, 255, 255, 0.12);
+
+    @media (max-width: $tablet) {
+      flex-direction: column;
+      align-items: stretch;
+    }
   }
 
-  &__back {
-    background: transparent;
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    color: $text-light;
+  &__banner-title {
+    font-size: 1.6rem;
+  }
+
+  &__banner-copy {
+    margin-top: 6px;
+    opacity: 0.92;
+  }
+
+  &__banner-cta {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     padding: 10px 14px;
     border-radius: 10px;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease,
-      background 0.15s ease;
+    text-decoration: none;
+    color: $text-light;
+    font-weight: 700;
+    background: linear-gradient(135deg, $primary-color, $secondary-color);
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
     white-space: nowrap;
 
     &:hover {
       transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.06);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
     }
+  }
+
+  &__header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: $spacing-xl;
+    align-items: center;
+    padding: $spacing-lg;
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0)
+    );
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+      gap: $spacing-lg;
+      padding: $spacing-md;
+    }
+  }
+
+  &__title-block {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    color: $text-light;
+    font-size: 1.05rem;
+    line-height: 1.7;
   }
 
   &__grid {
@@ -127,6 +199,10 @@
     overflow: hidden;
     display: flex;
     align-items: stretch;
+
+    @media (max-width: $mobile) {
+      flex-direction: column;
+    }
   }
 
   &__card--disabled {
@@ -139,9 +215,15 @@
     overflow: hidden;
     background: rgba(255, 255, 255, 0.04);
 
+    @media (max-width: $tablet) {
+      width: 140px;
+      flex-basis: 140px;
+    }
+
     @media (max-width: $mobile) {
-      width: 120px;
-      flex-basis: 120px;
+      width: 100%;
+      flex-basis: auto;
+      height: 160px;
     }
 
     img {
@@ -170,6 +252,10 @@
     gap: $spacing-sm;
     justify-content: center;
     min-width: 0;
+
+    @media (max-width: $mobile) {
+      padding: $spacing-md;
+    }
   }
 
   &__card-top {
@@ -177,6 +263,11 @@
     justify-content: space-between;
     gap: $spacing-md;
     align-items: baseline;
+
+    @media (max-width: $mobile) {
+      flex-wrap: wrap;
+      align-items: flex-start;
+    }
   }
 
   &__item-right {
