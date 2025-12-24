@@ -20,6 +20,30 @@
   &__title {
     text-align: left;
     margin: 0;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1.05;
+    position: relative;
+    display: inline-flex;
+    flex-direction: column;
+    gap: 0;
+    align-items: flex-start;
+    padding-bottom: $spacing-sm;
+    align-self: flex-start;
+
+    &::after {
+      content: "";
+      display: block;
+      width: 72px;
+      height: 4px;
+      border-radius: 999px;
+      background: linear-gradient(120deg, $secondary-color, $primary-color);
+      box-shadow: 0 8px 24px rgba($secondary-color, 0.35);
+    }
+
+    @media (max-width: $tablet) {
+      letter-spacing: 0.06em;
+    }
   }
 
   &__image-wrapper {
@@ -49,6 +73,13 @@
 
   &__title-line {
     display: block;
+    color: $text-light;
+    text-shadow: 0 8px 32px rgba(0, 0, 0, 0.35);
+  }
+
+  &__title-line--highlight {
+    color: $secondary-color;
+    text-shadow: 0 10px 30px rgba($secondary-color, 0.4);
   }
 
   p {

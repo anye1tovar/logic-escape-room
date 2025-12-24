@@ -23,7 +23,14 @@ const About = () => {
         <Typography component="h2" variant="h4" className="about__title">
           {hasTitleLines
             ? titleLines.map((line, idx) => (
-                <span key={`${line}-${idx}`} className="about__title-line">
+                <span
+                  key={`${line}-${idx}`}
+                  className={`about__title-line ${
+                    idx === titleLines.length - 1
+                      ? "about__title-line--highlight"
+                      : ""
+                  }`}
+                >
                   {line}
                 </span>
               ))
