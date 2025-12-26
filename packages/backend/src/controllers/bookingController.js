@@ -18,6 +18,16 @@ function buildBookingController(service) {
     }
   }
 
+  async function getAvailability(req, res) {
+    try {
+      const { date } = req.query;
+      const availability = await service.getAvailabilityByDate(date);
+      res.json(availability);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   async function getBooking(req, res) {
     try {
       const { id } = req.params;
@@ -32,6 +42,7 @@ function buildBookingController(service) {
   return {
     createBooking,
     listBookings,
+    getAvailability,
     getBooking,
   };
 }

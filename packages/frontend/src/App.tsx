@@ -4,7 +4,6 @@ import { BrowserRouter, Route, Routes } from "react-router-dom";
 import wallmapImg from "./assets/landing/wallmap.png";
 import jugadoresImg from "./assets/landing/jugadores.png";
 import notasImg from "./assets/landing/notas.png";
-import BookingModal from "./components/BookingModal/BookingModal";
 import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
 import About from "./components/landing/About/About";
 import Guidelines from "./components/landing/Guidelines";
@@ -17,8 +16,6 @@ import Footer from "./components/layout/Footer";
 import Header from "./components/layout/Header";
 import PinZoomOverlay from "./components/PinnedZoomOverlay/PinnedZoomOverlay";
 import { BookingModalProvider } from "./contexts/BookingModalContext";
-import Booking from "./pages/Booking/Booking";
-import BookingConfirm from "./pages/Booking/BookingConfirm";
 import CafeteriaMenu from "./pages/CafeteriaMenu/CafeteriaMenu";
 import theme from "./theme";
 
@@ -53,11 +50,8 @@ function App() {
         <BookingModalProvider>
           <Routes>
             <Route path="/" element={<HomeContent />} />
-            <Route path="/booking" element={<Booking />} />
-            <Route path="/booking/confirm" element={<BookingConfirm />} />
             <Route path="/cafeteria" element={<CafeteriaMenu />} />
           </Routes>
-          <BookingModal />
         </BookingModalProvider>
       </BrowserRouter>
     </ThemeProvider>

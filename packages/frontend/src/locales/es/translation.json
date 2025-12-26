@@ -203,29 +203,6 @@
     "moreContent": "Más contenido aquí...",
     "sectionsPlaceholder": "Las siguientes secciones irán aquí"
   },
-  "booking": {
-    "title": "Página de Reservas",
-    "intro": "Aquí puedes elegir tu sala y completar tu reserva.",
-    "chooseRoom": "Elige tu sala",
-    "chooseRoomDesc": "Selecciona la sala que quieres reservar y sigue los pasos.",
-    "back": "Volver al inicio",
-    "step1": "Fecha, Sala y Horario",
-    "step2": "Asistentes",
-    "step3": "Datos Personales",
-    "step4": "ConfirmaciÃ³n",
-    "selectDate": "Selecciona fecha",
-    "selectRoom": "Selecciona una sala",
-    "selectTime": "Selecciona horario",
-    "guests": "Cantidad de asistentes",
-    "firstName": "Nombre",
-    "lastName": "Apellido",
-    "email": "Correo electrónico",
-    "whatsapp": "Número de WhatsApp",
-    "sendReceipt": "Enviar comprobante de pago al número corporativo",
-    "submit": "Confirmar reserva",
-    "success": "¡Reserva confirmada!",
-    "error": "Hubo un error al crear la reserva"
-  },
   "about": {
     "title": "BIENVENIDOS A NUESTRO MUNDO",
     "titleLines": ["BIENVENIDOS A", "NUESTRO MUNDO"],
@@ -267,7 +244,7 @@
       "title": "¿Quieres jugar mientras esperas?",
       "copy": "Tenemos juegos de mesa para la cafetería. Mira cómo se juegan en 30 segundos.",
       "cta": "Ver playlist de juegos",
-      "playlistUrl": "#"
+      "playlistUrl": "https://youtube.com/playlist?list=PLIcps4TycfBiXpgxkEuHdUWzoBKm-qyg_&si=ljP_4a8srchaXW4G"
     },
     "sections": {
       "hotDrinks": "Bebidas calientes",

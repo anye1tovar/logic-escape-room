@@ -1,13 +1,6 @@
 {
   "header": {
-    "menu": [
-      "Home",
-      "Rooms",
-      "About",
-      "Pricing",
-      "Contact",
-      "Cafeteria"
-    ],
+    "menu": ["Home", "Rooms", "About", "Pricing", "Contact", "Cafeteria"],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },
@@ -41,27 +34,19 @@
     "rules": [
       {
         "title": "There is a minimum age per room",
-        "lines": [
-          "Kids 9+ can enter with an adult"
-        ]
+        "lines": ["Kids 9+ can enter with an adult"]
       },
       {
         "title": "Don't reveal clues or spoilers",
-        "lines": [
-          "to other groups; let everyone enjoy the mystery"
-        ]
+        "lines": ["to other groups; let everyone enjoy the mystery"]
       },
       {
         "title": "Do not distract or ignore",
-        "lines": [
-          "the Game Master; they are there to help you"
-        ]
+        "lines": ["the Game Master; they are there to help you"]
       },
       {
         "title": "Wear comfortable clothes",
-        "lines": [
-          "and be ready to move and crouch"
-        ]
+        "lines": ["and be ready to move and crouch"]
       }
     ],
     "fact": {
@@ -219,35 +204,9 @@
     "moreContent": "More content here...",
     "sectionsPlaceholder": "The following sections will go here"
   },
-  "booking": {
-    "title": "Booking",
-    "intro": "Here you can choose your room and complete your booking.",
-    "chooseRoom": "Choose your room",
-    "chooseRoomDesc": "Select the room you'd like to book and follow the steps.",
-    "back": "Back to home",
-    "step1": "Date, Room & Time",
-    "step2": "Guests",
-    "step3": "Personal Info",
-    "step4": "Confirmation",
-    "selectDate": "Select date",
-    "selectRoom": "Select a room",
-    "selectTime": "Select time",
-    "guests": "Number of guests",
-    "firstName": "First name",
-    "lastName": "Last name",
-    "email": "Email",
-    "whatsapp": "WhatsApp number",
-    "sendReceipt": "Send payment receipt to corporate number",
-    "submit": "Confirm booking",
-    "success": "Booking confirmed!",
-    "error": "There was an error creating the booking"
-  },
   "about": {
     "title": "WELCOME TO OUR WORLD",
-    "titleLines": [
-      "WELCOME",
-      "TO OUR WORLD"
-    ],
+    "titleLines": ["WELCOME", "TO OUR WORLD"],
     "sections": [
       {
         "title": "WHO WE ARE",
