@@ -1,11 +1,10 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import { useBookingModal } from "../../../contexts/BookingModalContext";
 import logicLogo from "../../../assets/img/logic.png";
 import "./Hero.scss";
+import { useNavigate } from "react-router-dom";
 
-const interactiveTourUrl =
-  "https://view.genially.com/691f2119c3498b2b8303a23d";
+const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
 
 const statsValues = [
   { labelKey: "hero.stats.teams", value: "+1564" },
@@ -15,7 +14,10 @@ const statsValues = [
 
 const Hero = () => {
   const { t } = useTranslation();
-  const { openBooking } = useBookingModal();
+  const navigate = useNavigate();
+  const openBooking = () => {
+    navigate("/reservar");
+  };
 
   const titleHighlights = t("hero.titleHighlights", {
     returnObjects: true,

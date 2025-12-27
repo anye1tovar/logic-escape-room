@@ -14,13 +14,6 @@ async function start() {
   app.use(cors());
   app.use(bodyParser());
 
-  // build layers
-  // build layers (bookingConsumer is async to initialize)
-  const bookingConsumer = await initBookingConsumer();
-  const bookingService = buildBookingService(bookingConsumer);
-  const bookingController = buildBookingController(bookingService);
-  const bookingsRouter = createBookingsRouter(bookingController);
-
   const initRoomsConsumer = require("./consumers/roomsConsumer");
   const buildRoomsService = require("./services/roomsService");
   const buildRoomsController = require("./controllers/roomsController");
@@ -34,6 +27,22 @@ async function start() {
   const roomsService = buildRoomsService(roomsConsumer);
   const roomsController = buildRoomsController(roomsService);
   const roomsRouter = createRoomsRouter(roomsController);
+
+  const initOpeningHoursConsumer = require("./consumers/openingHoursConsumer");
+  const openingHoursConsumer = await initOpeningHoursConsumer();
+  const initColombianHolidaysConsumer = require("./consumers/colombianHolidaysConsumer");
+  const colombianHolidaysConsumer = await initColombianHolidaysConsumer();
+
+  // build layers (bookingConsumer is async to initialize)
+  const bookingConsumer = await initBookingConsumer();
+  const bookingService = buildBookingService(bookingConsumer, {
+    roomsService,
+    openingHoursConsumer,
+    colombianHolidaysConsumer,
+  });
+  const bookingController = buildBookingController(bookingService);
+  const bookingsRouter = createBookingsRouter(bookingController);
+
   const ratesConsumer = await initRatesConsumer();
   const ratesService = buildRatesService(ratesConsumer);
   const ratesController = buildRatesController(ratesService);

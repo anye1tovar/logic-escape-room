@@ -1,9 +1,9 @@
 import { ThemeProvider } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import wallmapImg from "./assets/landing/wallmap.png";
 import jugadoresImg from "./assets/landing/jugadores.png";
 import notasImg from "./assets/landing/notas.png";
+import wallmapImg from "./assets/landing/wallmap.png";
 import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
 import About from "./components/landing/About/About";
 import Guidelines from "./components/landing/Guidelines";
@@ -15,7 +15,8 @@ import Rooms from "./components/landing/Rooms";
 import Footer from "./components/layout/Footer";
 import Header from "./components/layout/Header";
 import PinZoomOverlay from "./components/PinnedZoomOverlay/PinnedZoomOverlay";
-import { BookingModalProvider } from "./contexts/BookingModalContext";
+import Booking from "./pages/Booking/Booking";
+import BookingStatus from "./pages/BookingStatus/BookingStatus";
 import CafeteriaMenu from "./pages/CafeteriaMenu/CafeteriaMenu";
 import theme from "./theme";
 
@@ -47,12 +48,12 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
-        <BookingModalProvider>
-          <Routes>
-            <Route path="/" element={<HomeContent />} />
-            <Route path="/cafeteria" element={<CafeteriaMenu />} />
-          </Routes>
-        </BookingModalProvider>
+        <Routes>
+          <Route path="/" element={<HomeContent />} />
+          <Route path="/cafeteria" element={<CafeteriaMenu />} />
+          <Route path="/reservar" element={<Booking />} />
+          <Route path="/consulta-reserva" element={<BookingStatus />} />
+        </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );

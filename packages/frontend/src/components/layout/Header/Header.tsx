@@ -1,8 +1,7 @@
-import { useState, useEffect } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useBookingModal } from "../../../contexts/BookingModalContext";
 import "./Header.scss";
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
@@ -40,15 +39,18 @@ const Header = () => {
 
   const { t, i18n } = useTranslation();
 
-  const menuItems: Array<{ name: string; href: string; kind: "hash" | "route" }> =
-    [
-      { name: t("header.menu.0"), href: "#home", kind: "hash" },
-      { name: t("header.menu.1"), href: "#rooms", kind: "hash" },
-      { name: t("header.menu.2"), href: "#about", kind: "hash" },
-      { name: t("header.menu.3"), href: "#pricing", kind: "hash" },
-      { name: t("header.menu.4"), href: "#contact", kind: "hash" },
-      { name: t("header.menu.5"), href: "/cafeteria", kind: "route" },
-    ];
+  const menuItems: Array<{
+    name: string;
+    href: string;
+    kind: "hash" | "route";
+  }> = [
+    { name: t("header.menu.0"), href: "#home", kind: "hash" },
+    { name: t("header.menu.1"), href: "#rooms", kind: "hash" },
+    { name: t("header.menu.2"), href: "#about", kind: "hash" },
+    { name: t("header.menu.3"), href: "#pricing", kind: "hash" },
+    { name: t("header.menu.4"), href: "#contact", kind: "hash" },
+    { name: t("header.menu.5"), href: "/cafeteria", kind: "route" },
+  ];
 
   const handleMenuItemClick = (
     item: (typeof menuItems)[number],
@@ -71,7 +73,9 @@ const Header = () => {
   const otherLang =
     i18n.language && i18n.language.startsWith("en") ? "es" : "en";
 
-  const { openBooking } = useBookingModal();
+  const openBooking = () => {
+    navigate("/reservar");
+  };
 
   return (
     <motion.header
