@@ -1,10 +1,46 @@
+import {
+  Box,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+} from "@mui/material";
+
+import countryDialCodes from "../../../assets/data/countryDialCodes.json";
+
 type BookingStepDetailsProps = {
   className?: string;
+};
+
+type CountryDialCode = {
+  country: string;
+  iso2: string;
+  dialCode: string;
 };
 
 export default function BookingStepDetails({
   className,
 }: BookingStepDetailsProps) {
+  const dialCodes = countryDialCodes as CountryDialCode[];
+
+  const fieldSx = {
+    "& .MuiOutlinedInput-root": {
+      borderRadius: "12px",
+      background: "rgba(255,255,255,0.04)",
+      color: "#fff",
+    },
+    "& .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(255,255,255,0.12)",
+    },
+    "&:hover .MuiOutlinedInput-notchedOutline": {
+      borderColor: "rgba(255,255,255,0.22)",
+    },
+  } as const;
+
+  const labelSx = { color: "rgba(255,255,255,0.85)" } as const;
+
   return (
     <section className={className}>
       <header className="booking-step__header">
@@ -15,43 +51,93 @@ export default function BookingStepDetails({
       </header>
 
       <div className="booking-step__content">
-        <div className="booking-form__grid booking-form__grid--two">
-          <label className="booking-form__field">
-            <span className="booking-form__label">Nombre completo</span>
-            <input
-              className="booking-form__input"
-              type="text"
-              placeholder="Tu nombre y apellido"
-            />
-          </label>
-          <label className="booking-form__field">
-            <span className="booking-form__label">Correo</span>
-            <input
-              className="booking-form__input"
-              type="email"
-              placeholder="tucorreo@ejemplo.com"
-            />
-          </label>
-          <label className="booking-form__field">
-            <span className="booking-form__label">Número de whatsapp</span>
-            <input
-              className="booking-form__input"
-              type="tel"
-              placeholder="300 000 0000"
-            />
-          </label>
-        </div>
+        <Box>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Nombre completo"
+                placeholder="Tu nombre y apellido"
+                fullWidth
+                variant="outlined"
+                InputLabelProps={{ sx: labelSx }}
+                sx={fieldSx}
+              />
+            </Grid>
+            <Grid item xs={12} md={6}>
+              <TextField
+                label="Correo"
+                placeholder="tucorreo@ejemplo.com"
+                type="email"
+                fullWidth
+                variant="outlined"
+                InputLabelProps={{ sx: labelSx }}
+                sx={fieldSx}
+              />
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Box
+                className="booking-form__phone"
+                aria-label="Número de contacto"
+              >
+                <FormControl fullWidth variant="outlined" sx={fieldSx}>
+                  <InputLabel sx={labelSx}>Indicativo</InputLabel>
+                  <Select
+                    label="Indicativo"
+                    defaultValue="+57"
+                    className="booking-form__phone-code"
+                    MenuProps={{
+                      PaperProps: {
+                        sx: {
+                          background:
+                            "linear-gradient(135deg, rgba(17,10,38,0.98), rgba(19,9,44,0.92))",
+                          border: "1px solid rgba(203,171,255,0.22)",
+                          color: "#fff",
+                        },
+                      },
+                    }}
+                  >
+                    {dialCodes.map((item) => (
+                      <MenuItem
+                        key={`${item.iso2}-${item.dialCode}`}
+                        value={item.dialCode}
+                      >
+                        {item.iso2} {item.dialCode}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+
+                <TextField
+                  label="Número"
+                  type="tel"
+                  fullWidth
+                  variant="outlined"
+                  inputProps={{ inputMode: "tel" }}
+                  className="booking-form__phone-number"
+                  InputLabelProps={{ sx: labelSx }}
+                  sx={fieldSx}
+                />
+              </Box>
+
+              <p className="booking-form__hint booking-form__hint--inline">
+                Usaremos este número para escribirte por WhatsApp si es
+                necesario.
+              </p>
+            </Grid>
+          </Grid>
+        </Box>
 
         <div className="booking-form__section">
           <h3 className="booking-form__section-title">Notas</h3>
-          <label className="booking-form__field">
-            <span className="booking-form__label">Indicaciones especiales</span>
-            <textarea
-              className="booking-form__textarea"
-              placeholder="Cumpleaños, accesibilidad, claustrofobia, etc."
-              rows={4}
-            />
-          </label>
+          <TextField
+            placeholder="Cumpleaños, accesibilidad, claustrofobia, etc."
+            fullWidth
+            multiline
+            minRows={4}
+            InputLabelProps={{ sx: labelSx }}
+            sx={fieldSx}
+          />
         </div>
       </div>
 

@@ -379,6 +379,25 @@
     resize: vertical;
   }
 
+  .booking-form__phone {
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    gap: $spacing-sm;
+    align-items: center;
+
+    @media (max-width: $mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  .booking-form__phone-code {
+    width: 100%;
+  }
+
+  .booking-form__phone-number {
+    width: 100%;
+  }
+
   .booking-form__hint {
     margin: 0;
     opacity: 0.86;

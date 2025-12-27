@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import BookingStepDetails from "../../components/booking/BookingStepDetails";
 import BookingStepPayment from "../../components/booking/BookingStepPayment";
 import BookingStepSelection from "../../components/booking/BookingStepSelection";
@@ -8,6 +8,22 @@ import "./Booking.scss";
 
 export default function Booking() {
   const [activeStep, setActiveStep] = useState<1 | 2 | 3>(1);
+  const step1Ref = useRef<HTMLDivElement | null>(null);
+  const step2Ref = useRef<HTMLDivElement | null>(null);
+  const step3Ref = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    const prefersReducedMotion =
+      typeof window !== "undefined" &&
+      window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+
+    const behavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+
+    const ref =
+      activeStep === 1 ? step1Ref : activeStep === 2 ? step2Ref : step3Ref;
+
+    ref.current?.scrollIntoView({ behavior, block: "start" });
+  }, [activeStep]);
 
   return (
     <div className="booking">
@@ -83,6 +99,7 @@ export default function Booking() {
               className={`booking__panel ${
                 activeStep === 1 ? "booking__panel--active" : ""
               }`}
+              ref={step1Ref}
             >
               <BookingStepSelection
                 onComplete={(output) => {
@@ -97,6 +114,7 @@ export default function Booking() {
                 activeStep < 2 ? "booking__panel--locked" : ""
               }`}
               aria-disabled={activeStep < 2 ? "true" : undefined}
+              ref={step2Ref}
             >
               {activeStep < 2 && (
                 <div className="booking__panel-overlay">
@@ -111,6 +129,7 @@ export default function Booking() {
                 activeStep < 3 ? "booking__panel--locked" : ""
               }`}
               aria-disabled={activeStep < 3 ? "true" : undefined}
+              ref={step3Ref}
             >
               {activeStep < 3 && (
                 <div className="booking__panel-overlay">
