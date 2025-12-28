@@ -1,17 +1,21 @@
 import {
   Box,
   FormControl,
+  FormHelperText,
   Grid,
   InputLabel,
   MenuItem,
   Select,
   TextField,
 } from "@mui/material";
+import { useMemo, useState } from "react";
+import * as yup from "yup";
 
 import countryDialCodes from "../../../assets/data/countryDialCodes.json";
 
 type BookingStepDetailsProps = {
   className?: string;
+  onComplete?: (output: BookingDetailsFormValues) => void;
 };
 
 type CountryDialCode = {
@@ -20,10 +24,93 @@ type CountryDialCode = {
   dialCode: string;
 };
 
+type BookingDetailsFormValues = {
+  fullName: string;
+  email: string;
+  dialCode: string;
+  phone: string;
+  notes: string;
+};
+
 export default function BookingStepDetails({
   className,
+  onComplete,
 }: BookingStepDetailsProps) {
   const dialCodes = countryDialCodes as CountryDialCode[];
+
+  const validationSchema = useMemo(
+    () =>
+      yup.object({
+        fullName: yup
+          .string()
+          .trim()
+          .required("El nombre completo es requerido."),
+        email: yup
+          .string()
+          .trim()
+          .email("Ingresa un correo válido.")
+          .required("El correo es requerido."),
+        dialCode: yup.string().trim().required("El indicativo es requerido."),
+        phone: yup
+          .string()
+          .trim()
+          .matches(/^\d+$/, "El teléfono debe contener solo números.")
+          .required("El teléfono es requerido."),
+        notes: yup.string().trim().notRequired(),
+      }),
+    [],
+  );
+
+  const [values, setValues] = useState<BookingDetailsFormValues>({
+    fullName: "",
+    email: "",
+    dialCode: "+57",
+    phone: "",
+    notes: "",
+  });
+
+  const [touched, setTouched] = useState<
+    Partial<Record<keyof BookingDetailsFormValues, boolean>>
+  >({});
+  const [errors, setErrors] = useState<
+    Partial<Record<keyof BookingDetailsFormValues, string>>
+  >({});
+
+  const validateField = async (field: keyof BookingDetailsFormValues) => {
+    try {
+      await validationSchema.validateAt(field, values);
+      setErrors((prev) => {
+        if (!prev[field]) return prev;
+        const next = { ...prev };
+        delete next[field];
+        return next;
+      });
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        setErrors((prev) => ({ ...prev, [field]: error.message }));
+      }
+    }
+  };
+
+  const validateForm = async () => {
+    try {
+      await validationSchema.validate(values, { abortEarly: false });
+      setErrors({});
+      return true;
+    } catch (error) {
+      if (error instanceof yup.ValidationError) {
+        const nextErrors: Partial<
+          Record<keyof BookingDetailsFormValues, string>
+        > = {};
+        for (const issue of error.inner) {
+          const path = issue.path as keyof BookingDetailsFormValues | undefined;
+          if (path && !nextErrors[path]) nextErrors[path] = issue.message;
+        }
+        setErrors(nextErrors);
+      }
+      return false;
+    }
+  };
 
   const fieldSx = {
     "& .MuiOutlinedInput-root": {
@@ -51,7 +138,23 @@ export default function BookingStepDetails({
       </header>
 
       <div className="booking-step__content">
-        <Box>
+        <Box
+          component="form"
+          id="booking-step-details-form"
+          onSubmit={async (event) => {
+            event.preventDefault();
+            setTouched({
+              fullName: true,
+              email: true,
+              dialCode: true,
+              phone: true,
+              notes: true,
+            });
+            const isValid = await validateForm();
+            if (isValid) onComplete?.(values);
+          }}
+          noValidate
+        >
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
@@ -59,6 +162,17 @@ export default function BookingStepDetails({
                 placeholder="Tu nombre y apellido"
                 fullWidth
                 variant="outlined"
+                value={values.fullName}
+                onChange={(event) => {
+                  const fullName = event.target.value;
+                  setValues((prev) => ({ ...prev, fullName }));
+                }}
+                onBlur={() => {
+                  setTouched((prev) => ({ ...prev, fullName: true }));
+                  void validateField("fullName");
+                }}
+                error={Boolean(touched.fullName && errors.fullName)}
+                helperText={touched.fullName ? errors.fullName : undefined}
                 InputLabelProps={{ sx: labelSx }}
                 sx={fieldSx}
               />
@@ -70,6 +184,17 @@ export default function BookingStepDetails({
                 type="email"
                 fullWidth
                 variant="outlined"
+                value={values.email}
+                onChange={(event) => {
+                  const email = event.target.value;
+                  setValues((prev) => ({ ...prev, email }));
+                }}
+                onBlur={() => {
+                  setTouched((prev) => ({ ...prev, email: true }));
+                  void validateField("email");
+                }}
+                error={Boolean(touched.email && errors.email)}
+                helperText={touched.email ? errors.email : undefined}
                 InputLabelProps={{ sx: labelSx }}
                 sx={fieldSx}
               />
@@ -80,11 +205,28 @@ export default function BookingStepDetails({
                 className="booking-form__phone"
                 aria-label="Número de contacto"
               >
-                <FormControl fullWidth variant="outlined" sx={fieldSx}>
-                  <InputLabel sx={labelSx}>Indicativo</InputLabel>
+                <FormControl
+                  fullWidth
+                  variant="outlined"
+                  sx={fieldSx}
+                  error={Boolean(touched.dialCode && errors.dialCode)}
+                >
+                  <InputLabel id="booking-dial-code-label" sx={labelSx}>
+                    Indicativo
+                  </InputLabel>
                   <Select
+                    labelId="booking-dial-code-label"
+                    id="booking-dial-code"
                     label="Indicativo"
-                    defaultValue="+57"
+                    value={values.dialCode}
+                    onChange={(event) => {
+                      const dialCode = String(event.target.value);
+                      setValues((prev) => ({ ...prev, dialCode }));
+                    }}
+                    onBlur={() => {
+                      setTouched((prev) => ({ ...prev, dialCode: true }));
+                      void validateField("dialCode");
+                    }}
                     className="booking-form__phone-code"
                     MenuProps={{
                       PaperProps: {
@@ -106,6 +248,9 @@ export default function BookingStepDetails({
                       </MenuItem>
                     ))}
                   </Select>
+                  {touched.dialCode && errors.dialCode && (
+                    <FormHelperText>{errors.dialCode}</FormHelperText>
+                  )}
                 </FormControl>
 
                 <TextField
@@ -113,7 +258,18 @@ export default function BookingStepDetails({
                   type="tel"
                   fullWidth
                   variant="outlined"
-                  inputProps={{ inputMode: "tel" }}
+                  value={values.phone}
+                  onChange={(event) => {
+                    const phone = event.target.value.replace(/[^\d]/g, "");
+                    setValues((prev) => ({ ...prev, phone }));
+                  }}
+                  onBlur={() => {
+                    setTouched((prev) => ({ ...prev, phone: true }));
+                    void validateField("phone");
+                  }}
+                  error={Boolean(touched.phone && errors.phone)}
+                  helperText={touched.phone ? errors.phone : undefined}
+                  inputProps={{ inputMode: "numeric", pattern: "[0-9]*" }}
                   className="booking-form__phone-number"
                   InputLabelProps={{ sx: labelSx }}
                   sx={fieldSx}
@@ -135,6 +291,17 @@ export default function BookingStepDetails({
             fullWidth
             multiline
             minRows={4}
+            value={values.notes}
+            onChange={(event) => {
+              const notes = event.target.value;
+              setValues((prev) => ({ ...prev, notes }));
+            }}
+            onBlur={() => {
+              setTouched((prev) => ({ ...prev, notes: true }));
+              void validateField("notes");
+            }}
+            error={Boolean(touched.notes && errors.notes)}
+            helperText={touched.notes ? errors.notes : undefined}
             InputLabelProps={{ sx: labelSx }}
             sx={fieldSx}
           />
@@ -149,7 +316,11 @@ export default function BookingStepDetails({
         >
           Volver
         </button>
-        <button type="button" className="booking-actions__button" disabled>
+        <button
+          type="submit"
+          form="booking-step-details-form"
+          className="booking-actions__button"
+        >
           Continuar
         </button>
       </footer>

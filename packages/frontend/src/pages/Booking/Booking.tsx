@@ -121,7 +121,12 @@ export default function Booking() {
                   Completa el paso 1 para continuar
                 </div>
               )}
-              <BookingStepDetails />
+              <BookingStepDetails
+                onComplete={(output) => {
+                  void output;
+                  setActiveStep(3);
+                }}
+              />
             </div>
 
             <div
