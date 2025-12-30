@@ -28,6 +28,19 @@ function buildBookingController(service) {
     }
   }
 
+  async function getQuote(req, res) {
+    try {
+      const { date, attendees } = req.query;
+      const quote = await service.getBookingQuote({
+        date,
+        attendees: Number(attendees),
+      });
+      res.json(quote);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   async function getBooking(req, res) {
     try {
       const { id } = req.params;
@@ -43,6 +56,7 @@ function buildBookingController(service) {
     createBooking,
     listBookings,
     getAvailability,
+    getQuote,
     getBooking,
   };
 }

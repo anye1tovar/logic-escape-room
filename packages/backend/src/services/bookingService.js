@@ -81,6 +81,47 @@ function buildBookingService(consumer, deps = {}) {
       .replace(/(^-|-$)/g, "");
   }
 
+  function roomPrefixFromName(roomName) {
+    const normalized = String(roomName || "")
+      .trim()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-zA-Z0-9]/g, "")
+      .toUpperCase();
+    const raw = normalized.slice(0, 3);
+    return raw.padEnd(3, "X");
+  }
+
+  function extractHourMinute(value) {
+    const raw = String(value || "").trim();
+    const match = raw.match(/T(\d{2}):(\d{2})/);
+    if (match) return { hour: Number(match[1]), minute: Number(match[2]) };
+    const matchPlain = raw.match(/^(\d{2}):(\d{2})$/);
+    if (matchPlain)
+      return { hour: Number(matchPlain[1]), minute: Number(matchPlain[2]) };
+    return null;
+  }
+
+  function generateConsultCode(roomName, date, time) {
+    const datePart = String(date || "").replace(/-/g, "");
+    const hm = extractHourMinute(time);
+    const timePart =
+      hm && Number.isFinite(hm.hour) && Number.isFinite(hm.minute)
+        ? `${hm.hour}${pad2(hm.minute)}`
+        : "000";
+    return `${roomPrefixFromName(roomName)}${datePart}${timePart}`;
+  }
+
+  function splitName(fullName) {
+    const parts = String(fullName || "")
+      .trim()
+      .split(/\s+/)
+      .filter(Boolean);
+    if (parts.length === 0) return { firstName: "", lastName: "" };
+    if (parts.length === 1) return { firstName: parts[0], lastName: "" };
+    return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+  }
+
   function derivePublicRoomId(roomRow) {
     const cover = (roomRow?.coverImage || "").trim();
     const match = cover.match(/([^/\\]+)\.(png|jpg|jpeg|webp)$/i);
@@ -140,6 +181,90 @@ function buildBookingService(consumer, deps = {}) {
     return row;
   }
 
+  async function getDayTypeForDate(dateString) {
+    const colombianHolidaysConsumer = deps.colombianHolidaysConsumer;
+    if (!colombianHolidaysConsumer?.isHoliday) {
+      const err = new Error(
+        "colombianHolidaysConsumer is required for day type calculation."
+      );
+      err.status = 500;
+      throw err;
+    }
+
+    const isHoliday = await colombianHolidaysConsumer.isHoliday(dateString);
+    const actualDayOfWeek = new Date(`${dateString}T12:00:00-05:00`).getUTCDay();
+    const isWeekend =
+      isHoliday ||
+      actualDayOfWeek === 0 ||
+      actualDayOfWeek === 5 ||
+      actualDayOfWeek === 6;
+    return { isHoliday, dayType: isWeekend ? "weekend" : "weekday" };
+  }
+
+  function pickRateForAttendees(rates, attendees) {
+    const count = Number(attendees);
+    if (!Number.isFinite(count) || count <= 0) return null;
+    const list = Array.isArray(rates) ? rates : [];
+    if (list.length === 0) return null;
+
+    const exact = list.find((r) => Number(r.players) === count);
+    if (exact) return exact;
+
+    const sorted = [...list].sort(
+      (a, b) => Number(b.players) - Number(a.players)
+    );
+    const floor = sorted.find((r) => Number(r.players) <= count);
+    if (floor) return floor;
+
+    return sorted[sorted.length - 1] || null;
+  }
+
+  async function getBookingQuote({ date, attendees }) {
+    const requestedDate = parseDateParam(date);
+    if (!requestedDate) {
+      const err = new Error("Missing required query param: date");
+      err.status = 400;
+      throw err;
+    }
+
+    const { isHoliday, dayType } = await getDayTypeForDate(requestedDate);
+
+    const ratesService = deps.ratesService;
+    const ratesConsumer = deps.ratesConsumer;
+    const listRates = ratesService?.listRates || ratesConsumer?.listRates;
+    if (!listRates) {
+      const err = new Error("Rates provider is required for quote calculation.");
+      err.status = 500;
+      throw err;
+    }
+
+    const rates = await listRates(dayType);
+    const rate = pickRateForAttendees(rates, attendees);
+    if (!rate) {
+      const err = new Error("No rate configured for this booking.");
+      err.status = 400;
+      throw err;
+    }
+
+    const pricePerPerson = Number(rate.price_per_person ?? rate.pricePerPerson);
+    const players = Number(attendees);
+    if (!Number.isFinite(pricePerPerson) || !Number.isFinite(players)) {
+      const err = new Error("Invalid rate configuration.");
+      err.status = 500;
+      throw err;
+    }
+
+    return {
+      date: requestedDate,
+      dayType,
+      isHoliday,
+      players,
+      currency: rate.currency || "COP",
+      pricePerPerson,
+      total: pricePerPerson * players,
+    };
+  }
+
   function timeToMinutes(value) {
     if (typeof value !== "string") return null;
     const trimmed = value.trim();
@@ -153,8 +278,18 @@ function buildBookingService(consumer, deps = {}) {
   }
 
   async function createBooking(data) {
-    const { firstName, lastName, name, email, date, roomId, time, attendees } =
-      data;
+    const {
+      firstName,
+      lastName,
+      name,
+      email,
+      date,
+      roomId,
+      time,
+      endTime,
+      attendees,
+      whatsapp,
+    } = data;
     if (!email || !date || !roomId || !time) {
       const err = new Error(
         "Missing required fields: email, date, roomId, time"
@@ -163,25 +298,127 @@ function buildBookingService(consumer, deps = {}) {
       throw err;
     }
 
-    // minimal business validations
-    if (new Date(date) < new Date(new Date().setHours(0, 0, 0, 0))) {
+    const requestedDate = parseDateParam(date);
+    if (!requestedDate) {
+      const err = new Error("Invalid date format. Use YYYY-MM-DD.");
+      err.status = 400;
+      throw err;
+    }
+    if (requestedDate < bogotaTodayDateString()) {
       const err = new Error("Date cannot be in the past");
       err.status = 400;
       throw err;
     }
 
+    const startIso = normalizeBookingStartToIso(requestedDate, time);
+    if (!startIso) {
+      const err = new Error("Invalid time format.");
+      err.status = 400;
+      throw err;
+    }
+
+    const endIso =
+      normalizeBookingStartToIso(requestedDate, endTime) ||
+      formatIsoWithFixedOffset(
+        new Date(Date.parse(startIso) + SLOT_DURATION_MINUTES * 60_000),
+        TIMEZONE_OFFSET_MINUTES
+      );
+
+    // Validate availability again on reservation create.
+    const availability = await getAvailabilityByDate(requestedDate);
+    const room = (availability?.rooms || []).find((r) => r.roomId === roomId);
+    const slot = room?.slots?.find((s) => s.start === startIso) || null;
+    if (!room || !slot) {
+      const err = new Error("Este horario no existe para la fecha seleccionada.");
+      err.status = 400;
+      throw err;
+    }
+    if (!slot.available) {
+      const err = new Error("Este horario ya no está disponible.");
+      err.status = 409;
+      throw err;
+    }
+
+    const players = Number(attendees);
+    if (!Number.isFinite(players)) {
+      const err = new Error("Invalid attendees value.");
+      err.status = 400;
+      throw err;
+    }
+    const minPlayers = Number(room.minPlayers);
+    const maxPlayers = Number(room.maxPlayers);
+    if (
+      Number.isFinite(minPlayers) &&
+      Number.isFinite(maxPlayers) &&
+      (players < minPlayers || players > maxPlayers)
+    ) {
+      const err = new Error("Número de jugadores inválido para esta sala.");
+      err.status = 400;
+      throw err;
+    }
+
+    const fullName = String(name || `${firstName || ""} ${lastName || ""}`)
+      .trim()
+      .replace(/\s+/g, " ");
+
+    const nameParts = splitName(fullName);
+    const safeFirstName =
+      typeof firstName === "string" && firstName.trim()
+        ? firstName.trim()
+        : nameParts.firstName;
+    const safeLastName =
+      typeof lastName === "string" && lastName.trim()
+        ? lastName.trim()
+        : nameParts.lastName;
+
+    let resolvedRoomName = null;
+    try {
+      const rooms = await listRoomsForAvailability();
+      const match =
+        (rooms || []).find((roomRow) => derivePublicRoomId(roomRow) === roomId) ||
+        null;
+      resolvedRoomName = match?.name || null;
+    } catch (err) {
+      resolvedRoomName = null;
+    }
+
+    const computedConsultCode = generateConsultCode(
+      resolvedRoomName || roomId,
+      requestedDate,
+      startIso
+    );
+
     const booking = await consumer.createBooking({
-      firstName,
-      lastName,
-      name,
+      firstName: safeFirstName,
+      lastName: safeLastName,
+      name: fullName,
       email,
-      date,
+      whatsapp,
+      date: requestedDate,
       roomId,
-      time,
+      time: startIso,
+      endTime: endIso,
       attendees,
       sendReceipt: data.sendReceipt,
+      consultCode: computedConsultCode,
     });
-    return booking;
+
+    try {
+      if (deps.calendarConsumer?.createEvent) {
+        await deps.calendarConsumer.createEvent({
+          summary: `Logic Escape Room - ${resolvedRoomName || roomId}`,
+          description: `Reserva ${computedConsultCode}\nSala: ${resolvedRoomName || roomId}\nFecha: ${requestedDate}\nHora: ${startIso}\nJugadores: ${players}\nWhatsApp: ${whatsapp || ""}`.trim(),
+          startDateTime: startIso,
+          endDateTime: endIso,
+          timeZone: TIMEZONE,
+          attendees: [email].filter(Boolean),
+        });
+      }
+    } catch (err) {
+      // Calendar errors should not block reservations.
+    }
+
+    return { ...booking, reservationCode: booking.consultCode };
   }
 
   async function listBookings() {
@@ -204,6 +441,18 @@ function buildBookingService(consumer, deps = {}) {
       const err = new Error("Date cannot be in the past");
       err.status = 400;
       throw err;
+    }
+
+    const { dayType, isHoliday } = await getDayTypeForDate(requestedDate);
+
+    let rates = [];
+    try {
+      const ratesService = deps.ratesService;
+      const ratesConsumer = deps.ratesConsumer;
+      const listRates = ratesService?.listRates || ratesConsumer?.listRates;
+      if (listRates) rates = await listRates(dayType);
+    } catch (err) {
+      rates = [];
     }
 
     const list = consumer.listBookingsByDate
@@ -311,6 +560,9 @@ function buildBookingService(consumer, deps = {}) {
 
     return {
       date: requestedDate,
+      dayType,
+      isHoliday,
+      rates,
       timezone: TIMEZONE,
       serverNow: nowIso,
       minAdvanceMinutes: MIN_ADVANCE_MINUTES,
@@ -323,6 +575,7 @@ function buildBookingService(consumer, deps = {}) {
     listBookings,
     getBooking,
     getAvailabilityByDate,
+    getBookingQuote,
   };
 }
 

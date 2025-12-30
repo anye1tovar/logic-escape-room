@@ -32,6 +32,13 @@ async function start() {
   const openingHoursConsumer = await initOpeningHoursConsumer();
   const initColombianHolidaysConsumer = require("./consumers/colombianHolidaysConsumer");
   const colombianHolidaysConsumer = await initColombianHolidaysConsumer();
+  const initGoogleCalendarConsumer = require("./consumers/googleCalendarConsumer");
+  const calendarConsumer = await initGoogleCalendarConsumer(config.google);
+
+  const ratesConsumer = await initRatesConsumer();
+  const ratesService = buildRatesService(ratesConsumer);
+  const ratesController = buildRatesController(ratesService);
+  const ratesRouter = createRatesRouter(ratesController);
 
   // build layers (bookingConsumer is async to initialize)
   const bookingConsumer = await initBookingConsumer();
@@ -39,14 +46,11 @@ async function start() {
     roomsService,
     openingHoursConsumer,
     colombianHolidaysConsumer,
+    ratesService,
+    calendarConsumer,
   });
   const bookingController = buildBookingController(bookingService);
   const bookingsRouter = createBookingsRouter(bookingController);
-
-  const ratesConsumer = await initRatesConsumer();
-  const ratesService = buildRatesService(ratesConsumer);
-  const ratesController = buildRatesController(ratesService);
-  const ratesRouter = createRatesRouter(ratesController);
 
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/rooms", roomsRouter);

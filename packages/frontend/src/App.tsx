@@ -36,8 +36,7 @@ function HomeContent() {
         <PinZoomOverlay imageUrl={jugadoresImg} overlay={<Pricing />} />
         <Opinions />
         <AnnouncementBar text={t("topHeader.announcement")} />
-        <PinZoomOverlay imageUrl={notasImg} overlay={<Pricing />} />
-        <Location />
+        <PinZoomOverlay imageUrl={notasImg} overlay={<Location />} />
       </main>
       <Footer />
     </div>

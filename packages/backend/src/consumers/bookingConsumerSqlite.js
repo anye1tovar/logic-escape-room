@@ -9,29 +9,31 @@ function createBooking({
   whatsapp,
   roomId,
   time,
+  endTime,
   attendees,
   sendReceipt,
   date,
+  consultCode,
 }) {
   return new Promise((resolve, reject) => {
     const id = uuidv4();
     const createdAt = Date.now();
     const sendReceiptInt = sendReceipt ? 1 : 0;
     const finalName = name || `${firstName || ""} ${lastName || ""}`.trim();
-    const endTime = time || null;
     db.run(
-      `INSERT INTO reservations (room_id, date, start_time, end_time, first_name, last_name, phone, email, players, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT INTO reservations (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, email, players, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         roomId || null,
         date,
         time || null,
-        endTime,
-        firstName || null,
-        lastName || null,
+        endTime || time || null,
+        consultCode || null,
+        firstName ?? "",
+        lastName ?? "",
         whatsapp || null,
         email || null,
         attendees || null,
-        "CONFIRMED",
+        "PENDING",
       ],
       function (err) {
         if (err) return reject(err);
@@ -45,9 +47,11 @@ function createBooking({
           whatsapp,
           roomId,
           time,
+          endTime: endTime || time || null,
           attendees,
           sendReceipt: !!sendReceiptInt,
           date,
+          consultCode: consultCode || null,
           createdAt,
         });
       }

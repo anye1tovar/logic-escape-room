@@ -69,6 +69,7 @@ db.serialize(() => {
       date TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
+      consult_code TEXT,
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
       phone TEXT,

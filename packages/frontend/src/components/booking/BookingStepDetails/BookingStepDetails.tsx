@@ -1,20 +1,26 @@
 import {
   Box,
+  ClickAwayListener,
   FormControl,
   FormHelperText,
   Grid,
+  IconButton,
   InputLabel,
+  InputAdornment,
   MenuItem,
   Select,
   TextField,
+  Tooltip,
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
+import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 import countryDialCodes from "../../../assets/data/countryDialCodes.json";
 
 type BookingStepDetailsProps = {
   className?: string;
+  onBack?: () => void;
   onComplete?: (output: BookingDetailsFormValues) => void;
 };
 
@@ -24,7 +30,7 @@ type CountryDialCode = {
   dialCode: string;
 };
 
-type BookingDetailsFormValues = {
+export type BookingDetailsFormValues = {
   fullName: string;
   email: string;
   dialCode: string;
@@ -34,9 +40,11 @@ type BookingDetailsFormValues = {
 
 export default function BookingStepDetails({
   className,
+  onBack,
   onComplete,
 }: BookingStepDetailsProps) {
   const dialCodes = countryDialCodes as CountryDialCode[];
+  const [isEmailTooltipOpen, setIsEmailTooltipOpen] = useState(false);
 
   const validationSchema = useMemo(
     () =>
@@ -195,6 +203,39 @@ export default function BookingStepDetails({
                 }}
                 error={Boolean(touched.email && errors.email)}
                 helperText={touched.email ? errors.email : undefined}
+                InputProps={{
+                  endAdornment: (
+                    <InputAdornment position="end">
+                      <ClickAwayListener
+                        onClickAway={() => setIsEmailTooltipOpen(false)}
+                      >
+                        <Tooltip
+                          title="Usaremos tu correo para enviarte la confirmación de tu reserva y para invitarte al evento en Google Calendar."
+                          arrow
+                          open={isEmailTooltipOpen}
+                          onClose={() => setIsEmailTooltipOpen(false)}
+                          disableHoverListener
+                          disableFocusListener
+                          disableTouchListener
+                        >
+                          <IconButton
+                            aria-label="Información del correo"
+                            size="small"
+                            onClick={() =>
+                              setIsEmailTooltipOpen((prev) => !prev)
+                            }
+                            edge="end"
+                          >
+                            <InfoOutlinedIcon
+                              fontSize="small"
+                              sx={{ color: "rgba(255,255,255,0.75)" }}
+                            />
+                          </IconButton>
+                        </Tooltip>
+                      </ClickAwayListener>
+                    </InputAdornment>
+                  ),
+                }}
                 InputLabelProps={{ sx: labelSx }}
                 sx={fieldSx}
               />
@@ -312,7 +353,8 @@ export default function BookingStepDetails({
         <button
           type="button"
           className="booking-actions__button booking-actions__button--ghost"
-          disabled
+          onClick={onBack}
+          disabled={!onBack}
         >
           Volver
         </button>

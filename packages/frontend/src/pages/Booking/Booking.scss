@@ -123,7 +123,7 @@
     margin: 0;
     padding: 0;
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     gap: $spacing-sm;
 
     @media (max-width: $tablet) {
@@ -401,6 +401,10 @@
   .booking-form__hint {
     margin: 0;
     opacity: 0.86;
+  }
+
+  .booking-form__link {
+    color: $text-light;
   }
 
   .booking-form__hint--inline {
@@ -684,6 +688,10 @@
     gap: $spacing-sm;
   }
 
+  .booking-summary--inline {
+    margin-top: $spacing-sm;
+  }
+
   .booking-summary__row {
     display: flex;
     justify-content: space-between;
@@ -793,6 +801,19 @@
     }
   }
 
+  .booking-code__actions {
+    display: inline-flex;
+    align-items: center;
+    gap: $spacing-sm;
+
+    @media (max-width: $tablet) {
+      width: 100%;
+      justify-content: stretch;
+      flex-direction: column;
+      align-items: stretch;
+    }
+  }
+
   .booking-code__value {
     font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
     font-size: 2rem;
@@ -820,5 +841,103 @@
       transform: translateY(-2px);
       box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
     }
+  }
+
+  .booking-payment__breb {
+    display: grid;
+    gap: $spacing-xs;
+  }
+
+  .booking-payment__breb-label {
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    opacity: 0.92;
+  }
+
+  .booking-payment__breb-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+  }
+
+  .booking-payment__breb-key {
+    font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
+    font-size: 1.6rem;
+    letter-spacing: 0.08em;
+    padding: 10px 12px;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.18);
+  }
+
+  .booking-payment__qr-button {
+    white-space: nowrap;
+  }
+
+  .booking-payment__link {
+    font-weight: 900;
+    color: $text-light;
+  }
+
+  .booking-qr-dialog {
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 18px;
+    padding: 0;
+    background: linear-gradient(
+      135deg,
+      rgba(17, 10, 38, 0.98),
+      rgba(19, 9, 44, 0.92)
+    );
+    color: $text-light;
+    box-shadow: 0 28px 80px rgba(0, 0, 0, 0.55);
+    width: min(520px, calc(100vw - 32px));
+
+    &::backdrop {
+      background: rgba(0, 0, 0, 0.65);
+      backdrop-filter: blur(6px);
+    }
+  }
+
+  .booking-qr-dialog__content {
+    padding: $spacing-md;
+    display: grid;
+    gap: $spacing-sm;
+  }
+
+  .booking-qr-dialog__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $spacing-sm;
+  }
+
+  .booking-qr-dialog__title {
+    margin: 0;
+    font-size: 1.4rem;
+  }
+
+  .booking-qr-dialog__close {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(255, 255, 255, 0.05);
+    color: $text-light;
+    font-size: 1.6rem;
+    cursor: pointer;
+  }
+
+  .booking-qr-dialog__img {
+    width: 100%;
+    height: auto;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.04);
+  }
+
+  .booking-qr-dialog__hint {
+    text-align: center;
   }
 }

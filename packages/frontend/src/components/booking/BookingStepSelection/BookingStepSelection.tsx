@@ -30,6 +30,14 @@ type AvailabilityRoom = {
 
 type AvailabilityResponse = {
   date: string;
+  dayType?: "weekday" | "weekend" | string;
+  isHoliday?: boolean;
+  rates?: Array<{
+    players: number;
+    price_per_person?: number;
+    pricePerPerson?: number;
+    currency?: string;
+  }>;
   timezone: string;
   serverNow: string;
   minAdvanceMinutes: number;
@@ -39,6 +47,8 @@ type AvailabilityResponse = {
 export type BookingStep1Output = {
   date: string;
   roomId: string;
+  roomName: string;
+  durationMinutes: number;
   slotStart: string;
   slotEnd: string;
   peopleCount: number;
@@ -109,6 +119,36 @@ function addMinutesPreservingOffset(isoWithOffset: string, minutes: number) {
   return `${yyyy}-${mm}-${dd}T${hh}:${min}:${ss}${offsetStr}`;
 }
 
+function formatMoney(value: number | null, locale: string, currency: string) {
+  if (typeof value !== "number" || !Number.isFinite(value)) return "—";
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency: currency || "COP",
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function pickRateForPlayers(
+  rates: AvailabilityResponse["rates"] | undefined,
+  players: number | null
+) {
+  const count = typeof players === "number" ? players : Number(players);
+  if (!Number.isFinite(count) || count <= 0) return null;
+  const list = Array.isArray(rates) ? rates : [];
+  if (list.length === 0) return null;
+
+  const exact = list.find((r) => Number(r.players) === count);
+  if (exact) return exact;
+
+  const sorted = [...list].sort(
+    (a, b) => Number(b.players) - Number(a.players)
+  );
+  const floor = sorted.find((r) => Number(r.players) <= count);
+  if (floor) return floor;
+
+  return sorted[sorted.length - 1] || null;
+}
+
 export default function BookingStepSelection({
   className,
   onComplete,
@@ -144,6 +184,24 @@ export default function BookingStepSelection({
 
   const minPlayers = selectedRoom?.minPlayers ?? 0;
   const maxPlayers = selectedRoom?.maxPlayers ?? 0;
+  const locale = i18n.language?.startsWith("en") ? "en-US" : "es-CO";
+
+  const selectedRate = useMemo(
+    () => pickRateForPlayers(availability?.rates, peopleCount),
+    [availability?.rates, peopleCount]
+  );
+  const selectedCurrency = selectedRate?.currency || "COP";
+  const pricePerPerson = useMemo(() => {
+    if (!selectedRate) return null;
+    const value = Number(
+      selectedRate.price_per_person ?? selectedRate.pricePerPerson ?? NaN
+    );
+    return Number.isFinite(value) ? value : null;
+  }, [selectedRate]);
+  const estimatedTotal =
+    typeof peopleCount === "number" && typeof pricePerPerson === "number"
+      ? peopleCount * pricePerPerson
+      : null;
 
   const canContinue =
     Boolean(selectedDate) &&
@@ -187,9 +245,9 @@ export default function BookingStepSelection({
           { signal: controller.signal }
         );
         if (!res.ok) {
-          const body = (await res.json().catch(() => null)) as
-            | { error?: string }
-            | null;
+          const body = (await res.json().catch(() => null)) as {
+            error?: string;
+          } | null;
           throw new Error(body?.error || "No pudimos cargar los horarios.");
         }
         const json = (await res.json()) as AvailabilityResponse;
@@ -238,6 +296,7 @@ export default function BookingStepSelection({
       typeof peopleCount !== "number"
     )
       return;
+    if (!selectedRoom) return;
     const slotEnd = addMinutesPreservingOffset(
       selectedSlotStart,
       SLOT_DURATION_MINUTES
@@ -246,6 +305,12 @@ export default function BookingStepSelection({
     onComplete?.({
       date: selectedDate.format("YYYY-MM-DD"),
       roomId: selectedRoomId,
+      roomName: selectedRoom.name,
+      durationMinutes:
+        typeof selectedRoom.durationMinutes === "number" &&
+        Number.isFinite(selectedRoom.durationMinutes)
+          ? selectedRoom.durationMinutes
+          : SLOT_DURATION_MINUTES,
       slotStart: selectedSlotStart,
       slotEnd,
       peopleCount,
@@ -411,6 +476,18 @@ export default function BookingStepSelection({
               {isLoading && <span className="booking-badge">Cargando…</span>}
             </div>
           </div>
+          <p className="booking-form__hint">
+            Si no encuentras cupo para el día u horario que buscas,{" "}
+            <a
+              className="booking-form__link"
+              href="https://wa.me/573181278688"
+              target="_blank"
+              referrerPolicy="no-referrer"
+            >
+              comunícate con nosotros
+            </a>{" "}
+            y te ayudamos con otra opción.
+          </p>
 
           {!selectedDate && (
             <p className="booking-form__hint">
@@ -566,6 +643,26 @@ export default function BookingStepSelection({
                 ? `Límites por sala: ${selectedRoom.minPlayers}–${selectedRoom.maxPlayers}`
                 : "Selecciona una sala para habilitar el selector."}
             </p>
+            {selectedRoom && typeof peopleCount === "number" && (
+              <div className="booking-summary booking-summary--inline">
+                <div className="booking-summary__row booking-summary__row--total">
+                  <span className="booking-summary__label">Valor total</span>
+                  <span className="booking-summary__value">
+                    {formatMoney(estimatedTotal, locale, selectedCurrency)}
+                  </span>
+                </div>
+                {pricePerPerson != null && (
+                  <div className="booking-summary__row">
+                    <span className="booking-summary__label">
+                      Precio por persona
+                    </span>
+                    <span className="booking-summary__value">
+                      {formatMoney(pricePerPerson, locale, selectedCurrency)}
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

@@ -247,11 +247,8 @@ const Pricing = () => {
               transition={{ duration: 0.5, delay: idx * 0.08 }}
             >
               <div className="pricing__card-header">
-                <p className="pricing__card-label">{group.title}</p>
+                <h2 className="pricing__card-label">{group.title}</h2>
                 <p className="pricing__card-range">{group.dayRange}</p>
-                {group.note && (
-                  <span className="pricing__card-note">{group.note}</span>
-                )}
               </div>
 
               <div className="pricing__list">
@@ -269,6 +266,9 @@ const Pricing = () => {
                   </div>
                 ))}
               </div>
+              {group.note && (
+                <h3 className="pricing__card-note">{group.note}</h3>
+              )}
             </motion.article>
           ))}
           {loading && (

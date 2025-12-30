@@ -12,5 +12,8 @@ module.exports = {
     redirectUri:
       process.env.GOOGLE_REDIRECT_URI ||
       "http://localhost:4000/auth/google/callback",
+    calendarId: process.env.GOOGLE_CALENDAR_ID || "",
+    serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "",
+    serviceAccountPrivateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY || "",
   },
 };
