@@ -476,6 +476,12 @@ export default function BookingStepSelection({
               {isLoading && <span className="booking-badge">Cargando…</span>}
             </div>
           </div>
+          {!selectedDate && (
+            <p className="booking-form__hint">
+              Selecciona una fecha para ver salas y horarios disponibles.
+            </p>
+          )}
+
           <p className="booking-form__hint">
             Si no encuentras cupo para el día u horario que buscas,{" "}
             <a
@@ -488,12 +494,6 @@ export default function BookingStepSelection({
             </a>{" "}
             y te ayudamos con otra opción.
           </p>
-
-          {!selectedDate && (
-            <p className="booking-form__hint">
-              Selecciona una fecha para ver salas y horarios disponibles.
-            </p>
-          )}
 
           {loadError && (
             <div className="booking-alert" role="alert">
@@ -645,14 +645,8 @@ export default function BookingStepSelection({
             </p>
             {selectedRoom && typeof peopleCount === "number" && (
               <div className="booking-summary booking-summary--inline">
-                <div className="booking-summary__row booking-summary__row--total">
-                  <span className="booking-summary__label">Valor total</span>
-                  <span className="booking-summary__value">
-                    {formatMoney(estimatedTotal, locale, selectedCurrency)}
-                  </span>
-                </div>
                 {pricePerPerson != null && (
-                  <div className="booking-summary__row">
+                  <div className="booking-summary__row booking-summary__row--total">
                     <span className="booking-summary__label">
                       Precio por persona
                     </span>
@@ -661,6 +655,12 @@ export default function BookingStepSelection({
                     </span>
                   </div>
                 )}
+                <div className="booking-summary__row ">
+                  <span className="booking-summary__label">Valor total</span>
+                  <span className="booking-summary__value">
+                    {formatMoney(estimatedTotal, locale, selectedCurrency)}
+                  </span>
+                </div>
               </div>
             )}
           </div>

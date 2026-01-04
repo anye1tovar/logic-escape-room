@@ -1,14 +1,16 @@
 .pzo {
   position: relative;
   width: 100%;
+  --pzo-header-h: 0px;
   /* No le pongas height fija: su alto lo define sticky(100vh) + spacer + overlay */
 }
 
 /* Imagen pinned */
 .pzo__sticky {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--pzo-header-h);
+  height: calc(100vh - var(--pzo-header-h));
+  height: calc(100dvh - var(--pzo-header-h));
   overflow: hidden;
   z-index: 0; /* queda detrás del overlay */
 }
@@ -36,7 +38,8 @@
 /* Scroll “extra” para el zoom.
    Ajusta este valor si quieres el zoom más lento o más rápido. */
 .pzo__spacer {
-  height: 110vh;
+  height: calc(110vh - var(--pzo-header-h));
+  height: calc(110dvh - var(--pzo-header-h));
 }
 
 /* Overlay: sube por encima de la imagen y ocupa toda la pantalla */
@@ -45,7 +48,8 @@
   z-index: 1;
 
   width: 100%;
-  min-height: 100vh; /* tu requisito: ocupa toda la pantalla */
+  min-height: calc(100vh - var(--pzo-header-h)); /* viewport menos header */
+  min-height: calc(100dvh - var(--pzo-header-h)); /* viewport menos header */
   /* OJO: el background lo define tu sección overlay.
      Si quieres asegurar legibilidad, puedes activar esto: */
   /* background: rgba(10, 10, 10, 0.92); */

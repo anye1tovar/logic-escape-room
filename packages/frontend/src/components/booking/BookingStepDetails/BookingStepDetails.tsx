@@ -1,5 +1,7 @@
 import {
   Box,
+  Button,
+  ButtonGroup,
   ClickAwayListener,
   FormControl,
   FormHelperText,
@@ -11,6 +13,7 @@ import {
   Select,
   TextField,
   Tooltip,
+  Typography,
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import * as yup from "yup";
@@ -36,6 +39,7 @@ export type BookingDetailsFormValues = {
   dialCode: string;
   phone: string;
   notes: string;
+  isFirstTime: boolean | null;
 };
 
 export default function BookingStepDetails({
@@ -65,8 +69,12 @@ export default function BookingStepDetails({
           .matches(/^\d+$/, "El teléfono debe contener solo números.")
           .required("El teléfono es requerido."),
         notes: yup.string().trim().notRequired(),
+        isFirstTime: yup
+          .boolean()
+          .nullable()
+          .required("Selecciona sí o no para continuar."),
       }),
-    [],
+    []
   );
 
   const [values, setValues] = useState<BookingDetailsFormValues>({
@@ -75,6 +83,7 @@ export default function BookingStepDetails({
     dialCode: "+57",
     phone: "",
     notes: "",
+    isFirstTime: null,
   });
 
   const [touched, setTouched] = useState<
@@ -157,6 +166,7 @@ export default function BookingStepDetails({
               dialCode: true,
               phone: true,
               notes: true,
+              isFirstTime: true,
             });
             const isValid = await validateForm();
             if (isValid) onComplete?.(values);
@@ -317,21 +327,107 @@ export default function BookingStepDetails({
                 />
               </Box>
 
-              <p className="booking-form__hint booking-form__hint--inline">
+              <Typography variant="caption">
                 Usaremos este número para escribirte por WhatsApp si es
                 necesario.
-              </p>
+              </Typography>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <FormControl
+                error={Boolean(touched.isFirstTime && errors.isFirstTime)}
+                fullWidth
+              >
+                <Box
+                  sx={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: 2,
+                  }}
+                >
+                  <p
+                    className="booking-form__hint"
+                    style={{ margin: 0, maxWidth: "50%" }}
+                  >
+                    ¿Es tu primera vez en Logic Escape Room?
+                  </p>
+
+                  <ButtonGroup
+                    variant="outlined"
+                    aria-label="Primera vez en Logic Escape Room"
+                    sx={{
+                      gap: 1,
+                      "& .MuiButton-root": {
+                        borderColor: "rgba(255,255,255,0.18)",
+                        color: "rgba(255,255,255,0.9)",
+                        textTransform: "none",
+                        fontWeight: 700,
+                        borderRadius: "12px",
+                        padding: "0.55rem 1.1rem",
+                        background: "rgba(255,255,255,0.03)",
+                      },
+                      "& .MuiButton-root:hover": {
+                        borderColor: "rgba(255,255,255,0.28)",
+                        background: "rgba(255,255,255,0.06)",
+                      },
+                    }}
+                  >
+                    <Button
+                      type="button"
+                      variant={
+                        values.isFirstTime === true ? "contained" : "outlined"
+                      }
+                      onClick={() => {
+                        setValues((prev) => ({ ...prev, isFirstTime: true }));
+                        setTouched((prev) => ({ ...prev, isFirstTime: true }));
+                      }}
+                      sx={{
+                        background:
+                          values.isFirstTime === true
+                            ? "linear-gradient(135deg, #efbb3d, #cbabff) !important"
+                            : undefined,
+                      }}
+                    >
+                      Sí
+                    </Button>
+                    <Button
+                      type="button"
+                      variant={
+                        values.isFirstTime === false ? "contained" : "outlined"
+                      }
+                      onClick={() => {
+                        setValues((prev) => ({ ...prev, isFirstTime: false }));
+                        setTouched((prev) => ({ ...prev, isFirstTime: true }));
+                      }}
+                      sx={{
+                        background:
+                          values.isFirstTime === false
+                            ? "linear-gradient(135deg, #efbb3d, #cbabff) !important"
+                            : undefined,
+                      }}
+                    >
+                      No
+                    </Button>
+                  </ButtonGroup>
+                </Box>
+
+                {touched.isFirstTime && errors.isFirstTime && (
+                  <FormHelperText>{errors.isFirstTime}</FormHelperText>
+                )}
+              </FormControl>
             </Grid>
           </Grid>
         </Box>
-
-        <div className="booking-form__section">
-          <h3 className="booking-form__section-title">Notas</h3>
+        <Box>
+          <Typography variant="h5" mb={1}>
+            Notas
+          </Typography>
           <TextField
             placeholder="Cumpleaños, accesibilidad, claustrofobia, etc."
             fullWidth
             multiline
-            minRows={4}
+            minRows={2}
             value={values.notes}
             onChange={(event) => {
               const notes = event.target.value;
@@ -346,7 +442,7 @@ export default function BookingStepDetails({
             InputLabelProps={{ sx: labelSx }}
             sx={fieldSx}
           />
-        </div>
+        </Box>
       </div>
 
       <footer className="booking-step__footer booking-step__footer--split">

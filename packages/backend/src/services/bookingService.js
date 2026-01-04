@@ -289,6 +289,7 @@ function buildBookingService(consumer, deps = {}) {
       endTime,
       attendees,
       whatsapp,
+      isFirstTime,
     } = data;
     if (!email || !date || !roomId || !time) {
       const err = new Error(
@@ -401,6 +402,7 @@ function buildBookingService(consumer, deps = {}) {
       attendees,
       sendReceipt: data.sendReceipt,
       consultCode: computedConsultCode,
+      isFirstTime: Boolean(isFirstTime),
     });
 
     try {

@@ -10,7 +10,8 @@ type Rule = {
 const Guidelines = () => {
   const { t } = useTranslation();
 
-  const rules = (t("guidelines.rules", { returnObjects: true }) as Rule[]) || [];
+  const rules =
+    (t("guidelines.rules", { returnObjects: true }) as Rule[]) || [];
   const fact = t("guidelines.fact.copy");
 
   return (
@@ -34,12 +35,12 @@ const Guidelines = () => {
             >
               <div className="guidelines__icon">!</div>
               <div className="guidelines__rule-text">
-                <p className="guidelines__rule-title">{rule.title}</p>
-                {rule.lines.map((line, lineIdx) => (
-                  <p key={`${rule.title}-${lineIdx}`} className="guidelines__rule-line">
-                    {line}
-                  </p>
-                ))}
+                <h3 className="guidelines__rule-line">
+                  {[rule.title, ...(rule.lines || [])]
+                    .map((part) => part.trim())
+                    .filter(Boolean)
+                    .join(" ")}
+                </h3>
               </div>
             </motion.div>
           ))}
@@ -47,7 +48,9 @@ const Guidelines = () => {
 
         <div className="guidelines__footer">
           <div className="guidelines__fact">
-            <p className="guidelines__fact-label">{t("guidelines.fact.label")}</p>
+            <p className="guidelines__fact-label">
+              {t("guidelines.fact.label")}
+            </p>
             <p className="guidelines__fact-copy">{fact}</p>
           </div>
           <div className="guidelines__cta">

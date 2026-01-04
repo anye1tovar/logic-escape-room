@@ -44,6 +44,7 @@ const theme = createTheme({
     h5: {
       fontFamily: headingFamily,
       fontWeight: 400,
+      fontSize: "2rem",
     },
     h6: {
       fontFamily: headingFamily,

@@ -37,8 +37,8 @@
         "lines": ["Kids 9+ can enter with an adult"]
       },
       {
-        "title": "Don't reveal clues or spoilers",
-        "lines": ["to other groups; let everyone enjoy the mystery"]
+        "title": "If you have claustrophobia or heart conditions",
+        "lines": ["You enter at your own risk."]
       },
       {
         "title": "Do not distract or ignore",
@@ -133,7 +133,7 @@
     "weekday": {
       "label": "Weekdays",
       "range": "Monday to Thursday",
-      "note": "Price per person",
+      "note": "Save $7,000 per person",
       "items": [
         {
           "players": 7,

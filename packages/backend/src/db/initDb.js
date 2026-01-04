@@ -75,7 +75,8 @@ db.serialize(() => {
       phone TEXT,
       email TEXT,
       players INTEGER NOT NULL,
-      status TEXT DEFAULT 'CONFIRMED'
+      status TEXT DEFAULT 'PENDING',
+      is_first_time INTEGER NOT NULL DEFAULT 0
     )
   `);
 

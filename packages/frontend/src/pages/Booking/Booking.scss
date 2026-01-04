@@ -383,7 +383,7 @@
     display: grid;
     grid-template-columns: 120px 1fr;
     gap: $spacing-sm;
-    align-items: center;
+    align-items: baseline;
 
     @media (max-width: $mobile) {
       grid-template-columns: 1fr;
@@ -658,8 +658,7 @@
     font-weight: 800;
     cursor: pointer;
     background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition: transform 0.15s ease, box-shadow 0.15s ease,
-      filter 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 
     &:hover {
       transform: translateY(-2px);

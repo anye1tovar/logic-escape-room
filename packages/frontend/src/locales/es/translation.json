@@ -33,20 +33,13 @@
     "subtitle": "Si vas a entrar a alguna de nuestras salas es de suma importancia que conozcas nuestras reglas básicas.",
     "rules": [
       {
-        "title": "Hay un minimo de edad por sala",
-        "lines": ["Niños desde 9 años", " pueden entrar con un adulto"]
+        "title": "Niños de 9+ entran acompañados por un adulto; para entrar solos rige la edad mínima de la sala."
       },
       {
-        "title": "No revelar pistas ni spoilers a otros grupos",
-        "lines": ["deja que todos disfruten del misterio"]
+        "title": "Si tienes claustrofobia o condiciones cardíacas, ingresas bajo tu responsabilidad"
       },
       {
-        "title": "No distraer ni ignorar al Game-Master",
-        "lines": ["estamos siempre para ayudarte"]
-      },
-      {
-        "title": "Ven con ropa cómoda",
-        "lines": ["y prepárate para moverte y agacharte"]
+        "title": "Ven con ropa cómoda, y prepárate para moverte y agacharte"
       }
     ],
     "fact": {
@@ -132,7 +125,7 @@
     "weekday": {
       "label": "Entre semana",
       "range": "Lunes a Jueves",
-      "note": "Precio por persona",
+      "note": "Ahorra $7.000 por persona",
       "items": [
         {
           "players": 7,
@@ -227,8 +220,8 @@
     "note": "Escríbenos y reserva tu aventura"
   },
   "cafeteria": {
-    "eyebrow": "Cafetería",
-    "title": "LOGIC CAFÉ & SNACKS",
+    "eyebrow": "Para compartir",
+    "title": "CAFETERÍA & BEBIDAS y SNACKS",
     "subtitle": "Recarga energías antes o después de tu misión, o para acompañar un buen juego de mesa. Opciones frescas para tu equipo.",
     "pricesNote": "Precios en",
     "backHome": "Volver al inicio",

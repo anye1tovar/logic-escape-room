@@ -90,11 +90,11 @@ export default function BookingStepSummary({
     };
   }, [selection?.date, selection?.peopleCount]);
 
-  const durationLabel = useMemo(() => {
-    const minutes = selection?.durationMinutes;
-    if (typeof minutes !== "number" || !Number.isFinite(minutes)) return "—";
-    return `${minutes} min`;
-  }, [selection?.durationMinutes]);
+  // const durationLabel = useMemo(() => {
+  //   const minutes = selection?.durationMinutes;
+  //   if (typeof minutes !== "number" || !Number.isFinite(minutes)) return "—";
+  //   return `${minutes} min`;
+  // }, [selection?.durationMinutes]);
 
   return (
     <section className={className}>
@@ -126,7 +126,7 @@ export default function BookingStepSummary({
         </div>
         <div className="booking-summary__row">
           <span className="booking-summary__label">
-            Duración{" "}
+            Duración
             <ClickAwayListener
               onClickAway={() => setIsDurationTooltipOpen(false)}
             >
@@ -153,7 +153,7 @@ export default function BookingStepSummary({
               </Tooltip>
             </ClickAwayListener>
           </span>
-          <span className="booking-summary__value">{durationLabel}</span>
+          <span className="booking-summary__value">90 min</span>
         </div>
         <div className="booking-summary__divider" />
         <div className="booking-summary__row">
@@ -241,6 +241,7 @@ export default function BookingStepSummary({
                 endTime: selection.slotEnd,
                 attendees: selection.peopleCount,
                 notes: details.notes,
+                isFirstTime: details.isFirstTime === true,
               })) as {
                 consultCode?: string;
                 reservationCode?: string;

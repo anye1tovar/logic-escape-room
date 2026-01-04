@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useLayoutEffect, useRef } from "react";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import "./PinnedZoomOverlay.scss";
 
@@ -13,6 +13,40 @@ export default function PinZoomOverlay({
 }: PinZoomOverlayProps) {
   // Este spacer controla el zoom. El overlay NO necesita animación: sube por el scroll natural.
   const spacerRef = useRef<HTMLDivElement | null>(null);
+  const sectionRef = useRef<HTMLElement | null>(null);
+
+  useLayoutEffect(() => {
+    const sectionEl = sectionRef.current;
+    const headerEl = document.querySelector("header.header") as HTMLElement | null;
+    if (!sectionEl || !headerEl) return;
+
+    const updateHeaderHeight = () => {
+      const height = headerEl.getBoundingClientRect().height;
+      sectionEl.style.setProperty("--pzo-header-h", `${height}px`);
+    };
+
+    updateHeaderHeight();
+
+    const resizeObserver = new ResizeObserver(updateHeaderHeight);
+    resizeObserver.observe(headerEl);
+
+    let rafId = 0;
+    const onScroll = () => {
+      if (rafId) return;
+      rafId = window.requestAnimationFrame(() => {
+        rafId = 0;
+        updateHeaderHeight();
+      });
+    };
+
+    window.addEventListener("scroll", onScroll, { passive: true });
+
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      if (rafId) window.cancelAnimationFrame(rafId);
+      resizeObserver.disconnect();
+    };
+  }, []);
 
   /**
    * Queremos:
@@ -39,7 +73,7 @@ export default function PinZoomOverlay({
   const dim = useSpring(dimRaw, { stiffness: 260, damping: 35 });
 
   return (
-    <section className="pzo">
+    <section ref={sectionRef} className="pzo">
       {/* Sticky layer (la imagen queda fija mientras el wrapper tiene contenido debajo) */}
       <div className="pzo__sticky">
         <motion.div

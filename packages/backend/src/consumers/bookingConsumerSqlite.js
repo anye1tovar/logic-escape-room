@@ -14,14 +14,16 @@ function createBooking({
   sendReceipt,
   date,
   consultCode,
+  isFirstTime,
 }) {
   return new Promise((resolve, reject) => {
     const id = uuidv4();
     const createdAt = Date.now();
     const sendReceiptInt = sendReceipt ? 1 : 0;
+    const isFirstTimeInt = isFirstTime ? 1 : 0;
     const finalName = name || `${firstName || ""} ${lastName || ""}`.trim();
     db.run(
-      `INSERT INTO reservations (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, email, players, status) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT INTO reservations (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, email, players, status, is_first_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         roomId || null,
         date,
@@ -34,6 +36,7 @@ function createBooking({
         email || null,
         attendees || null,
         "PENDING",
+        isFirstTimeInt,
       ],
       function (err) {
         if (err) return reject(err);
@@ -50,6 +53,7 @@ function createBooking({
           endTime: endTime || time || null,
           attendees,
           sendReceipt: !!sendReceiptInt,
+          isFirstTime: !!isFirstTimeInt,
           date,
           consultCode: consultCode || null,
           createdAt,

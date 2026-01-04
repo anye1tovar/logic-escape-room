@@ -54,15 +54,6 @@ const Hero = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.1, ease: "easeInOut" }}
         >
-          <motion.span
-            className="hero__badge"
-            initial={{ opacity: 0, y: -8 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, delay: 0.15 }}
-          >
-            {t("hero.badge")}
-          </motion.span>
-
           <motion.h1
             className="hero__title"
             initial={{ opacity: 0, y: 16 }}
