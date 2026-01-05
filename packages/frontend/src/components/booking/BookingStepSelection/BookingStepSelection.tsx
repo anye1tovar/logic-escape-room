@@ -485,7 +485,9 @@ export default function BookingStepSelection({
             </h3>
             <div className="booking-form__section-meta">
               {isLoading && (
-                <span className="booking-badge">{t("booking.selection.loading")}</span>
+                <span className="booking-badge">
+                  {t("booking.selection.loading")}
+                </span>
               )}
             </div>
           </div>
@@ -546,8 +548,8 @@ export default function BookingStepSelection({
                           {room.name}
                         </div>
                         <div className="booking-room-card__meta">
-                          {room.durationMinutes} {t("booking.common.minutesAbbr")}{" "}
-                          ·{" "}
+                          {room.durationMinutes}{" "}
+                          {t("booking.common.minutesAbbr")} ·{" "}
                           {t("booking.selection.playersRange", {
                             min: room.minPlayers,
                             max: room.maxPlayers,

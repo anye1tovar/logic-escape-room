@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import BookingStepDetails from "../../components/booking/BookingStepDetails";
 import BookingStepPayment from "../../components/booking/BookingStepPayment";
@@ -12,7 +12,8 @@ import type { BookingDetailsFormValues } from "../../components/booking/BookingS
 
 export default function Booking() {
   const { t } = useTranslation();
-  const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
+  type BookingStep = 1 | 2 | 3 | 4;
+  const [activeStep, setActiveStep] = useState<BookingStep>(1);
   const [step1Data, setStep1Data] = useState<BookingStep1Output | null>(null);
   const [step2Data, setStep2Data] = useState<BookingDetailsFormValues | null>(
     null
@@ -24,24 +25,47 @@ export default function Booking() {
   const step3Ref = useRef<HTMLDivElement | null>(null);
   const step4Ref = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const getScrollBehavior = useCallback((): ScrollBehavior => {
     const prefersReducedMotion =
       typeof window !== "undefined" &&
       window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-    const behavior: ScrollBehavior = prefersReducedMotion ? "auto" : "smooth";
+    return prefersReducedMotion ? "auto" : "smooth";
+  }, []);
 
+  const scrollToStep = useCallback(
+    (step: BookingStep) => {
     const ref =
-      activeStep === 1
+      step === 1
         ? step1Ref
-        : activeStep === 2
+        : step === 2
           ? step2Ref
-          : activeStep === 3
+          : step === 3
             ? step3Ref
             : step4Ref;
 
-    ref.current?.scrollIntoView({ behavior, block: "start" });
-  }, [activeStep]);
+      ref.current?.scrollIntoView({
+        behavior: getScrollBehavior(),
+        block: "start",
+      });
+    },
+    [getScrollBehavior]
+  );
+
+  useEffect(() => {
+    scrollToStep(activeStep);
+  }, [activeStep, scrollToStep]);
+
+  const canNavigateTo = (step: BookingStep) => step <= activeStep;
+
+  const handleStepClick = (step: BookingStep) => {
+    if (!canNavigateTo(step)) return;
+    if (step === activeStep) {
+      scrollToStep(step);
+      return;
+    }
+    setActiveStep(step);
+  };
 
   return (
     <div className="booking">
@@ -82,65 +106,92 @@ export default function Booking() {
                 className={`booking__step ${
                   activeStep === 1 ? "booking__step--active" : ""
                 }`}
-                aria-current={activeStep === 1 ? "step" : undefined}
               >
-                <span className="booking__step-index">1</span>
-                <span className="booking__step-text">
-                  <span className="booking__step-title">
-                    {t("booking.steps.selection.title")}
+                <button
+                  type="button"
+                  className="booking__step-button"
+                  onClick={() => handleStepClick(1)}
+                  aria-current={activeStep === 1 ? "step" : undefined}
+                >
+                  <span className="booking__step-index">1</span>
+                  <span className="booking__step-text">
+                    <span className="booking__step-title">
+                      {t("booking.steps.selection.title")}
+                    </span>
+                    <span className="booking__step-desc">
+                      {t("booking.steps.selection.desc")}
+                    </span>
                   </span>
-                  <span className="booking__step-desc">
-                    {t("booking.steps.selection.desc")}
-                  </span>
-                </span>
+                </button>
               </li>
               <li
                 className={`booking__step ${
                   activeStep === 2 ? "booking__step--active" : ""
                 } ${activeStep < 2 ? "booking__step--locked" : ""}`}
-                aria-current={activeStep === 2 ? "step" : undefined}
               >
-                <span className="booking__step-index">2</span>
-                <span className="booking__step-text">
-                  <span className="booking__step-title">
-                    {t("booking.steps.details.title")}
+                <button
+                  type="button"
+                  className="booking__step-button"
+                  onClick={() => handleStepClick(2)}
+                  disabled={!canNavigateTo(2)}
+                  aria-current={activeStep === 2 ? "step" : undefined}
+                >
+                  <span className="booking__step-index">2</span>
+                  <span className="booking__step-text">
+                    <span className="booking__step-title">
+                      {t("booking.steps.details.title")}
+                    </span>
+                    <span className="booking__step-desc">
+                      {t("booking.steps.details.desc")}
+                    </span>
                   </span>
-                  <span className="booking__step-desc">
-                    {t("booking.steps.details.desc")}
-                  </span>
-                </span>
+                </button>
               </li>
               <li
                 className={`booking__step ${
                   activeStep === 3 ? "booking__step--active" : ""
                 } ${activeStep < 3 ? "booking__step--locked" : ""}`}
-                aria-current={activeStep === 3 ? "step" : undefined}
               >
-                <span className="booking__step-index">3</span>
-                <span className="booking__step-text">
-                  <span className="booking__step-title">
-                    {t("booking.steps.summary.title")}
+                <button
+                  type="button"
+                  className="booking__step-button"
+                  onClick={() => handleStepClick(3)}
+                  disabled={!canNavigateTo(3)}
+                  aria-current={activeStep === 3 ? "step" : undefined}
+                >
+                  <span className="booking__step-index">3</span>
+                  <span className="booking__step-text">
+                    <span className="booking__step-title">
+                      {t("booking.steps.summary.title")}
+                    </span>
+                    <span className="booking__step-desc">
+                      {t("booking.steps.summary.desc")}
+                    </span>
                   </span>
-                  <span className="booking__step-desc">
-                    {t("booking.steps.summary.desc")}
-                  </span>
-                </span>
+                </button>
               </li>
               <li
                 className={`booking__step ${
                   activeStep === 4 ? "booking__step--active" : ""
                 } ${activeStep < 4 ? "booking__step--locked" : ""}`}
-                aria-current={activeStep === 4 ? "step" : undefined}
               >
-                <span className="booking__step-index">4</span>
-                <span className="booking__step-text">
-                  <span className="booking__step-title">
-                    {t("booking.steps.payment.title")}
+                <button
+                  type="button"
+                  className="booking__step-button"
+                  onClick={() => handleStepClick(4)}
+                  disabled={!canNavigateTo(4)}
+                  aria-current={activeStep === 4 ? "step" : undefined}
+                >
+                  <span className="booking__step-index">4</span>
+                  <span className="booking__step-text">
+                    <span className="booking__step-title">
+                      {t("booking.steps.payment.title")}
+                    </span>
+                    <span className="booking__step-desc">
+                      {t("booking.steps.payment.desc")}
+                    </span>
                   </span>
-                  <span className="booking__step-desc">
-                    {t("booking.steps.payment.desc")}
-                  </span>
-                </span>
+                </button>
               </li>
             </ol>
           </nav>
