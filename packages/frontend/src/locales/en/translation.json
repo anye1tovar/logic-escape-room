@@ -295,5 +295,182 @@
         "desc": "Drink + brownie or nachos."
       }
     }
+  },
+  "booking": {
+    "actions": {
+      "back": "Back",
+      "continue": "Continue",
+      "reserve": "Reserve",
+      "reserving": "Reserving..."
+    },
+    "common": {
+      "minutesAbbr": "min",
+      "minutesValue": "{{minutes}} min",
+      "totalValue": "Total value"
+    },
+    "page": {
+      "eyebrow": "Bookings",
+      "titleLine1": "Book your",
+      "titleLine2": "Experience",
+      "subtitle": "Complete the process in 4 steps: selection, details, summary, and payment.",
+      "haveCode": "Already have a code?",
+      "consultLink": "Check booking status",
+      "stepperAria": "Booking flow",
+      "overlays": {
+        "pressBack": "Press \"{{backLabel}}\" to edit this step",
+        "completeStep1": "Complete step 1 to continue",
+        "completePrevious": "Complete previous steps to continue",
+        "stepConfirmed": "This step has already been confirmed",
+        "createReservation": "Create the reservation in step 3 to continue",
+        "locked": "Step locked"
+      }
+    },
+    "steps": {
+      "selection": { "title": "Selection", "desc": "Room, date and time" },
+      "details": { "title": "Details", "desc": "Contact and notes" },
+      "summary": { "title": "Summary", "desc": "Review and reserve" },
+      "payment": { "title": "Payment", "desc": "Instructions and code" }
+    },
+    "selection": {
+      "subtitle": "Choose the experience, how many people are coming, and an available time slot.",
+      "dateSectionTitle": "Date",
+      "selectDateLabel": "Select a date",
+      "datePlaceholder": "YYYY-MM-DD",
+      "roomSectionTitle": "Room and schedule",
+      "loading": "Loading…",
+      "pickDateHint": "Select a date to see available rooms and time slots.",
+      "cantFindSlotPrefix": "If you can't find availability for the day or time you want,",
+      "contactUsLink": "contact us",
+      "cantFindSlotSuffix": "and we'll help you find another option.",
+      "playersRange": "{{min}}–{{max}} players",
+      "slot": {
+        "available": "Available",
+        "busy": "Busy",
+        "busyBadge": "Busy"
+      },
+      "peopleSectionTitle": "People",
+      "peopleLabel": "Number of players",
+      "peopleSelectorAria": "People selector",
+      "limitsByRoom": "Room limits: {{min}}–{{max}}",
+      "selectRoomToEnable": "Select a room to enable the selector.",
+      "pricePerPerson": "Price per person",
+      "difficulty": {
+        "easy": "Easy",
+        "medium": "Medium",
+        "hard": "Hard"
+      }
+    },
+    "details": {
+      "subtitle": "Tell us who's booking and how we can contact you.",
+      "fullName": { "label": "Full name", "placeholder": "Your first and last name" },
+      "email": {
+        "label": "Email",
+        "placeholder": "you@example.com",
+        "tooltip": "We'll use your email to send your booking confirmation and invite you to the event in Google Calendar.",
+        "tooltipAria": "Email information"
+      },
+      "phone": {
+        "aria": "Contact number",
+        "dialCodeLabel": "Dial code",
+        "numberLabel": "Number",
+        "helper": "We'll use this number to message you on WhatsApp if needed."
+      },
+      "firstTime": {
+        "question": "Is this your first time at Logic Escape Room?",
+        "aria": "First time at Logic Escape Room",
+        "yes": "Yes",
+        "no": "No"
+      },
+      "notes": {
+        "title": "Notes",
+        "placeholder": "Birthday, accessibility needs, claustrophobia, etc."
+      },
+      "validation": {
+        "fullNameRequired": "Full name is required.",
+        "emailInvalid": "Enter a valid email.",
+        "emailRequired": "Email is required.",
+        "dialCodeRequired": "Dial code is required.",
+        "phoneDigitsOnly": "Phone number must contain only digits.",
+        "phoneRequired": "Phone number is required.",
+        "firstTimeRequired": "Select yes or no to continue."
+      }
+    },
+    "summary": {
+      "subtitle": "Review the details and press Reserve to secure your spot.",
+      "aria": "Booking summary",
+      "labels": {
+        "room": "Room",
+        "date": "Date",
+        "time": "Time",
+        "duration": "Duration",
+        "people": "People",
+        "depositMinimum": "Minimum deposit"
+      },
+      "duration": {
+        "tooltip": "The experience lasts 90 minutes in total, including the briefing, time inside the room, and the photo session.",
+        "tooltipAria": "Duration information"
+      },
+      "deposit": {
+        "tooltip": "The deposit is paid after you reserve your spot. Clicking Reserve will show detailed instructions.",
+        "tooltipAria": "Minimum deposit information"
+      },
+      "errors": {
+        "loadTotal": "Error loading the total.",
+        "missingCode": "The code was not generated.",
+        "createFailed": "We couldn't create the booking. Please try again."
+      }
+    },
+    "payment": {
+      "subtitle": "Booking created. Pay the deposit and send the receipt via WhatsApp.",
+      "instructionsTitle": "Instructions",
+      "depositPrefix": "To confirm your booking, pay a deposit of",
+      "deadlinePrefix": "You have",
+      "deadlineSuffix": "hours to send the receipt.",
+      "estimatedTotalLabel": "Estimated total:",
+      "sendToWhatsapp": "Send it to Logic's WhatsApp:",
+      "payHint": "You can pay by scanning the QR or using the Bre-B key:",
+      "viewQr": "View payment QR",
+      "consultCodeTitle": "Consultation code",
+      "consultCodeHint": "Save this code to check the status of your booking.",
+      "consultCodeAria": "Consultation code",
+      "consultStatusLink": "Check status",
+      "copy": { "idle": "Copy", "copied": "Copied", "failed": "Couldn't copy" },
+      "qrDialog": {
+        "title": "Bre-B payment QR",
+        "closeAria": "Close",
+        "imageAlt": "Bre-B payment QR",
+        "fallbackKey": "If you prefer, you can also pay using the key: {{key}}."
+      },
+      "brebAria": "Bre-B key",
+      "whatsappPrefill": "Hello! I'm sending the payment receipt for the deposit under the name {{name}} for {{date}} at {{time}}.",
+      "errors": { "loadTotal": "Error loading the total." }
+    },
+    "status": {
+      "eyebrow": "Lookup",
+      "titleLine1": "Status of",
+      "titleLine2": "Your Booking",
+      "subtitle": "Enter your consultation code to see the booking status.",
+      "meta": "The code is generated at the end of the payment step.",
+      "formAria": "Lookup form",
+      "codeLabel": "Consultation code",
+      "codePlaceholder": "Ex: LGC-7F3K2Q",
+      "searchCta": "Search",
+      "resultTitle": "Result",
+      "resultEmpty": "No lookup has been made yet. Enter a code to see the status here.",
+      "timelineAria": "Status",
+      "timeline": {
+        "registered": {
+          "title": "Registered",
+          "desc": "Booking created and awaiting deposit payment."
+        },
+        "confirmed": {
+          "title": "Confirmed",
+          "desc": "Payment verified and spot secured."
+        },
+        "completed": { "title": "Completed", "desc": "Experience completed." }
+      },
+      "tipTitle": "Quick tip:",
+      "tipBody": "save your code in WhatsApp or email so you can look it up when you need it."
+    }
   }
 }

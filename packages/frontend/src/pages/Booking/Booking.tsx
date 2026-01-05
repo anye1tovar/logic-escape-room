@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import BookingStepDetails from "../../components/booking/BookingStepDetails";
 import BookingStepPayment from "../../components/booking/BookingStepPayment";
 import BookingStepSelection from "../../components/booking/BookingStepSelection";
@@ -10,6 +11,7 @@ import type { BookingStep1Output } from "../../components/booking/BookingStepSel
 import type { BookingDetailsFormValues } from "../../components/booking/BookingStepDetails/BookingStepDetails";
 
 export default function Booking() {
+  const { t } = useTranslation();
   const [activeStep, setActiveStep] = useState<1 | 2 | 3 | 4>(1);
   const [step1Data, setStep1Data] = useState<BookingStep1Output | null>(null);
   const [step2Data, setStep2Data] = useState<BookingDetailsFormValues | null>(
@@ -49,27 +51,32 @@ export default function Booking() {
         <div className="booking__container">
           <header className="booking__header">
             <div className="booking__title-block">
-              <p className="booking__eyebrow">Reservas</p>
+              <p className="booking__eyebrow">{t("booking.page.eyebrow")}</p>
               <h1 className="booking__title">
-                <span>Reserva tu</span>
-                <span className="booking__title-accent">Experiencia</span>
+                <span>{t("booking.page.titleLine1")}</span>
+                <span className="booking__title-accent">
+                  {t("booking.page.titleLine2")}
+                </span>
               </h1>
             </div>
 
             <div className="booking__copy">
               <p className="booking__subtitle">
-                Completa el proceso en 4 pasos: selección, datos, resumen y pago.
+                {t("booking.page.subtitle")}
               </p>
               <div className="booking__helper">
-                <span>¿Ya tienes un código?</span>{" "}
+                <span>{t("booking.page.haveCode")}</span>{" "}
                 <a className="booking__helper-link" href="/consulta-reserva">
-                  Consultar estado de reserva
+                  {t("booking.page.consultLink")}
                 </a>
               </div>
             </div>
           </header>
 
-          <nav className="booking__stepper" aria-label="Flujo de reserva">
+          <nav
+            className="booking__stepper"
+            aria-label={t("booking.page.stepperAria")}
+          >
             <ol className="booking__steps">
               <li
                 className={`booking__step ${
@@ -79,8 +86,12 @@ export default function Booking() {
               >
                 <span className="booking__step-index">1</span>
                 <span className="booking__step-text">
-                  <span className="booking__step-title">Selección</span>
-                  <span className="booking__step-desc">Sala, fecha y hora</span>
+                  <span className="booking__step-title">
+                    {t("booking.steps.selection.title")}
+                  </span>
+                  <span className="booking__step-desc">
+                    {t("booking.steps.selection.desc")}
+                  </span>
                 </span>
               </li>
               <li
@@ -91,8 +102,12 @@ export default function Booking() {
               >
                 <span className="booking__step-index">2</span>
                 <span className="booking__step-text">
-                  <span className="booking__step-title">Datos</span>
-                  <span className="booking__step-desc">Contacto y notas</span>
+                  <span className="booking__step-title">
+                    {t("booking.steps.details.title")}
+                  </span>
+                  <span className="booking__step-desc">
+                    {t("booking.steps.details.desc")}
+                  </span>
                 </span>
               </li>
               <li
@@ -103,8 +118,12 @@ export default function Booking() {
               >
                 <span className="booking__step-index">3</span>
                 <span className="booking__step-text">
-                  <span className="booking__step-title">Resumen</span>
-                  <span className="booking__step-desc">Revisa y reserva</span>
+                  <span className="booking__step-title">
+                    {t("booking.steps.summary.title")}
+                  </span>
+                  <span className="booking__step-desc">
+                    {t("booking.steps.summary.desc")}
+                  </span>
                 </span>
               </li>
               <li
@@ -115,9 +134,11 @@ export default function Booking() {
               >
                 <span className="booking__step-index">4</span>
                 <span className="booking__step-text">
-                  <span className="booking__step-title">Pago</span>
+                  <span className="booking__step-title">
+                    {t("booking.steps.payment.title")}
+                  </span>
                   <span className="booking__step-desc">
-                    Instrucciones y código
+                    {t("booking.steps.payment.desc")}
                   </span>
                 </span>
               </li>
@@ -134,7 +155,9 @@ export default function Booking() {
             >
               {activeStep !== 1 && (
                 <div className="booking__panel-overlay">
-                  Presiona “Volver” para editar este paso
+                  {t("booking.page.overlays.pressBack", {
+                    backLabel: t("booking.actions.back"),
+                  })}
                 </div>
               )}
               <BookingStepSelection
@@ -158,8 +181,10 @@ export default function Booking() {
               {activeStep !== 2 && (
                 <div className="booking__panel-overlay">
                   {activeStep < 2
-                    ? "Completa el paso 1 para continuar"
-                    : "Presiona “Volver” para editar este paso"}
+                    ? t("booking.page.overlays.completeStep1")
+                    : t("booking.page.overlays.pressBack", {
+                        backLabel: t("booking.actions.back"),
+                      })}
                 </div>
               )}
               <BookingStepDetails
@@ -181,8 +206,8 @@ export default function Booking() {
               {activeStep !== 3 && (
                 <div className="booking__panel-overlay">
                   {activeStep < 3
-                    ? "Completa los pasos anteriores para continuar"
-                    : "Este paso ya fue confirmado"}
+                    ? t("booking.page.overlays.completePrevious")
+                    : t("booking.page.overlays.stepConfirmed")}
                 </div>
               )}
               <BookingStepSummary
@@ -209,8 +234,8 @@ export default function Booking() {
               {activeStep !== 4 && (
                 <div className="booking__panel-overlay">
                   {activeStep < 4
-                    ? "Crea la reserva en el paso 3 para continuar"
-                    : "Paso bloqueado"}
+                    ? t("booking.page.overlays.createReservation")
+                    : t("booking.page.overlays.locked")}
                 </div>
               )}
               <BookingStepPayment

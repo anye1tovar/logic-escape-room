@@ -61,14 +61,17 @@ type BookingStepSelectionProps = {
 
 const SLOT_DURATION_MINUTES = 90;
 
-function difficultyLabel(value: AvailabilityRoom["difficulty"]) {
+function difficultyLabel(
+  value: AvailabilityRoom["difficulty"],
+  t: (key: string) => string
+) {
   switch (value) {
     case "easy":
-      return "Fácil";
+      return t("booking.selection.difficulty.easy");
     case "medium":
-      return "Media";
+      return t("booking.selection.difficulty.medium");
     case "hard":
-      return "Difícil";
+      return t("booking.selection.difficulty.hard");
     default:
       return String(value);
   }
@@ -153,7 +156,7 @@ export default function BookingStepSelection({
   className,
   onComplete,
 }: BookingStepSelectionProps) {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const pickerLocale = useMemo(() => {
     const lang = i18n.language || "es";
     return lang.startsWith("en") ? "en" : "es";
@@ -320,17 +323,23 @@ export default function BookingStepSelection({
   return (
     <section className={className}>
       <header className="booking-step__header">
-        <h2 className="booking-step__title">1. Selección</h2>
+        <h2 className="booking-step__title">
+          1. {t("booking.steps.selection.title")}
+        </h2>
         <p className="booking-step__subtitle">
-          Elige la experiencia, cuántas personas vienen y el horario disponible.
+          {t("booking.selection.subtitle")}
         </p>
       </header>
 
       <div className="booking-step__content">
         <div className="booking-form__section">
-          <h3 className="booking-form__section-title">Fecha</h3>
+          <h3 className="booking-form__section-title">
+            {t("booking.selection.dateSectionTitle")}
+          </h3>
           <div className="booking-form__field">
-            <span className="booking-form__label">Selecciona una fecha</span>
+            <span className="booking-form__label">
+              {t("booking.selection.selectDateLabel")}
+            </span>
             <LocalizationProvider
               dateAdapter={AdapterDayjs}
               adapterLocale={pickerLocale}
@@ -452,7 +461,7 @@ export default function BookingStepSelection({
                   },
                   textField: {
                     fullWidth: true,
-                    placeholder: "YYYY-MM-DD",
+                    placeholder: t("booking.selection.datePlaceholder"),
                     sx: {
                       "> div > fieldset": {
                         borderColor: "#fff",
@@ -471,28 +480,32 @@ export default function BookingStepSelection({
 
         <div className="booking-form__section">
           <div className="booking-form__section-head">
-            <h3 className="booking-form__section-title">Sala y horario</h3>
+            <h3 className="booking-form__section-title">
+              {t("booking.selection.roomSectionTitle")}
+            </h3>
             <div className="booking-form__section-meta">
-              {isLoading && <span className="booking-badge">Cargando…</span>}
+              {isLoading && (
+                <span className="booking-badge">{t("booking.selection.loading")}</span>
+              )}
             </div>
           </div>
           {!selectedDate && (
             <p className="booking-form__hint">
-              Selecciona una fecha para ver salas y horarios disponibles.
+              {t("booking.selection.pickDateHint")}
             </p>
           )}
 
           <p className="booking-form__hint">
-            Si no encuentras cupo para el día u horario que buscas,{" "}
+            {t("booking.selection.cantFindSlotPrefix")}{" "}
             <a
               className="booking-form__link"
               href="https://wa.me/573181278688"
               target="_blank"
               referrerPolicy="no-referrer"
             >
-              comunícate con nosotros
+              {t("booking.selection.contactUsLink")}
             </a>{" "}
-            y te ayudamos con otra opción.
+            {t("booking.selection.cantFindSlotSuffix")}
           </p>
 
           {loadError && (
@@ -533,9 +546,13 @@ export default function BookingStepSelection({
                           {room.name}
                         </div>
                         <div className="booking-room-card__meta">
-                          {room.durationMinutes} min · {room.minPlayers}–
-                          {room.maxPlayers} jugadores ·{" "}
-                          {difficultyLabel(room.difficulty)}
+                          {room.durationMinutes} {t("booking.common.minutesAbbr")}{" "}
+                          ·{" "}
+                          {t("booking.selection.playersRange", {
+                            min: room.minPlayers,
+                            max: room.maxPlayers,
+                          })}{" "}
+                          · {difficultyLabel(room.difficulty, t)}
                         </div>
                       </div>
                     </button>
@@ -570,7 +587,9 @@ export default function BookingStepSelection({
                                 onClick={() => handleSelectSlot(room, slot)}
                                 aria-pressed={isSlotSelected}
                                 title={
-                                  !slot.available ? "Ocupado" : "Disponible"
+                                  slot.available
+                                    ? t("booking.selection.slot.available")
+                                    : t("booking.selection.slot.busy")
                                 }
                               >
                                 <span className="booking-slot__time">
@@ -578,7 +597,7 @@ export default function BookingStepSelection({
                                 </span>
                                 {!slot.available && (
                                   <span className="booking-slot__badge">
-                                    Ocupado
+                                    {t("booking.selection.slot.busyBadge")}
                                   </span>
                                 )}
                               </button>
@@ -595,14 +614,18 @@ export default function BookingStepSelection({
         </div>
 
         <div className="booking-form__section">
-          <h3 className="booking-form__section-title">Personas</h3>
+          <h3 className="booking-form__section-title">
+            {t("booking.selection.peopleSectionTitle")}
+          </h3>
           <div className="booking-form__field">
-            <span className="booking-form__label">Número de jugadores</span>
+            <span className="booking-form__label">
+              {t("booking.selection.peopleLabel")}
+            </span>
             <div
               className={`booking-people ${
                 selectedRoom ? "" : "booking-people--disabled"
               }`}
-              aria-label="Selector de personas"
+              aria-label={t("booking.selection.peopleSelectorAria")}
             >
               <button
                 type="button"
@@ -640,15 +663,18 @@ export default function BookingStepSelection({
             </div>
             <p className="booking-form__hint booking-form__hint--inline">
               {selectedRoom
-                ? `Límites por sala: ${selectedRoom.minPlayers}–${selectedRoom.maxPlayers}`
-                : "Selecciona una sala para habilitar el selector."}
+                ? t("booking.selection.limitsByRoom", {
+                    min: selectedRoom.minPlayers,
+                    max: selectedRoom.maxPlayers,
+                  })
+                : t("booking.selection.selectRoomToEnable")}
             </p>
             {selectedRoom && typeof peopleCount === "number" && (
               <div className="booking-summary booking-summary--inline">
                 {pricePerPerson != null && (
                   <div className="booking-summary__row booking-summary__row--total">
                     <span className="booking-summary__label">
-                      Precio por persona
+                      {t("booking.selection.pricePerPerson")}
                     </span>
                     <span className="booking-summary__value">
                       {formatMoney(pricePerPerson, locale, selectedCurrency)}
@@ -656,7 +682,9 @@ export default function BookingStepSelection({
                   </div>
                 )}
                 <div className="booking-summary__row ">
-                  <span className="booking-summary__label">Valor total</span>
+                  <span className="booking-summary__label">
+                    {t("booking.common.totalValue")}
+                  </span>
                   <span className="booking-summary__value">
                     {formatMoney(estimatedTotal, locale, selectedCurrency)}
                   </span>
@@ -674,7 +702,7 @@ export default function BookingStepSelection({
           disabled={!canContinue}
           onClick={handleContinue}
         >
-          Continuar
+          {t("booking.actions.continue")}
         </button>
       </footer>
     </section>

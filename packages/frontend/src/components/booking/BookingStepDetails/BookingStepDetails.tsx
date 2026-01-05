@@ -16,6 +16,7 @@ import {
   Typography,
 } from "@mui/material";
 import { useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import * as yup from "yup";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
@@ -47,6 +48,7 @@ export default function BookingStepDetails({
   onBack,
   onComplete,
 }: BookingStepDetailsProps) {
+  const { t } = useTranslation();
   const dialCodes = countryDialCodes as CountryDialCode[];
   const [isEmailTooltipOpen, setIsEmailTooltipOpen] = useState(false);
 
@@ -56,25 +58,28 @@ export default function BookingStepDetails({
         fullName: yup
           .string()
           .trim()
-          .required("El nombre completo es requerido."),
+          .required(t("booking.details.validation.fullNameRequired")),
         email: yup
           .string()
           .trim()
-          .email("Ingresa un correo válido.")
-          .required("El correo es requerido."),
-        dialCode: yup.string().trim().required("El indicativo es requerido."),
+          .email(t("booking.details.validation.emailInvalid"))
+          .required(t("booking.details.validation.emailRequired")),
+        dialCode: yup
+          .string()
+          .trim()
+          .required(t("booking.details.validation.dialCodeRequired")),
         phone: yup
           .string()
           .trim()
-          .matches(/^\d+$/, "El teléfono debe contener solo números.")
-          .required("El teléfono es requerido."),
+          .matches(/^\d+$/, t("booking.details.validation.phoneDigitsOnly"))
+          .required(t("booking.details.validation.phoneRequired")),
         notes: yup.string().trim().notRequired(),
         isFirstTime: yup
           .boolean()
           .nullable()
-          .required("Selecciona sí o no para continuar."),
+          .required(t("booking.details.validation.firstTimeRequired")),
       }),
-    []
+    [t]
   );
 
   const [values, setValues] = useState<BookingDetailsFormValues>({
@@ -148,9 +153,11 @@ export default function BookingStepDetails({
   return (
     <section className={className}>
       <header className="booking-step__header">
-        <h2 className="booking-step__title">2. Datos</h2>
+        <h2 className="booking-step__title">
+          2. {t("booking.steps.details.title")}
+        </h2>
         <p className="booking-step__subtitle">
-          Cuéntanos quién reserva y cómo podemos contactarte.
+          {t("booking.details.subtitle")}
         </p>
       </header>
 
@@ -176,8 +183,8 @@ export default function BookingStepDetails({
           <Grid container spacing={2}>
             <Grid item xs={12} md={6}>
               <TextField
-                label="Nombre completo"
-                placeholder="Tu nombre y apellido"
+                label={t("booking.details.fullName.label")}
+                placeholder={t("booking.details.fullName.placeholder")}
                 fullWidth
                 variant="outlined"
                 value={values.fullName}
@@ -197,8 +204,8 @@ export default function BookingStepDetails({
             </Grid>
             <Grid item xs={12} md={6}>
               <TextField
-                label="Correo"
-                placeholder="tucorreo@ejemplo.com"
+                label={t("booking.details.email.label")}
+                placeholder={t("booking.details.email.placeholder")}
                 type="email"
                 fullWidth
                 variant="outlined"
@@ -219,17 +226,17 @@ export default function BookingStepDetails({
                       <ClickAwayListener
                         onClickAway={() => setIsEmailTooltipOpen(false)}
                       >
-                        <Tooltip
-                          title="Usaremos tu correo para enviarte la confirmación de tu reserva y para invitarte al evento en Google Calendar."
-                          arrow
-                          open={isEmailTooltipOpen}
-                          onClose={() => setIsEmailTooltipOpen(false)}
+                         <Tooltip
+                           title={t("booking.details.email.tooltip")}
+                           arrow
+                           open={isEmailTooltipOpen}
+                           onClose={() => setIsEmailTooltipOpen(false)}
                           disableHoverListener
                           disableFocusListener
                           disableTouchListener
                         >
                           <IconButton
-                            aria-label="Información del correo"
+                            aria-label={t("booking.details.email.tooltipAria")}
                             size="small"
                             onClick={() =>
                               setIsEmailTooltipOpen((prev) => !prev)
@@ -254,7 +261,7 @@ export default function BookingStepDetails({
             <Grid item xs={12} md={6}>
               <Box
                 className="booking-form__phone"
-                aria-label="Número de contacto"
+                aria-label={t("booking.details.phone.aria")}
               >
                 <FormControl
                   fullWidth
@@ -263,12 +270,12 @@ export default function BookingStepDetails({
                   error={Boolean(touched.dialCode && errors.dialCode)}
                 >
                   <InputLabel id="booking-dial-code-label" sx={labelSx}>
-                    Indicativo
+                    {t("booking.details.phone.dialCodeLabel")}
                   </InputLabel>
                   <Select
                     labelId="booking-dial-code-label"
                     id="booking-dial-code"
-                    label="Indicativo"
+                    label={t("booking.details.phone.dialCodeLabel")}
                     value={values.dialCode}
                     onChange={(event) => {
                       const dialCode = String(event.target.value);
@@ -305,7 +312,7 @@ export default function BookingStepDetails({
                 </FormControl>
 
                 <TextField
-                  label="Número"
+                  label={t("booking.details.phone.numberLabel")}
                   type="tel"
                   fullWidth
                   variant="outlined"
@@ -328,8 +335,7 @@ export default function BookingStepDetails({
               </Box>
 
               <Typography variant="caption">
-                Usaremos este número para escribirte por WhatsApp si es
-                necesario.
+                {t("booking.details.phone.helper")}
               </Typography>
             </Grid>
 
@@ -350,12 +356,12 @@ export default function BookingStepDetails({
                     className="booking-form__hint"
                     style={{ margin: 0, maxWidth: "50%" }}
                   >
-                    ¿Es tu primera vez en Logic Escape Room?
+                    {t("booking.details.firstTime.question")}
                   </p>
 
                   <ButtonGroup
                     variant="outlined"
-                    aria-label="Primera vez en Logic Escape Room"
+                    aria-label={t("booking.details.firstTime.aria")}
                     sx={{
                       gap: 1,
                       "& .MuiButton-root": {
@@ -389,7 +395,7 @@ export default function BookingStepDetails({
                             : undefined,
                       }}
                     >
-                      Sí
+                      {t("booking.details.firstTime.yes")}
                     </Button>
                     <Button
                       type="button"
@@ -407,7 +413,7 @@ export default function BookingStepDetails({
                             : undefined,
                       }}
                     >
-                      No
+                      {t("booking.details.firstTime.no")}
                     </Button>
                   </ButtonGroup>
                 </Box>
@@ -421,10 +427,10 @@ export default function BookingStepDetails({
         </Box>
         <Box>
           <Typography variant="h5" mb={1}>
-            Notas
+            {t("booking.details.notes.title")}
           </Typography>
           <TextField
-            placeholder="Cumpleaños, accesibilidad, claustrofobia, etc."
+            placeholder={t("booking.details.notes.placeholder")}
             fullWidth
             multiline
             minRows={2}
@@ -452,14 +458,14 @@ export default function BookingStepDetails({
           onClick={onBack}
           disabled={!onBack}
         >
-          Volver
+          {t("booking.actions.back")}
         </button>
         <button
           type="submit"
           form="booking-step-details-form"
           className="booking-actions__button"
         >
-          Continuar
+          {t("booking.actions.continue")}
         </button>
       </footer>
     </section>

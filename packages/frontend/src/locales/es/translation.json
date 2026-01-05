@@ -266,5 +266,182 @@
       "combo1": { "name": "Combo 1", "desc": "Bebida + galletas." },
       "combo2": { "name": "Combo 2", "desc": "Bebida + brownie o nachos." }
     }
+  },
+  "booking": {
+    "actions": {
+      "back": "Volver",
+      "continue": "Continuar",
+      "reserve": "Reservar",
+      "reserving": "Reservando..."
+    },
+    "common": {
+      "minutesAbbr": "min",
+      "minutesValue": "{{minutes}} min",
+      "totalValue": "Valor total"
+    },
+    "page": {
+      "eyebrow": "Reservas",
+      "titleLine1": "Reserva tu",
+      "titleLine2": "Experiencia",
+      "subtitle": "Completa el proceso en 4 pasos: selección, datos, resumen y pago.",
+      "haveCode": "¿Ya tienes un código?",
+      "consultLink": "Consultar estado de reserva",
+      "stepperAria": "Flujo de reserva",
+      "overlays": {
+        "pressBack": "Presiona \"{{backLabel}}\" para editar este paso",
+        "completeStep1": "Completa el paso 1 para continuar",
+        "completePrevious": "Completa los pasos anteriores para continuar",
+        "stepConfirmed": "Este paso ya fue confirmado",
+        "createReservation": "Crea la reserva en el paso 3 para continuar",
+        "locked": "Paso bloqueado"
+      }
+    },
+    "steps": {
+      "selection": { "title": "Selección", "desc": "Sala, fecha y hora" },
+      "details": { "title": "Datos", "desc": "Contacto y notas" },
+      "summary": { "title": "Resumen", "desc": "Revisa y reserva" },
+      "payment": { "title": "Pago", "desc": "Instrucciones y código" }
+    },
+    "selection": {
+      "subtitle": "Elige la experiencia, cuántas personas vienen y el horario disponible.",
+      "dateSectionTitle": "Fecha",
+      "selectDateLabel": "Selecciona una fecha",
+      "datePlaceholder": "YYYY-MM-DD",
+      "roomSectionTitle": "Sala y horario",
+      "loading": "Cargando…",
+      "pickDateHint": "Selecciona una fecha para ver salas y horarios disponibles.",
+      "cantFindSlotPrefix": "Si no encuentras cupo para el día u horario que buscas,",
+      "contactUsLink": "comunícate con nosotros",
+      "cantFindSlotSuffix": "y te ayudamos con otra opción.",
+      "playersRange": "{{min}}–{{max}} jugadores",
+      "slot": {
+        "available": "Disponible",
+        "busy": "Ocupado",
+        "busyBadge": "Ocupado"
+      },
+      "peopleSectionTitle": "Personas",
+      "peopleLabel": "Número de jugadores",
+      "peopleSelectorAria": "Selector de personas",
+      "limitsByRoom": "Límites por sala: {{min}}–{{max}}",
+      "selectRoomToEnable": "Selecciona una sala para habilitar el selector.",
+      "pricePerPerson": "Precio por persona",
+      "difficulty": {
+        "easy": "Fácil",
+        "medium": "Media",
+        "hard": "Difícil"
+      }
+    },
+    "details": {
+      "subtitle": "Cuéntanos quién reserva y cómo podemos contactarte.",
+      "fullName": { "label": "Nombre completo", "placeholder": "Tu nombre y apellido" },
+      "email": {
+        "label": "Correo",
+        "placeholder": "tucorreo@ejemplo.com",
+        "tooltip": "Usaremos tu correo para enviarte la confirmación de tu reserva y para invitarte al evento en Google Calendar.",
+        "tooltipAria": "Información del correo"
+      },
+      "phone": {
+        "aria": "Número de contacto",
+        "dialCodeLabel": "Indicativo",
+        "numberLabel": "Número",
+        "helper": "Usaremos este número para escribirte por WhatsApp si es necesario."
+      },
+      "firstTime": {
+        "question": "¿Es tu primera vez en Logic Escape Room?",
+        "aria": "Primera vez en Logic Escape Room",
+        "yes": "Sí",
+        "no": "No"
+      },
+      "notes": {
+        "title": "Notas",
+        "placeholder": "Cumpleaños, accesibilidad, claustrofobia, etc."
+      },
+      "validation": {
+        "fullNameRequired": "El nombre completo es requerido.",
+        "emailInvalid": "Ingresa un correo válido.",
+        "emailRequired": "El correo es requerido.",
+        "dialCodeRequired": "El indicativo es requerido.",
+        "phoneDigitsOnly": "El teléfono debe contener solo números.",
+        "phoneRequired": "El teléfono es requerido.",
+        "firstTimeRequired": "Selecciona sí o no para continuar."
+      }
+    },
+    "summary": {
+      "subtitle": "Revisa los datos y presiona el botón Reservar para apartar tu cupo.",
+      "aria": "Resumen de la reserva",
+      "labels": {
+        "room": "Sala",
+        "date": "Fecha",
+        "time": "Hora",
+        "duration": "Duración",
+        "people": "Personas",
+        "depositMinimum": "Abono mínimo"
+      },
+      "duration": {
+        "tooltip": "La experiencia dura 90 minutos en total, incluyendo la explicación previa, el tiempo dentro de la sala y la sesión de fotos.",
+        "tooltipAria": "Información de duración"
+      },
+      "deposit": {
+        "tooltip": "El abono se realiza después de apartar el cupo. Al dar clic en Reservar verás las instrucciones detalladamente.",
+        "tooltipAria": "Información del abono mínimo"
+      },
+      "errors": {
+        "loadTotal": "Error cargando el total.",
+        "missingCode": "No se generó el código.",
+        "createFailed": "No pudimos crear la reserva. Intenta de nuevo."
+      }
+    },
+    "payment": {
+      "subtitle": "Reserva creada. Realiza el abono y envía el comprobante por WhatsApp.",
+      "instructionsTitle": "Instrucciones",
+      "depositPrefix": "Para confirmar tu reserva, realiza un abono de",
+      "deadlinePrefix": "Tienes",
+      "deadlineSuffix": "horas para enviar el comprobante.",
+      "estimatedTotalLabel": "Total estimado de la reserva:",
+      "sendToWhatsapp": "Envíalo al WhatsApp de Logic:",
+      "payHint": "Puedes pagar escaneando el QR o usando la llave Bre-B:",
+      "viewQr": "Ver QR de pago",
+      "consultCodeTitle": "Código de consulta",
+      "consultCodeHint": "Guarda este código para consultar el estado de tu reserva.",
+      "consultCodeAria": "Código de consulta",
+      "consultStatusLink": "Consultar estado",
+      "copy": { "idle": "Copiar", "copied": "Copiado", "failed": "No se pudo copiar" },
+      "qrDialog": {
+        "title": "QR de pago Bre-B",
+        "closeAria": "Cerrar",
+        "imageAlt": "QR de pago Bre-B",
+        "fallbackKey": "Si prefieres, también puedes pagar por llave: {{key}}."
+      },
+      "brebAria": "Llave Bre-B",
+      "whatsappPrefill": "Hola! A continuación envío el comprobante de pago del abono para la reserva a nombre de {{name}} para el día {{date}} y hora {{time}}.",
+      "errors": { "loadTotal": "Error cargando el total." }
+    },
+    "status": {
+      "eyebrow": "Consulta",
+      "titleLine1": "Estado de",
+      "titleLine2": "Tu Reserva",
+      "subtitle": "Ingresa tu código de consulta para ver el estado de la reserva.",
+      "meta": "El código se genera al finalizar el paso de pago.",
+      "formAria": "Formulario de consulta",
+      "codeLabel": "Código de consulta",
+      "codePlaceholder": "Ej: LGC-7F3K2Q",
+      "searchCta": "Consultar",
+      "resultTitle": "Resultado",
+      "resultEmpty": "Aún no se ha realizado una consulta. Ingresa un código para ver el estado aquí.",
+      "timelineAria": "Estado",
+      "timeline": {
+        "registered": {
+          "title": "Registrada",
+          "desc": "Reserva creada y pendiente de pago de abono."
+        },
+        "confirmed": {
+          "title": "Confirmada",
+          "desc": "Pago validado y cupo asegurado."
+        },
+        "completed": { "title": "Finalizada", "desc": "Experiencia completada." }
+      },
+      "tipTitle": "Consejo rápido:",
+      "tipBody": "guarda tu código en WhatsApp o en tu correo para consultarlo cuando lo necesites."
+    }
   }
 }

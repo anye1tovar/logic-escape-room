@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { ClickAwayListener, IconButton, Tooltip } from "@mui/material";
+import { useTranslation } from "react-i18next";
 import { createBooking, fetchBookingQuote } from "../../../api/bookings";
 import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStepDetails";
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
@@ -51,6 +52,7 @@ export default function BookingStepSummary({
   onBack,
   onReserved,
 }: BookingStepSummaryProps) {
+  const { t } = useTranslation();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [quoteTotal, setQuoteTotal] = useState<number | null>(null);
@@ -80,7 +82,9 @@ export default function BookingStepSummary({
         if (!isActive) return;
         setQuoteTotal(null);
         setQuoteError(
-          err instanceof Error ? err.message : "Error cargando el total."
+          err instanceof Error
+            ? err.message
+            : t("booking.summary.errors.loadTotal")
         );
       }
     })();
@@ -88,50 +92,52 @@ export default function BookingStepSummary({
     return () => {
       isActive = false;
     };
-  }, [selection?.date, selection?.peopleCount]);
-
-  // const durationLabel = useMemo(() => {
-  //   const minutes = selection?.durationMinutes;
-  //   if (typeof minutes !== "number" || !Number.isFinite(minutes)) return "—";
-  //   return `${minutes} min`;
-  // }, [selection?.durationMinutes]);
+  }, [selection?.date, selection?.peopleCount, t]);
 
   return (
     <section className={className}>
       <header className="booking-step__header">
-        <h2 className="booking-step__title">3. Resumen</h2>
+        <h2 className="booking-step__title">
+          3. {t("booking.steps.summary.title")}
+        </h2>
         <p className="booking-step__subtitle">
-          Revisa los datos y presiona el botón Reservar para apartar tu cupo.
+          {t("booking.summary.subtitle")}
         </p>
       </header>
 
-      <div className="booking-summary" aria-label="Resumen de la reserva">
+      <div className="booking-summary" aria-label={t("booking.summary.aria")}>
         <div className="booking-summary__row">
-          <span className="booking-summary__label">Sala</span>
-          <span className="booking-summary__value">
-            {selection?.roomName || "—"}
+          <span className="booking-summary__label">
+            {t("booking.summary.labels.room")}
           </span>
-        </div>
-        <div className="booking-summary__row">
-          <span className="booking-summary__label">Fecha</span>
           <span className="booking-summary__value">
-            {selection?.date || "—"}
-          </span>
-        </div>
-        <div className="booking-summary__row">
-          <span className="booking-summary__label">Hora</span>
-          <span className="booking-summary__value">
-            {selection?.slotStart ? formatTime(selection.slotStart) : "—"}
+            {selection?.roomName || "-"}
           </span>
         </div>
         <div className="booking-summary__row">
           <span className="booking-summary__label">
-            Duración
+            {t("booking.summary.labels.date")}
+          </span>
+          <span className="booking-summary__value">
+            {selection?.date || "-"}
+          </span>
+        </div>
+        <div className="booking-summary__row">
+          <span className="booking-summary__label">
+            {t("booking.summary.labels.time")}
+          </span>
+          <span className="booking-summary__value">
+            {selection?.slotStart ? formatTime(selection.slotStart) : "-"}
+          </span>
+        </div>
+        <div className="booking-summary__row">
+          <span className="booking-summary__label">
+            {t("booking.summary.labels.duration")}
             <ClickAwayListener
               onClickAway={() => setIsDurationTooltipOpen(false)}
             >
               <Tooltip
-                title="La experiencia dura 90 minutos en total, incluyendo la explicación previa, el tiempo dentro de la sala y la sesión de fotos."
+                title={t("booking.summary.duration.tooltip")}
                 arrow
                 open={isDurationTooltipOpen}
                 onClose={() => setIsDurationTooltipOpen(false)}
@@ -140,7 +146,7 @@ export default function BookingStepSummary({
                 disableTouchListener
               >
                 <IconButton
-                  aria-label="Información de duración"
+                  aria-label={t("booking.summary.duration.tooltipAria")}
                   size="small"
                   onClick={() => setIsDurationTooltipOpen((prev) => !prev)}
                   edge="end"
@@ -153,32 +159,38 @@ export default function BookingStepSummary({
               </Tooltip>
             </ClickAwayListener>
           </span>
-          <span className="booking-summary__value">90 min</span>
-        </div>
-        <div className="booking-summary__divider" />
-        <div className="booking-summary__row">
-          <span className="booking-summary__label">Personas</span>
           <span className="booking-summary__value">
-            {typeof selection?.peopleCount === "number"
-              ? selection.peopleCount
-              : "—"}
+            {t("booking.common.minutesValue", { minutes: 90 })}
           </span>
         </div>
         <div className="booking-summary__divider" />
         <div className="booking-summary__row">
-          <span className="booking-summary__label">Valor total</span>
+          <span className="booking-summary__label">
+            {t("booking.summary.labels.people")}
+          </span>
+          <span className="booking-summary__value">
+            {typeof selection?.peopleCount === "number"
+              ? selection.peopleCount
+              : "-"}
+          </span>
+        </div>
+        <div className="booking-summary__divider" />
+        <div className="booking-summary__row">
+          <span className="booking-summary__label">
+            {t("booking.common.totalValue")}
+          </span>
           <span className="booking-summary__value">
             {formatMoneyCop(quoteTotal)}
           </span>
         </div>
         <div className="booking-summary__row booking-summary__row--total">
           <span className="booking-summary__label">
-            Abono mínimo{" "}
+            {t("booking.summary.labels.depositMinimum")}{" "}
             <ClickAwayListener
               onClickAway={() => setIsDepositTooltipOpen(false)}
             >
               <Tooltip
-                title="El abono se realiza después de apartar el cupo. Al dar clic en Reservar verás las instrucciones detalladamente."
+                title={t("booking.summary.deposit.tooltip")}
                 arrow
                 open={isDepositTooltipOpen}
                 onClose={() => setIsDepositTooltipOpen(false)}
@@ -187,7 +199,7 @@ export default function BookingStepSummary({
                 disableTouchListener
               >
                 <IconButton
-                  aria-label="Información del abono mínimo"
+                  aria-label={t("booking.summary.deposit.tooltipAria")}
                   size="small"
                   onClick={() => setIsDepositTooltipOpen((prev) => !prev)}
                   edge="end"
@@ -216,7 +228,7 @@ export default function BookingStepSummary({
           onClick={onBack}
           disabled={!onBack || isSubmitting}
         >
-          Volver
+          {t("booking.actions.back")}
         </button>
         <button
           type="button"
@@ -251,7 +263,8 @@ export default function BookingStepSummary({
 
               const reservationCode =
                 created.reservationCode || created.consultCode;
-              if (!reservationCode) throw new Error("No se generó el código.");
+              if (!reservationCode)
+                throw new Error(t("booking.summary.errors.missingCode"));
 
               onReserved?.({
                 reservationCode,
@@ -263,14 +276,16 @@ export default function BookingStepSummary({
               setSubmitError(
                 err instanceof Error
                   ? err.message
-                  : "No pudimos crear la reserva. Intenta de nuevo."
+                  : t("booking.summary.errors.createFailed")
               );
             } finally {
               setIsSubmitting(false);
             }
           }}
         >
-          {isSubmitting ? "Reservando..." : "Reservar"}
+          {isSubmitting
+            ? t("booking.actions.reserving")
+            : t("booking.actions.reserve")}
         </button>
       </footer>
     </section>
