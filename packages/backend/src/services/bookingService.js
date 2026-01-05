@@ -289,6 +289,7 @@ function buildBookingService(consumer, deps = {}) {
       endTime,
       attendees,
       whatsapp,
+      notes,
       isFirstTime,
     } = data;
     if (!email || !date || !roomId || !time) {
@@ -389,6 +390,15 @@ function buildBookingService(consumer, deps = {}) {
       startIso
     );
 
+    const safeNotes =
+      typeof notes === "string" && notes.trim() ? notes.trim() : null;
+
+    const quote = await getBookingQuote({
+      date: requestedDate,
+      attendees: players,
+    });
+    const finalTotal = quote?.total ?? null;
+
     const booking = await consumer.createBooking({
       firstName: safeFirstName,
       lastName: safeLastName,
@@ -400,6 +410,8 @@ function buildBookingService(consumer, deps = {}) {
       time: startIso,
       endTime: endIso,
       attendees,
+      notes: safeNotes,
+      total: finalTotal,
       sendReceipt: data.sendReceipt,
       consultCode: computedConsultCode,
       isFirstTime: Boolean(isFirstTime),

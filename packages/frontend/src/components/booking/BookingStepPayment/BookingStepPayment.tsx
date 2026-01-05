@@ -14,8 +14,8 @@ type BookingStepPaymentProps = {
 
 const BREB_KEY = "@PLATA3123715177";
 const DEPOSIT_AMOUNT_COP = 50000;
-const WHATSAPP_NUMBER = "3133815138";
-const WHATSAPP_URL = "https://wa.me/573133815138";
+const WHATSAPP_NUMBER = "3181278688";
+const WHATSAPP_BASE_URL = "https://wa.me/573181278688";
 
 function formatMoneyCop(value: number | null) {
   if (typeof value !== "number" || !Number.isFinite(value)) return "—";
@@ -61,6 +61,18 @@ export default function BookingStepPayment({
 
   const consultCode = reservationCode;
 
+  const whatsappUrl = useMemo(() => {
+    const name = details?.fullName?.trim() || "<Nombre de la persona>";
+    const date = selection?.date || "<fecha>";
+    const time = selection?.slotStart
+      ? formatTime(selection.slotStart)
+      : "<hora>";
+
+    const message = `Hola! A continuacion envio el comprobante de pago del abono para la reserva a nombre de ${name} para el dia ${date} y hora ${time}.`;
+
+    return `${WHATSAPP_BASE_URL}?text=${encodeURIComponent(message)}`;
+  }, [details?.fullName, selection?.date, selection?.slotStart]);
+
   useEffect(() => {
     setQuoteTotal(typeof quoteTotalProp === "number" ? quoteTotalProp : null);
   }, [quoteTotalProp]);
@@ -101,8 +113,8 @@ export default function BookingStepPayment({
     return `/consulta-reserva?code=${encodeURIComponent(consultCode)}`;
   }, [consultCode]);
 
-  const canShow =
-    Boolean(selection) && Boolean(details) && Boolean(consultCode);
+  const canShow = true;
+  // Boolean(selection) && Boolean(details) && Boolean(consultCode);
 
   if (!canShow) return null;
 
@@ -117,66 +129,30 @@ export default function BookingStepPayment({
 
       <div className="booking-step__content">
         <div className="booking-form__section">
-          <h3 className="booking-form__section-title">Reserva creada</h3>
-          <div className="booking-summary" aria-label="Resumen de la reserva">
-            <div className="booking-summary__row">
-              <span className="booking-summary__label">Sala</span>
-              <span className="booking-summary__value">
-                {selection?.roomName || "—"}
-              </span>
-            </div>
-            <div className="booking-summary__row">
-              <span className="booking-summary__label">Fecha</span>
-              <span className="booking-summary__value">
-                {selection?.date || "—"}
-              </span>
-            </div>
-            <div className="booking-summary__row">
-              <span className="booking-summary__label">Hora</span>
-              <span className="booking-summary__value">
-                {selection?.slotStart ? formatTime(selection.slotStart) : "—"}
-              </span>
-            </div>
-            <div className="booking-summary__divider" />
-            <div className="booking-summary__row">
-              <span className="booking-summary__label">Jugadores</span>
-              <span className="booking-summary__value">
-                {typeof selection?.peopleCount === "number"
-                  ? selection.peopleCount
-                  : "—"}
-              </span>
-            </div>
-            <div className="booking-summary__divider" />
-            <div className="booking-summary__row booking-summary__row--total">
-              <span className="booking-summary__label">Total</span>
-              <span className="booking-summary__value">
-                {formatMoneyCop(quoteTotal)}
-              </span>
-            </div>
-            {quoteError && <div className="booking-alert">{quoteError}</div>}
-          </div>
-        </div>
-
-        <div className="booking-form__section">
           <h3 className="booking-form__section-title">Instrucciones</h3>
 
-          <p className="booking-form__hint">
-            Para confirmar tu reserva, realiza un abono de{" "}
-            <strong>${DEPOSIT_AMOUNT_COP.toLocaleString("es-CO")} COP</strong>.
-          </p>
-          <p className="booking-form__hint">
-            Tienes <strong>24 horas</strong> para enviar el comprobante.
-          </p>
-          <p className="booking-form__hint">
-            Envíalo al WhatsApp de Logic:{" "}
-            <a className="booking-payment__link" href={WHATSAPP_URL}>
-              {WHATSAPP_NUMBER}
-            </a>
-            .
-          </p>
+          <ol style={{ marginLeft: "1.5rem" }}>
+            <li className="booking-form__hint">
+              Para confirmar tu reserva, realiza un abono de{" "}
+              <strong>${DEPOSIT_AMOUNT_COP.toLocaleString("es-CO")} COP</strong>
+              .
+            </li>
+            <li className="booking-form__hint">
+              Tienes <strong>24 horas</strong> para enviar el comprobante.
+            </li>
+            <li className="booking-form__hint">
+              Envíalo al WhatsApp de Logic:{" "}
+              <a className="booking-payment__link" href={whatsappUrl}>
+                {WHATSAPP_NUMBER}
+              </a>
+              .
+            </li>
+          </ol>
 
           <div className="booking-payment__breb">
-            <div className="booking-payment__breb-label">Llave Bre-B</div>
+            <div className="booking-payment__breb-label">
+              Puedes pagar escaneando el QR o usando la llave Bre-B:
+            </div>
             <div className="booking-payment__breb-row">
               <div
                 className="booking-payment__breb-key"
@@ -189,12 +165,9 @@ export default function BookingStepPayment({
                 className="booking-actions__button booking-actions__button--ghost booking-payment__qr-button"
                 onClick={() => dialogRef.current?.showModal()}
               >
-                Ver QR
+                Ver QR de pago
               </button>
             </div>
-            <p className="booking-form__hint">
-              Puedes pagar escaneando el QR o usando la llave Bre-B.
-            </p>
           </div>
         </div>
 

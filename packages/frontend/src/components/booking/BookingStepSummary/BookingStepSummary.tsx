@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ClickAwayListener, IconButton, Tooltip } from "@mui/material";
 import { createBooking, fetchBookingQuote } from "../../../api/bookings";
 import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStepDetails";
@@ -241,6 +241,7 @@ export default function BookingStepSummary({
                 endTime: selection.slotEnd,
                 attendees: selection.peopleCount,
                 notes: details.notes,
+                total: quoteTotal,
                 isFirstTime: details.isFirstTime === true,
               })) as {
                 consultCode?: string;

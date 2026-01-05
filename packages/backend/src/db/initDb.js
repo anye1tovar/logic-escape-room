@@ -75,10 +75,20 @@ db.serialize(() => {
       phone TEXT,
       email TEXT,
       players INTEGER NOT NULL,
+      notes TEXT,
+      total INTEGER,
       status TEXT DEFAULT 'PENDING',
       is_first_time INTEGER NOT NULL DEFAULT 0
     )
   `);
+
+  function ensureReservationColumn(sql, label) {
+    db.run(sql, (err) => {
+      if (!err) return;
+      if (String(err.message || "").includes("duplicate column name")) return;
+      console.error(`Error adding reservations.${label} column`, err);
+    });
+  }
 
   db.run(`
     CREATE TABLE IF NOT EXISTS rates (

@@ -240,7 +240,6 @@
   .booking-step__subtitle {
     margin: 0;
     opacity: 0.9;
-    max-width: 70ch;
   }
 
   .booking-step__content {
@@ -876,8 +875,28 @@
   }
 
   .booking-payment__link {
+    display: inline-flex;
+    align-items: center;
+    padding: 4px 10px;
+    border-radius: 999px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    background: rgba(255, 255, 255, 0.06);
     font-weight: 900;
     color: $text-light;
+    text-decoration: none;
+    transition: transform 0.15s ease, box-shadow 0.15s ease,
+      background 0.15s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
+      background: rgba(255, 255, 255, 0.09);
+    }
+
+    &:focus-visible {
+      outline: 2px solid rgba(255, 255, 255, 0.45);
+      outline-offset: 2px;
+    }
   }
 
   .booking-qr-dialog {
