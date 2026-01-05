@@ -47,6 +47,10 @@ db.serialize(() => {
     )
   `);
 
+  db.run(
+    "CREATE UNIQUE INDEX IF NOT EXISTS idx_opening_hours_day_of_week ON opening_hours(day_of_week);"
+  );
+
   db.run(`
     CREATE TABLE IF NOT EXISTS colombian_holidays (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -82,13 +86,18 @@ db.serialize(() => {
     )
   `);
 
-  function ensureReservationColumn(sql, label) {
-    db.run(sql, (err) => {
-      if (!err) return;
-      if (String(err.message || "").includes("duplicate column name")) return;
-      console.error(`Error adding reservations.${label} column`, err);
-    });
-  }
+  db.run(`
+    CREATE TABLE IF NOT EXISTS users (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      email TEXT NOT NULL UNIQUE,
+      password_hash TEXT NOT NULL,
+      password_salt TEXT NOT NULL,
+      name TEXT,
+      role TEXT NOT NULL DEFAULT 'admin',
+      active INTEGER NOT NULL DEFAULT 1,
+      created_at INTEGER NOT NULL
+    )
+  `);
 
   db.run(`
     CREATE TABLE IF NOT EXISTS rates (

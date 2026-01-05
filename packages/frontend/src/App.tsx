@@ -18,6 +18,13 @@ import PinZoomOverlay from "./components/PinnedZoomOverlay/PinnedZoomOverlay";
 import Booking from "./pages/Booking/Booking";
 import BookingStatus from "./pages/BookingStatus/BookingStatus";
 import CafeteriaMenu from "./pages/CafeteriaMenu/CafeteriaMenu";
+import AdminLogin from "./pages/AdminLogin/AdminLogin";
+import AdminLayout from "./pages/Admin/AdminLayout/AdminLayout";
+import AdminRates from "./pages/Admin/Rates/AdminRates";
+import AdminHolidays from "./pages/Admin/Holidays/AdminHolidays";
+import AdminOpeningHours from "./pages/Admin/OpeningHours/AdminOpeningHours";
+import AdminRooms from "./pages/Admin/Rooms/AdminRooms";
+import AdminSettings from "./pages/Admin/Settings/AdminSettings";
 import theme from "./theme";
 
 function HomeContent() {
@@ -52,6 +59,15 @@ function App() {
           <Route path="/cafeteria" element={<CafeteriaMenu />} />
           <Route path="/reservar" element={<Booking />} />
           <Route path="/consulta-reserva" element={<BookingStatus />} />
+          <Route path="/admin" element={<AdminLogin />} />
+          <Route path="/admin/dashboard" element={<AdminLayout />}>
+            <Route index element={<AdminRates />} />
+            <Route path="precios" element={<AdminRates />} />
+            <Route path="festivos" element={<AdminHolidays />} />
+            <Route path="horarios" element={<AdminOpeningHours />} />
+            <Route path="salas" element={<AdminRooms />} />
+            <Route path="configuraciones" element={<AdminSettings />} />
+          </Route>
         </Routes>
       </BrowserRouter>
     </ThemeProvider>

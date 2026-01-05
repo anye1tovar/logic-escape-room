@@ -460,5 +460,25 @@
         "unknown": "No pudimos consultar el estado. Intenta de nuevo."
       }
     }
+  },
+  "admin": {
+    "login": {
+      "eyebrow": "Administración",
+      "titleLine1": "Iniciar",
+      "titleLine2": "Sesión",
+      "subtitle": "Accede para administrar reservas y parámetros del sistema.",
+      "formAria": "Formulario de inicio de sesión",
+      "fields": { "username": "Usuario o correo", "password": "Contraseña" },
+      "placeholders": {
+        "username": "Ej: admin@logic.com",
+        "password": "Tu contraseña"
+      },
+      "actions": { "submit": "Entrar", "loading": "Validando..." },
+      "errors": {
+        "required": "Completa usuario y contraseña.",
+        "invalid": "Correo o contraseña incorrectos."
+      },
+      "success": "Sesión iniciada."
+    }
   }
 }

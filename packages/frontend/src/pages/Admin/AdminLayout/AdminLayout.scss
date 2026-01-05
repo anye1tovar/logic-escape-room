@@ -1,0 +1,88 @@
+@use "../../../assets/styles/variables" as *;
+
+.admin-layout {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 280px 1fr;
+  background: $dark-bg;
+
+  @media (max-width: $tablet) {
+    grid-template-columns: 1fr;
+  }
+
+  &__sidebar {
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    padding: $spacing-lg;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(10px);
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+
+    @media (max-width: $tablet) {
+      position: static;
+      height: auto;
+    }
+  }
+
+  &__brand {
+    font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
+    letter-spacing: 0.08em;
+    font-size: 2rem;
+  }
+
+  &__nav {
+    display: grid;
+    gap: 8px;
+  }
+
+  &__link {
+    text-decoration: none;
+    color: $text-light;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    background: rgba(255, 255, 255, 0.03);
+    transition: transform 0.12s ease, box-shadow 0.12s ease,
+      border-color 0.12s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    }
+
+    &.is-active {
+      border-color: rgba(203, 171, 255, 0.7);
+      background: rgba(203, 171, 255, 0.12);
+    }
+  }
+
+  &__logout {
+    margin-top: auto;
+    padding: 10px 12px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    background: rgba(255, 255, 255, 0.03);
+    color: $text-light;
+    font-weight: 900;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease;
+
+    &:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+    }
+  }
+
+  &__content {
+    padding: $spacing-xl;
+
+    @media (max-width: $tablet) {
+      padding: $spacing-lg;
+    }
+  }
+}
+

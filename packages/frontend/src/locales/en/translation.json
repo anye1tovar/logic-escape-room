@@ -482,5 +482,25 @@
         "unknown": "We couldn't check the status. Please try again."
       }
     }
+  },
+  "admin": {
+    "login": {
+      "eyebrow": "Administration",
+      "titleLine1": "Sign",
+      "titleLine2": "In",
+      "subtitle": "Sign in to manage bookings and system settings.",
+      "formAria": "Login form",
+      "fields": { "username": "Username or email", "password": "Password" },
+      "placeholders": {
+        "username": "Ex: admin@logic.com",
+        "password": "Your password"
+      },
+      "actions": { "submit": "Sign in", "loading": "Checking..." },
+      "errors": {
+        "required": "Enter username and password.",
+        "invalid": "Email or password is incorrect."
+      },
+      "success": "Signed in."
+    }
   }
 }
