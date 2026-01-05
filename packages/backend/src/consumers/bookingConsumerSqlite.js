@@ -78,6 +78,29 @@ function getBookingById(id) {
   });
 }
 
+function getBookingByConsultCode(consultCode) {
+  return new Promise((resolve, reject) => {
+    const raw = String(consultCode || "").trim();
+    if (!raw) return resolve(null);
+
+    const upper = raw.toUpperCase();
+    const compact = upper.replace(/[\s-]+/g, "");
+
+    db.get(
+      `SELECT * FROM reservations
+       WHERE UPPER(consult_code) = ?
+          OR REPLACE(REPLACE(UPPER(consult_code), '-', ''), ' ', '') = ?
+       ORDER BY id DESC
+       LIMIT 1;`,
+      [upper, compact],
+      (err, row) => {
+        if (err) return reject(err);
+        resolve(row || null);
+      }
+    );
+  });
+}
+
 function listBookings() {
   return new Promise((resolve, reject) => {
     db.all("SELECT * FROM reservations ORDER BY id DESC;", (err, rows) => {
@@ -101,5 +124,11 @@ function listBookingsByDate(date) {
 }
 
 module.exports = async function initConsumer() {
-  return { createBooking, getBookingById, listBookings, listBookingsByDate };
+  return {
+    createBooking,
+    getBookingById,
+    getBookingByConsultCode,
+    listBookings,
+    listBookingsByDate,
+  };
 };

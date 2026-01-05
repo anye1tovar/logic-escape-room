@@ -333,7 +333,10 @@
     },
     "details": {
       "subtitle": "Cuéntanos quién reserva y cómo podemos contactarte.",
-      "fullName": { "label": "Nombre completo", "placeholder": "Tu nombre y apellido" },
+      "fullName": {
+        "label": "Nombre completo",
+        "placeholder": "Tu nombre y apellido"
+      },
       "email": {
         "label": "Correo",
         "placeholder": "tucorreo@ejemplo.com",
@@ -405,7 +408,11 @@
       "consultCodeHint": "Guarda este código para consultar el estado de tu reserva.",
       "consultCodeAria": "Código de consulta",
       "consultStatusLink": "Consultar estado",
-      "copy": { "idle": "Copiar", "copied": "Copiado", "failed": "No se pudo copiar" },
+      "copy": {
+        "idle": "Copiar",
+        "copied": "Copiado",
+        "failed": "No se pudo copiar"
+      },
       "qrDialog": {
         "title": "QR de pago Bre-B",
         "closeAria": "Cerrar",
@@ -427,6 +434,9 @@
       "codePlaceholder": "Ej: LGC-7F3K2Q",
       "searchCta": "Consultar",
       "resultTitle": "Resultado",
+      "resultLoading": "Consultando estado de la reserva...",
+      "resultFound": "Reserva encontrada. Estado actual: {{status}}.",
+      "unknownStatus": "Desconocido ({{status}})",
       "resultEmpty": "Aún no se ha realizado una consulta. Ingresa un código para ver el estado aquí.",
       "timelineAria": "Estado",
       "timeline": {
@@ -438,10 +448,17 @@
           "title": "Confirmada",
           "desc": "Pago validado y cupo asegurado."
         },
-        "completed": { "title": "Finalizada", "desc": "Experiencia completada." }
+        "completed": {
+          "title": "Finalizada",
+          "desc": "Experiencia completada."
+        }
       },
-      "tipTitle": "Consejo rápido:",
-      "tipBody": "guarda tu código en WhatsApp o en tu correo para consultarlo cuando lo necesites."
+      "errors": {
+        "requiredCode": "Ingresa un código de consulta para continuar.",
+        "invalidCode": "El código de consulta es incorrecto.",
+        "notFound": "No encontramos una reserva con ese código.",
+        "unknown": "No pudimos consultar el estado. Intenta de nuevo."
+      }
     }
   }
 }

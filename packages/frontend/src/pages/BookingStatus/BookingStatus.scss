@@ -106,22 +106,27 @@
 
   &__form {
     display: flex;
-    gap: $spacing-md;
+    gap: $spacing-sm;
     align-items: flex-end;
-    flex-wrap: wrap;
   }
 
   &__field {
     display: grid;
     gap: 6px;
-    flex: 1 1 320px;
-    min-width: min(520px, 100%);
+    flex-grow: 2;
   }
 
   &__label {
     font-weight: 800;
     opacity: 0.92;
     letter-spacing: 0.02em;
+  }
+
+  &__field-error {
+    margin-top: 6px;
+    color: #ffb4b4;
+    font-weight: 700;
+    font-size: 0.95rem;
   }
 
   &__input {
@@ -142,6 +147,8 @@
   }
 
   &__button {
+    align-self: baseline;
+    margin-top: 30px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -152,8 +159,7 @@
     font-weight: 800;
     cursor: pointer;
     background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition: transform 0.15s ease, box-shadow 0.15s ease,
-      filter 0.15s ease;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 
     &:hover {
       transform: translateY(-2px);
@@ -253,4 +259,3 @@
     font-weight: 900;
   }
 }
-

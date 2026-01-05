@@ -8,6 +8,7 @@ function buildBookingService(consumer, deps = {}) {
   const TIMEZONE_OFFSET_MINUTES = -5 * 60; // Bogota has fixed UTC-5
   const MIN_ADVANCE_MINUTES = 40;
   const SLOT_DURATION_MINUTES = 90;
+  const MAX_CONSULT_CODE_LENGTH = 64;
 
   function pad2(value) {
     return String(value).padStart(2, "0");
@@ -444,6 +445,44 @@ function buildBookingService(consumer, deps = {}) {
     return consumer.getBookingById(id);
   }
 
+  function isValidConsultCode(value) {
+    if (typeof value !== "string") return false;
+    const trimmed = value.trim();
+    if (!trimmed) return false;
+    if (trimmed.length > MAX_CONSULT_CODE_LENGTH) return false;
+    return /^[a-zA-Z0-9\s-]+$/.test(trimmed);
+  }
+
+  async function getBookingStatusByConsultCode(code) {
+    const consultCode = String(code || "").trim();
+    if (!consultCode) {
+      const err = new Error("Missing required query param: code");
+      err.status = 400;
+      throw err;
+    }
+
+    if (!isValidConsultCode(consultCode)) {
+      const err = new Error("Invalid consultation code");
+      err.status = 400;
+      throw err;
+    }
+
+    if (!consumer.getBookingByConsultCode) {
+      const err = new Error("Consultation code lookup not supported");
+      err.status = 500;
+      throw err;
+    }
+
+    const booking = await consumer.getBookingByConsultCode(consultCode);
+    if (!booking) return null;
+
+    return {
+      consultCode:
+        booking.consult_code ?? booking.consultCode ?? String(consultCode),
+      status: booking.status ?? null,
+    };
+  }
+
   async function getAvailabilityByDate(date) {
     const requestedDate = parseDateParam(date);
     if (!requestedDate) {
@@ -588,6 +627,7 @@ function buildBookingService(consumer, deps = {}) {
     createBooking,
     listBookings,
     getBooking,
+    getBookingStatusByConsultCode,
     getAvailabilityByDate,
     getBookingQuote,
   };

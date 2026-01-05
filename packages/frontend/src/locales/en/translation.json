@@ -362,7 +362,10 @@
     },
     "details": {
       "subtitle": "Tell us who's booking and how we can contact you.",
-      "fullName": { "label": "Full name", "placeholder": "Your first and last name" },
+      "fullName": {
+        "label": "Full name",
+        "placeholder": "Your first and last name"
+      },
       "email": {
         "label": "Email",
         "placeholder": "you@example.com",
@@ -457,6 +460,9 @@
       "searchCta": "Search",
       "resultTitle": "Result",
       "resultEmpty": "No lookup has been made yet. Enter a code to see the status here.",
+      "resultLoading": "Checking booking status...",
+      "resultFound": "Booking found. Current status: {{status}}.",
+      "unknownStatus": "Unknown ({{status}})",
       "timelineAria": "Status",
       "timeline": {
         "registered": {
@@ -469,8 +475,12 @@
         },
         "completed": { "title": "Completed", "desc": "Experience completed." }
       },
-      "tipTitle": "Quick tip:",
-      "tipBody": "save your code in WhatsApp or email so you can look it up when you need it."
+      "errors": {
+        "requiredCode": "Enter a consultation code to continue.",
+        "invalidCode": "The consultation code is wrong.",
+        "notFound": "We couldn't find a booking with that code.",
+        "unknown": "We couldn't check the status. Please try again."
+      }
     }
   }
 }

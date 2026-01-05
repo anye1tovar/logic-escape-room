@@ -52,12 +52,24 @@ function buildBookingController(service) {
     }
   }
 
+  async function getBookingStatusByConsultCode(req, res) {
+    try {
+      const { code } = req.params;
+      const status = await service.getBookingStatusByConsultCode(code);
+      if (!status) return res.status(404).json({ error: "Not found" });
+      res.json(status);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   return {
     createBooking,
     listBookings,
     getAvailability,
     getQuote,
     getBooking,
+    getBookingStatusByConsultCode,
   };
 }
 

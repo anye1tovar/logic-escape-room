@@ -6,7 +6,11 @@ export async function fetchBookings() {
   return res.json();
 }
 
-export async function createBooking(payload: any) {
+export type CreateBookingPayload = Record<string, unknown>;
+
+type ApiError = Error & { status?: number };
+
+export async function createBooking(payload: CreateBookingPayload) {
   const res = await fetch(
     `${import.meta.env.VITE_API_BASE_URL || ""}/api/bookings`,
     {
@@ -19,6 +23,31 @@ export async function createBooking(payload: any) {
     const err = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(err.error || "Failed to create booking");
   }
+  return res.json();
+}
+
+export type BookingStatusResponse = {
+  consultCode: string;
+  status: string | null;
+};
+
+export async function fetchBookingStatus(
+  consultCode: string
+): Promise<BookingStatusResponse> {
+  const base = import.meta.env.VITE_API_BASE_URL || "";
+  const res = await fetch(
+    `${base}/api/bookings/consult/${encodeURIComponent(consultCode)}`
+  );
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: "Unknown error" }));
+    const error = new Error(
+      err.error || "Failed to fetch booking status"
+    ) as ApiError;
+    error.status = res.status;
+    throw error;
+  }
+
   return res.json();
 }
 
