@@ -25,6 +25,7 @@ import AdminHolidays from "./pages/Admin/Holidays/AdminHolidays";
 import AdminOpeningHours from "./pages/Admin/OpeningHours/AdminOpeningHours";
 import AdminRooms from "./pages/Admin/Rooms/AdminRooms";
 import AdminSettings from "./pages/Admin/Settings/AdminSettings";
+import AdminReservations from "./pages/Admin/Reservations/AdminReservations";
 import theme from "./theme";
 
 function HomeContent() {
@@ -61,7 +62,8 @@ function App() {
           <Route path="/consulta-reserva" element={<BookingStatus />} />
           <Route path="/admin" element={<AdminLogin />} />
           <Route path="/admin/dashboard" element={<AdminLayout />}>
-            <Route index element={<AdminRates />} />
+            <Route index element={<AdminReservations />} />
+            <Route path="reservas" element={<AdminReservations />} />
             <Route path="precios" element={<AdminRates />} />
             <Route path="festivos" element={<AdminHolidays />} />
             <Route path="horarios" element={<AdminOpeningHours />} />

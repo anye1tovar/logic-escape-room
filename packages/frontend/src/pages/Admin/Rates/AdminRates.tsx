@@ -1,5 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import "../adminCrud.scss";
 
 type RateRow = {
@@ -118,241 +134,237 @@ export default function AdminRates() {
     <div className="admin-crud">
       <header className="admin-crud__header">
         <div>
-          <h1 className="admin-crud__title">Precios</h1>
-          <div className="admin-crud__subtitle">Gestiona la tabla `rates`.</div>
+          <Typography component="h1" className="admin-crud__title">
+            Precios
+          </Typography>
+          <Typography className="admin-crud__subtitle">
+            Gestiona la tabla `rates`.
+          </Typography>
         </div>
         <div className="admin-crud__actions">
-          <button
-            type="button"
-            className="admin-crud__button"
+          <Button
+            variant="outlined"
             onClick={() => void load()}
             disabled={status.type === "loading"}
           >
             Recargar
-          </button>
+          </Button>
         </div>
       </header>
 
-      {status.type === "error" ? (
-        <div className="admin-crud__message admin-crud__message--error">
-          {status.message}
-        </div>
-      ) : null}
+      {status.type === "error" ? <Alert severity="error">{status.message}</Alert> : null}
       {status.type === "success" ? (
-        <div className="admin-crud__message admin-crud__message--success">
-          {status.message}
-        </div>
+        <Alert severity="success">{status.message}</Alert>
       ) : null}
 
-      <section className="admin-crud__panel">
+      <Paper className="admin-crud__panel">
         <div className="admin-crud__panel-inner admin-crud__grid">
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Tipo de día</span>
-              <select
-                className="admin-crud__select"
-                value={form.dayType}
-                onChange={(e) =>
-                  setForm((s) => ({
-                    ...s,
-                    dayType: e.target.value as "weekday" | "weekend",
-                  }))
-                }
-              >
-                <option value="weekday">weekday</option>
-                <option value="weekend">weekend</option>
-              </select>
-            </label>
+            <Select
+              value={form.dayType}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  dayType: e.target.value as "weekday" | "weekend",
+                }))
+              }
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="weekday">weekday</MenuItem>
+              <MenuItem value="weekend">weekend</MenuItem>
+            </Select>
 
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Jugadores</span>
-              <input
-                className="admin-crud__input"
-                value={form.players}
-                onChange={(e) => setForm((s) => ({ ...s, players: e.target.value }))}
-                inputMode="numeric"
-              />
-            </label>
+            <TextField
+              label="Jugadores"
+              value={form.players}
+              onChange={(e) => setForm((s) => ({ ...s, players: e.target.value }))}
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
           </div>
 
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Precio por persona</span>
-              <input
-                className="admin-crud__input"
-                value={form.pricePerPerson}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, pricePerPerson: e.target.value }))
-                }
-                inputMode="numeric"
-              />
-            </label>
+            <TextField
+              label="Precio por persona"
+              value={form.pricePerPerson}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, pricePerPerson: e.target.value }))
+              }
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
 
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Moneda</span>
-              <input
-                className="admin-crud__input"
-                value={form.currency}
-                onChange={(e) => setForm((s) => ({ ...s, currency: e.target.value }))}
-              />
-            </label>
+            <TextField
+              label="Moneda"
+              value={form.currency}
+              onChange={(e) => setForm((s) => ({ ...s, currency: e.target.value }))}
+              size="small"
+              fullWidth
+            />
           </div>
 
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Etiqueta</span>
-              <input
-                className="admin-crud__input"
-                value={form.dayLabel}
-                onChange={(e) => setForm((s) => ({ ...s, dayLabel: e.target.value }))}
-              />
-            </label>
+            <TextField
+              label="Etiqueta"
+              value={form.dayLabel}
+              onChange={(e) => setForm((s) => ({ ...s, dayLabel: e.target.value }))}
+              size="small"
+              fullWidth
+            />
 
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Rango</span>
-              <input
-                className="admin-crud__input"
-                value={form.dayRange}
-                onChange={(e) => setForm((s) => ({ ...s, dayRange: e.target.value }))}
-              />
-            </label>
+            <TextField
+              label="Rango"
+              value={form.dayRange}
+              onChange={(e) => setForm((s) => ({ ...s, dayRange: e.target.value }))}
+              size="small"
+              fullWidth
+            />
           </div>
 
           <div className="admin-crud__actions">
-            <button
-              type="button"
-              className="admin-crud__button admin-crud__button--primary"
+            <Button
+              variant="contained"
               onClick={() => void create()}
               disabled={status.type === "loading"}
             >
               Crear
-            </button>
+            </Button>
           </div>
         </div>
-      </section>
+      </Paper>
 
-      <section className="admin-crud__panel">
-        <table className="admin-crud__table">
-          <thead>
-            <tr>
-              <th className="admin-crud__th">Tipo</th>
-              <th className="admin-crud__th">Jugadores</th>
-              <th className="admin-crud__th">Precio</th>
-              <th className="admin-crud__th">Label</th>
-              <th className="admin-crud__th">Rango</th>
-              <th className="admin-crud__th">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr key={r.id}>
-                <td className="admin-crud__td">
-                  <select
-                    className="admin-crud__select"
-                    value={r.day_type}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id
-                            ? { ...x, day_type: e.target.value as RateRow["day_type"] }
-                            : x
+      <Paper className="admin-crud__panel">
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Tipo</TableCell>
+                <TableCell>Jugadores</TableCell>
+                <TableCell>Precio</TableCell>
+                <TableCell>Label</TableCell>
+                <TableCell>Rango</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sorted.map((r) => (
+                <TableRow key={r.id} hover>
+                  <TableCell>
+                    <Select
+                      value={r.day_type}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? {
+                                  ...x,
+                                  day_type: e.target.value as RateRow["day_type"],
+                                }
+                              : x
+                          )
                         )
-                      )
-                    }
-                  >
-                    <option value="weekday">weekday</option>
-                    <option value="weekend">weekend</option>
-                  </select>
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={String(r.players)}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id ? { ...x, players: Number(e.target.value) } : x
-                        )
-                      )
-                    }
-                    inputMode="numeric"
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={String(r.price_per_person)}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id
-                            ? { ...x, price_per_person: Number(e.target.value) }
-                            : x
-                        )
-                      )
-                    }
-                    inputMode="numeric"
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.day_label ?? ""}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id ? { ...x, day_label: e.target.value } : x
-                        )
-                      )
-                    }
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.day_range ?? ""}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id ? { ...x, day_range: e.target.value } : x
-                        )
-                      )
-                    }
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <div className="admin-crud__actions">
-                    <button
-                      type="button"
-                      className="admin-crud__button admin-crud__button--primary"
-                      onClick={() => void update(r)}
-                      disabled={status.type === "loading"}
+                      }
+                      size="small"
+                      fullWidth
                     >
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-crud__button admin-crud__button--danger"
-                      onClick={() => void remove(r.id)}
-                      disabled={status.type === "loading"}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {sorted.length === 0 ? (
-              <tr>
-                <td className="admin-crud__td" colSpan={6}>
-                  Sin registros.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
+                      <MenuItem value="weekday">weekday</MenuItem>
+                      <MenuItem value="weekend">weekend</MenuItem>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={String(r.players)}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? { ...x, players: Number(e.target.value) }
+                              : x
+                          )
+                        )
+                      }
+                      size="small"
+                      inputProps={{ inputMode: "numeric" }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={String(r.price_per_person)}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? {
+                                  ...x,
+                                  price_per_person: Number(e.target.value),
+                                }
+                              : x
+                          )
+                        )
+                      }
+                      size="small"
+                      inputProps={{ inputMode: "numeric" }}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={r.day_label ?? ""}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id ? { ...x, day_label: e.target.value } : x
+                          )
+                        )
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={r.day_range ?? ""}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id ? { ...x, day_range: e.target.value } : x
+                          )
+                        )
+                      }
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="contained"
+                        onClick={() => void update(r)}
+                        disabled={status.type === "loading"}
+                      >
+                        Guardar
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => void remove(r.id)}
+                        disabled={status.type === "loading"}
+                      >
+                        Eliminar
+                      </Button>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {sorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6}>Sin registros.</TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </div>
   );
 }
-

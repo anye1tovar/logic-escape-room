@@ -375,14 +375,23 @@ function buildBookingService(consumer, deps = {}) {
         : nameParts.lastName;
 
     let resolvedRoomName = null;
+    let resolvedRoomDbId = null;
     try {
       const rooms = await listRoomsForAvailability();
       const match =
         (rooms || []).find((roomRow) => derivePublicRoomId(roomRow) === roomId) ||
         null;
       resolvedRoomName = match?.name || null;
+      resolvedRoomDbId = match?.id != null ? Number(match.id) : null;
     } catch (err) {
       resolvedRoomName = null;
+      resolvedRoomDbId = null;
+    }
+
+    if (!Number.isFinite(resolvedRoomDbId) || resolvedRoomDbId <= 0) {
+      const err = new Error("Invalid roomId.");
+      err.status = 400;
+      throw err;
     }
 
     const computedConsultCode = generateConsultCode(
@@ -407,7 +416,7 @@ function buildBookingService(consumer, deps = {}) {
       email,
       whatsapp,
       date: requestedDate,
-      roomId,
+      roomId: resolvedRoomDbId,
       time: startIso,
       endTime: endIso,
       attendees,

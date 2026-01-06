@@ -1,5 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import {
+  Alert,
+  Button,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import "../adminCrud.scss";
 
 type SettingRow = { key: string; value: string };
@@ -69,126 +83,119 @@ export default function AdminSettings() {
     <div className="admin-crud">
       <header className="admin-crud__header">
         <div>
-          <h1 className="admin-crud__title">Configuraciones</h1>
-          <div className="admin-crud__subtitle">Gestiona la tabla `settings`.</div>
+          <Typography component="h1" className="admin-crud__title">
+            Configuraciones
+          </Typography>
+          <Typography className="admin-crud__subtitle">
+            Gestiona la tabla `settings`.
+          </Typography>
         </div>
         <div className="admin-crud__actions">
-          <button
-            type="button"
-            className="admin-crud__button"
+          <Button
+            variant="outlined"
             onClick={() => void load()}
             disabled={status.type === "loading"}
           >
             Recargar
-          </button>
+          </Button>
         </div>
       </header>
 
-      {status.type === "error" ? (
-        <div className="admin-crud__message admin-crud__message--error">
-          {status.message}
-        </div>
-      ) : null}
+      {status.type === "error" ? <Alert severity="error">{status.message}</Alert> : null}
       {status.type === "success" ? (
-        <div className="admin-crud__message admin-crud__message--success">
-          {status.message}
-        </div>
+        <Alert severity="success">{status.message}</Alert>
       ) : null}
 
-      <section className="admin-crud__panel">
+      <Paper className="admin-crud__panel">
         <div className="admin-crud__panel-inner admin-crud__grid">
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Key</span>
-              <input
-                className="admin-crud__input"
-                value={keyInput}
-                onChange={(e) => setKeyInput(e.target.value)}
-                placeholder="whatsapp_number"
-              />
-            </label>
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Value</span>
-              <input
-                className="admin-crud__input"
-                value={valueInput}
-                onChange={(e) => setValueInput(e.target.value)}
-                placeholder="+57..."
-              />
-            </label>
+            <TextField
+              label="Key"
+              value={keyInput}
+              onChange={(e) => setKeyInput(e.target.value)}
+              placeholder="whatsapp_number"
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Value"
+              value={valueInput}
+              onChange={(e) => setValueInput(e.target.value)}
+              placeholder="+57..."
+              size="small"
+              fullWidth
+            />
           </div>
           <div className="admin-crud__actions">
-            <button
-              type="button"
-              className="admin-crud__button admin-crud__button--primary"
+            <Button
+              variant="contained"
               onClick={() => void upsert(keyInput, valueInput)}
               disabled={status.type === "loading" || !keyInput.trim()}
             >
               Guardar
-            </button>
+            </Button>
           </div>
         </div>
-      </section>
+      </Paper>
 
-      <section className="admin-crud__panel">
-        <table className="admin-crud__table">
-          <thead>
-            <tr>
-              <th className="admin-crud__th">Key</th>
-              <th className="admin-crud__th">Value</th>
-              <th className="admin-crud__th">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr key={r.key}>
-                <td className="admin-crud__td">{r.key}</td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.value}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.key === r.key ? { ...x, value: e.target.value } : x
+      <Paper className="admin-crud__panel">
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Key</TableCell>
+                <TableCell>Value</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sorted.map((r) => (
+                <TableRow key={r.key} hover>
+                  <TableCell>{r.key}</TableCell>
+                  <TableCell>
+                    <TextField
+                      value={r.value}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.key === r.key ? { ...x, value: e.target.value } : x
+                          )
                         )
-                      )
-                    }
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <div className="admin-crud__actions">
-                    <button
-                      type="button"
-                      className="admin-crud__button admin-crud__button--primary"
-                      onClick={() => void upsert(r.key, r.value)}
-                      disabled={status.type === "loading"}
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-crud__button admin-crud__button--danger"
-                      onClick={() => void remove(r.key)}
-                      disabled={status.type === "loading"}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {sorted.length === 0 ? (
-              <tr>
-                <td className="admin-crud__td" colSpan={3}>
-                  Sin registros.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
+                      }
+                      size="small"
+                      fullWidth
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="contained"
+                        onClick={() => void upsert(r.key, r.value)}
+                        disabled={status.type === "loading"}
+                      >
+                        Guardar
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => void remove(r.key)}
+                        disabled={status.type === "loading"}
+                      >
+                        Eliminar
+                      </Button>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {sorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3}>Sin registros.</TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </div>
   );
 }
-

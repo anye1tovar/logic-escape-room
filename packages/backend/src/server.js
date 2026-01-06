@@ -42,6 +42,11 @@ const buildAdminSettingsService = require("./services/adminSettingsService");
 const buildAdminSettingsController = require("./controllers/adminSettingsController");
 const createAdminSettingsRouter = require("./routes/adminSettings");
 
+const initAdminReservationsConsumer = require("./consumers/adminReservationsConsumerSqlite");
+const buildAdminReservationsService = require("./services/adminReservationsService");
+const buildAdminReservationsController = require("./controllers/adminReservationsController");
+const createAdminReservationsRouter = require("./routes/adminReservations");
+
 async function start() {
   const app = express();
   app.use(cors());
@@ -131,6 +136,17 @@ async function start() {
   );
   const adminSettingsRouter = createAdminSettingsRouter(adminSettingsController);
 
+  const adminReservationsConsumer = await initAdminReservationsConsumer();
+  const adminReservationsService = buildAdminReservationsService(
+    adminReservationsConsumer
+  );
+  const adminReservationsController = buildAdminReservationsController(
+    adminReservationsService
+  );
+  const adminReservationsRouter = createAdminReservationsRouter(
+    adminReservationsController
+  );
+
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/rooms", roomsRouter);
   app.use("/api/rates", ratesRouter);
@@ -141,6 +157,7 @@ async function start() {
   app.use("/api/admin/opening-hours", adminAuth, adminOpeningHoursRouter);
   app.use("/api/admin/holidays", adminAuth, adminHolidaysRouter);
   app.use("/api/admin/settings", adminAuth, adminSettingsRouter);
+  app.use("/api/admin/reservations", adminAuth, adminReservationsRouter);
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 

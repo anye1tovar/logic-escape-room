@@ -1,8 +1,10 @@
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { Button } from "@mui/material";
 import "./AdminLayout.scss";
 
 const navItems = [
+  { to: "/admin/dashboard/reservas", label: "Reservas" },
   { to: "/admin/dashboard/precios", label: "Precios" },
   { to: "/admin/dashboard/festivos", label: "Festivos" },
   { to: "/admin/dashboard/horarios", label: "Horarios de apertura" },
@@ -38,8 +40,9 @@ export default function AdminLayout() {
           ))}
         </nav>
 
-        <button
-          type="button"
+        <Button
+          variant="outlined"
+          color="inherit"
           className="admin-layout__logout"
           onClick={() => {
             localStorage.removeItem("adminToken");
@@ -48,7 +51,7 @@ export default function AdminLayout() {
           }}
         >
           Cerrar sesión
-        </button>
+        </Button>
       </aside>
 
       <section className="admin-layout__content">
@@ -57,4 +60,3 @@ export default function AdminLayout() {
     </div>
   );
 }
-

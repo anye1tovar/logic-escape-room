@@ -1,5 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import "../adminCrud.scss";
 
 type OpeningHour = {
@@ -60,124 +76,120 @@ export default function AdminOpeningHours() {
     <div className="admin-crud">
       <header className="admin-crud__header">
         <div>
-          <h1 className="admin-crud__title">Horarios de apertura</h1>
-          <div className="admin-crud__subtitle">
+          <Typography component="h1" className="admin-crud__title">
+            Horarios de apertura
+          </Typography>
+          <Typography className="admin-crud__subtitle">
             Gestiona la tabla `opening_hours` (por día 0..6).
-          </div>
+          </Typography>
         </div>
         <div className="admin-crud__actions">
-          <button
-            type="button"
-            className="admin-crud__button"
+          <Button
+            variant="outlined"
             onClick={() => void load()}
             disabled={status.type === "loading"}
           >
             Recargar
-          </button>
+          </Button>
         </div>
       </header>
 
-      {status.type === "error" ? (
-        <div className="admin-crud__message admin-crud__message--error">
-          {status.message}
-        </div>
-      ) : null}
+      {status.type === "error" ? <Alert severity="error">{status.message}</Alert> : null}
       {status.type === "success" ? (
-        <div className="admin-crud__message admin-crud__message--success">
-          {status.message}
-        </div>
+        <Alert severity="success">{status.message}</Alert>
       ) : null}
 
-      <section className="admin-crud__panel">
-        <table className="admin-crud__table">
-          <thead>
-            <tr>
-              <th className="admin-crud__th">Día</th>
-              <th className="admin-crud__th">Abre</th>
-              <th className="admin-crud__th">Cierra</th>
-              <th className="admin-crud__th">Abierto</th>
-              <th className="admin-crud__th">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr key={r.dayOfWeek}>
-                <td className="admin-crud__td">
-                  {dayNames[r.dayOfWeek] ?? String(r.dayOfWeek)} ({r.dayOfWeek})
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.openTime ?? ""}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.dayOfWeek === r.dayOfWeek
-                            ? { ...x, openTime: e.target.value || null }
-                            : x
+      <Paper className="admin-crud__panel">
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Día</TableCell>
+                <TableCell>Abre</TableCell>
+                <TableCell>Cierra</TableCell>
+                <TableCell>Abierto</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sorted.map((r) => (
+                <TableRow key={r.dayOfWeek} hover>
+                  <TableCell>
+                    {dayNames[r.dayOfWeek] ?? String(r.dayOfWeek)} ({r.dayOfWeek})
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={r.openTime ?? ""}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.dayOfWeek === r.dayOfWeek
+                              ? { ...x, openTime: e.target.value || null }
+                              : x
+                          )
                         )
-                      )
-                    }
-                    placeholder="09:00"
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.closeTime ?? ""}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.dayOfWeek === r.dayOfWeek
-                            ? { ...x, closeTime: e.target.value || null }
-                            : x
+                      }
+                      size="small"
+                      placeholder="09:00"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={r.closeTime ?? ""}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.dayOfWeek === r.dayOfWeek
+                              ? { ...x, closeTime: e.target.value || null }
+                              : x
+                          )
                         )
-                      )
-                    }
-                    placeholder="19:00"
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <select
-                    className="admin-crud__select"
-                    value={String(r.isOpen)}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.dayOfWeek === r.dayOfWeek
-                            ? { ...x, isOpen: e.target.value === "1" ? 1 : 0 }
-                            : x
+                      }
+                      size="small"
+                      placeholder="19:00"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={String(r.isOpen)}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.dayOfWeek === r.dayOfWeek
+                              ? { ...x, isOpen: e.target.value === "1" ? 1 : 0 }
+                              : x
+                          )
                         )
-                      )
-                    }
-                  >
-                    <option value="1">Sí</option>
-                    <option value="0">No</option>
-                  </select>
-                </td>
-                <td className="admin-crud__td">
-                  <button
-                    type="button"
-                    className="admin-crud__button admin-crud__button--primary"
-                    onClick={() => void save(r)}
-                    disabled={status.type === "loading"}
-                  >
-                    Guardar
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {sorted.length === 0 ? (
-              <tr>
-                <td className="admin-crud__td" colSpan={5}>
-                  Sin registros.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
+                      }
+                      size="small"
+                      fullWidth
+                    >
+                      <MenuItem value="1">Sí</MenuItem>
+                      <MenuItem value="0">No</MenuItem>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="contained"
+                        onClick={() => void save(r)}
+                        disabled={status.type === "loading"}
+                      >
+                        Guardar
+                      </Button>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {sorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5}>Sin registros.</TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </div>
   );
 }
-

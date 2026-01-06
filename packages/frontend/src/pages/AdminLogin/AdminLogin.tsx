@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+import { Alert, Button, TextField } from "@mui/material";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import { login } from "../../api/auth";
@@ -89,71 +90,56 @@ export default function AdminLogin() {
                 }
               }}
             >
-            <label className="admin-login__field">
-              <span className="admin-login__label">
-                {t("admin.login.fields.username")}
-              </span>
-              <input
-                className="admin-login__input"
-                type="text"
+              <TextField
+                label={t("admin.login.fields.username")}
                 value={username}
                 onChange={(event) => {
                   setUsername(event.target.value);
-                  if (loginState.type !== "idle")
-                    setLoginState({ type: "idle" });
+                  if (loginState.type !== "idle") setLoginState({ type: "idle" });
                 }}
                 placeholder={t("admin.login.placeholders.username")}
                 autoComplete="username"
+                size="small"
+                fullWidth
               />
-            </label>
 
-            <label className="admin-login__field">
-              <span className="admin-login__label">
-                {t("admin.login.fields.password")}
-              </span>
-              <input
-                className="admin-login__input"
+              <TextField
+                label={t("admin.login.fields.password")}
                 type="password"
                 value={password}
                 onChange={(event) => {
                   setPassword(event.target.value);
-                  if (loginState.type !== "idle")
-                    setLoginState({ type: "idle" });
+                  if (loginState.type !== "idle") setLoginState({ type: "idle" });
                 }}
                 placeholder={t("admin.login.placeholders.password")}
                 autoComplete="current-password"
+                size="small"
+                fullWidth
               />
-            </label>
 
-            <button
-              type="submit"
-              className="admin-login__button"
-              disabled={!canSubmit || loginState.type === "submitting"}
-            >
-              {loginState.type === "submitting"
-                ? t("admin.login.actions.loading")
-                : t("admin.login.actions.submit")}
-            </button>
-
-            {loginState.type === "error" ? (
-              <div
-                className="admin-login__message admin-login__message--error"
-                role="alert"
+              <Button
+                type="submit"
+                variant="contained"
+                disabled={!canSubmit || loginState.type === "submitting"}
               >
-                {loginState.message}
-              </div>
-            ) : null}
+                {loginState.type === "submitting"
+                  ? t("admin.login.actions.loading")
+                  : t("admin.login.actions.submit")}
+              </Button>
 
-            {loginState.type === "success" ? (
-              <div
-                className="admin-login__message admin-login__message--success"
-                role="status"
-              >
-                {loginState.message}
-              </div>
-            ) : null}
-          </form>
-        </section>
+              {loginState.type === "error" ? (
+                <Alert severity="error" role="alert">
+                  {loginState.message}
+                </Alert>
+              ) : null}
+
+              {loginState.type === "success" ? (
+                <Alert severity="success" role="status">
+                  {loginState.message}
+                </Alert>
+              ) : null}
+            </form>
+          </section>
         </div>
       </main>
 

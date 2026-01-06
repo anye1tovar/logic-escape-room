@@ -1,5 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import {
+  Alert,
+  Button,
+  Paper,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import "../adminCrud.scss";
 
 type HolidayRow = { date: string; name: string | null };
@@ -67,107 +81,100 @@ export default function AdminHolidays() {
     <div className="admin-crud">
       <header className="admin-crud__header">
         <div>
-          <h1 className="admin-crud__title">Festivos</h1>
-          <div className="admin-crud__subtitle">
+          <Typography component="h1" className="admin-crud__title">
+            Festivos
+          </Typography>
+          <Typography className="admin-crud__subtitle">
             Gestiona la tabla `colombian_holidays`.
-          </div>
+          </Typography>
         </div>
         <div className="admin-crud__actions">
-          <button
-            type="button"
-            className="admin-crud__button"
+          <Button
+            variant="outlined"
             onClick={() => void load()}
             disabled={status.type === "loading"}
           >
             Recargar
-          </button>
+          </Button>
         </div>
       </header>
 
-      {status.type === "error" ? (
-        <div className="admin-crud__message admin-crud__message--error">
-          {status.message}
-        </div>
-      ) : null}
+      {status.type === "error" ? <Alert severity="error">{status.message}</Alert> : null}
       {status.type === "success" ? (
-        <div className="admin-crud__message admin-crud__message--success">
-          {status.message}
-        </div>
+        <Alert severity="success">{status.message}</Alert>
       ) : null}
 
-      <section className="admin-crud__panel">
+      <Paper className="admin-crud__panel">
         <div className="admin-crud__panel-inner admin-crud__grid">
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Fecha (YYYY-MM-DD)</span>
-              <input
-                className="admin-crud__input"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                placeholder="2026-01-01"
-              />
-            </label>
+            <TextField
+              label="Fecha (YYYY-MM-DD)"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+              placeholder="2026-01-01"
+              size="small"
+              fullWidth
+            />
 
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Nombre (opcional)</span>
-              <input
-                className="admin-crud__input"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="Año nuevo"
-              />
-            </label>
+            <TextField
+              label="Nombre (opcional)"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Año nuevo"
+              size="small"
+              fullWidth
+            />
           </div>
           <div className="admin-crud__actions">
-            <button
-              type="button"
-              className="admin-crud__button admin-crud__button--primary"
+            <Button
+              variant="contained"
               onClick={() => void create()}
               disabled={status.type === "loading" || !date.trim()}
             >
               Crear
-            </button>
+            </Button>
           </div>
         </div>
-      </section>
+      </Paper>
 
-      <section className="admin-crud__panel">
-        <table className="admin-crud__table">
-          <thead>
-            <tr>
-              <th className="admin-crud__th">Fecha</th>
-              <th className="admin-crud__th">Nombre</th>
-              <th className="admin-crud__th">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr key={r.date}>
-                <td className="admin-crud__td">{r.date}</td>
-                <td className="admin-crud__td">{r.name ?? ""}</td>
-                <td className="admin-crud__td">
-                  <button
-                    type="button"
-                    className="admin-crud__button admin-crud__button--danger"
-                    onClick={() => void remove(r.date)}
-                    disabled={status.type === "loading"}
-                  >
-                    Eliminar
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {sorted.length === 0 ? (
-              <tr>
-                <td className="admin-crud__td" colSpan={3}>
-                  Sin registros.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
+      <Paper className="admin-crud__panel">
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Fecha</TableCell>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sorted.map((r) => (
+                <TableRow key={r.date} hover>
+                  <TableCell>{r.date}</TableCell>
+                  <TableCell>{r.name ?? ""}</TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => void remove(r.date)}
+                        disabled={status.type === "loading"}
+                      >
+                        Eliminar
+                      </Button>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {sorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={3}>Sin registros.</TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </div>
   );
 }
-

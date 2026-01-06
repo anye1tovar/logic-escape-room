@@ -1,5 +1,21 @@
 import { useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import {
+  Alert,
+  Button,
+  MenuItem,
+  Paper,
+  Select,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from "@mui/material";
 import "../adminCrud.scss";
 
 type RoomRow = {
@@ -129,263 +145,251 @@ export default function AdminRooms() {
     <div className="admin-crud">
       <header className="admin-crud__header">
         <div>
-          <h1 className="admin-crud__title">Salas</h1>
-          <div className="admin-crud__subtitle">Gestiona la tabla `rooms`.</div>
+          <Typography component="h1" className="admin-crud__title">
+            Salas
+          </Typography>
+          <Typography className="admin-crud__subtitle">
+            Gestiona la tabla `rooms`.
+          </Typography>
         </div>
         <div className="admin-crud__actions">
-          <button
-            type="button"
-            className="admin-crud__button"
+          <Button
+            variant="outlined"
             onClick={() => void load()}
             disabled={status.type === "loading"}
           >
             Recargar
-          </button>
+          </Button>
         </div>
       </header>
 
-      {status.type === "error" ? (
-        <div className="admin-crud__message admin-crud__message--error">
-          {status.message}
-        </div>
-      ) : null}
+      {status.type === "error" ? <Alert severity="error">{status.message}</Alert> : null}
       {status.type === "success" ? (
-        <div className="admin-crud__message admin-crud__message--success">
-          {status.message}
-        </div>
+        <Alert severity="success">{status.message}</Alert>
       ) : null}
 
-      <section className="admin-crud__panel">
+      <Paper className="admin-crud__panel">
         <div className="admin-crud__panel-inner admin-crud__grid">
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Nombre</span>
-              <input
-                className="admin-crud__input"
-                value={form.name}
-                onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
-              />
-            </label>
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Tema</span>
-              <input
-                className="admin-crud__input"
-                value={form.theme}
-                onChange={(e) => setForm((s) => ({ ...s, theme: e.target.value }))}
-              />
-            </label>
-          </div>
-          <label className="admin-crud__field">
-            <span className="admin-crud__label">Descripción</span>
-            <input
-              className="admin-crud__input"
-              value={form.description}
-              onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
+            <TextField
+              label="Nombre"
+              value={form.name}
+              onChange={(e) => setForm((s) => ({ ...s, name: e.target.value }))}
+              size="small"
+              fullWidth
             />
-          </label>
+            <TextField
+              label="Tema"
+              value={form.theme}
+              onChange={(e) => setForm((s) => ({ ...s, theme: e.target.value }))}
+              size="small"
+              fullWidth
+            />
+          </div>
+          <TextField
+            label="Descripción"
+            value={form.description}
+            onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
+            size="small"
+            fullWidth
+          />
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Min jugadores</span>
-              <input
-                className="admin-crud__input"
-                value={form.minPlayers}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, minPlayers: e.target.value }))
-                }
-                inputMode="numeric"
-              />
-            </label>
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Max jugadores</span>
-              <input
-                className="admin-crud__input"
-                value={form.maxPlayers}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, maxPlayers: e.target.value }))
-                }
-                inputMode="numeric"
-              />
-            </label>
+            <TextField
+              label="Min jugadores"
+              value={form.minPlayers}
+              onChange={(e) => setForm((s) => ({ ...s, minPlayers: e.target.value }))}
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Max jugadores"
+              value={form.maxPlayers}
+              onChange={(e) => setForm((s) => ({ ...s, maxPlayers: e.target.value }))}
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
           </div>
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Edad mínima</span>
-              <input
-                className="admin-crud__input"
-                value={form.minAge}
-                onChange={(e) => setForm((s) => ({ ...s, minAge: e.target.value }))}
-                inputMode="numeric"
-              />
-            </label>
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Duración (min)</span>
-              <input
-                className="admin-crud__input"
-                value={form.durationMinutes}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, durationMinutes: e.target.value }))
-                }
-                inputMode="numeric"
-              />
-            </label>
+            <TextField
+              label="Edad mínima"
+              value={form.minAge}
+              onChange={(e) => setForm((s) => ({ ...s, minAge: e.target.value }))}
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Duración (min)"
+              value={form.durationMinutes}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, durationMinutes: e.target.value }))
+              }
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
           </div>
           <div className="admin-crud__row">
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Dificultad (1..3)</span>
-              <input
-                className="admin-crud__input"
-                value={form.difficulty}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, difficulty: e.target.value }))
-                }
-                inputMode="numeric"
-              />
-            </label>
-            <label className="admin-crud__field">
-              <span className="admin-crud__label">Activa</span>
-              <select
-                className="admin-crud__select"
-                value={form.active}
-                onChange={(e) =>
-                  setForm((s) => ({ ...s, active: e.target.value as "1" | "0" }))
-                }
-              >
-                <option value="1">Sí</option>
-                <option value="0">No</option>
-              </select>
-            </label>
+            <TextField
+              label="Dificultad (1..3)"
+              value={form.difficulty}
+              onChange={(e) => setForm((s) => ({ ...s, difficulty: e.target.value }))}
+              inputProps={{ inputMode: "numeric" }}
+              size="small"
+              fullWidth
+            />
+            <Select
+              value={form.active}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, active: e.target.value as "1" | "0" }))
+              }
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="1">Sí</MenuItem>
+              <MenuItem value="0">No</MenuItem>
+            </Select>
           </div>
           <div className="admin-crud__actions">
-            <button
-              type="button"
-              className="admin-crud__button admin-crud__button--primary"
+            <Button
+              variant="contained"
               onClick={() => void create()}
               disabled={status.type === "loading" || !form.name.trim()}
             >
               Crear
-            </button>
+            </Button>
           </div>
         </div>
-      </section>
+      </Paper>
 
-      <section className="admin-crud__panel">
-        <table className="admin-crud__table">
-          <thead>
-            <tr>
-              <th className="admin-crud__th">Nombre</th>
-              <th className="admin-crud__th">Activa</th>
-              <th className="admin-crud__th">Min/Max</th>
-              <th className="admin-crud__th">Duración</th>
-              <th className="admin-crud__th">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sorted.map((r) => (
-              <tr key={r.id}>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.name}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) => (x.id === r.id ? { ...x, name: e.target.value } : x))
-                      )
-                    }
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <select
-                    className="admin-crud__select"
-                    value={String(r.active ?? 1)}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id ? { ...x, active: e.target.value === "1" ? 1 : 0 } : x
-                        )
-                      )
-                    }
-                  >
-                    <option value="1">Sí</option>
-                    <option value="0">No</option>
-                  </select>
-                </td>
-                <td className="admin-crud__td">
-                  <div className="admin-crud__row">
-                    <input
-                      className="admin-crud__input"
-                      value={r.min_players ?? ""}
+      <Paper className="admin-crud__panel">
+        <TableContainer>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <TableCell>Nombre</TableCell>
+                <TableCell>Activa</TableCell>
+                <TableCell>Min/Max</TableCell>
+                <TableCell>Duración</TableCell>
+                <TableCell>Acciones</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {sorted.map((r) => (
+                <TableRow key={r.id} hover>
+                  <TableCell>
+                    <TextField
+                      value={r.name}
                       onChange={(e) =>
                         setRows((prev) =>
                           prev.map((x) =>
-                            x.id === r.id ? { ...x, min_players: Number(e.target.value) } : x
+                            x.id === r.id ? { ...x, name: e.target.value } : x
                           )
                         )
                       }
-                      inputMode="numeric"
+                      size="small"
+                      fullWidth
                     />
-                    <input
-                      className="admin-crud__input"
-                      value={r.max_players ?? ""}
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={String(r.active ?? 1)}
                       onChange={(e) =>
                         setRows((prev) =>
                           prev.map((x) =>
-                            x.id === r.id ? { ...x, max_players: Number(e.target.value) } : x
+                            x.id === r.id
+                              ? { ...x, active: e.target.value === "1" ? 1 : 0 }
+                              : x
                           )
                         )
                       }
-                      inputMode="numeric"
-                    />
-                  </div>
-                </td>
-                <td className="admin-crud__td">
-                  <input
-                    className="admin-crud__input"
-                    value={r.duration_minutes ?? ""}
-                    onChange={(e) =>
-                      setRows((prev) =>
-                        prev.map((x) =>
-                          x.id === r.id
-                            ? { ...x, duration_minutes: Number(e.target.value) }
-                            : x
+                      size="small"
+                      fullWidth
+                    >
+                      <MenuItem value="1">Sí</MenuItem>
+                      <MenuItem value="0">No</MenuItem>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <TextField
+                        value={r.min_players ?? ""}
+                        onChange={(e) =>
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, min_players: Number(e.target.value) }
+                                : x
+                            )
+                          )
+                        }
+                        inputProps={{ inputMode: "numeric" }}
+                        size="small"
+                      />
+                      <TextField
+                        value={r.max_players ?? ""}
+                        onChange={(e) =>
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, max_players: Number(e.target.value) }
+                                : x
+                            )
+                          )
+                        }
+                        inputProps={{ inputMode: "numeric" }}
+                        size="small"
+                      />
+                    </Stack>
+                  </TableCell>
+                  <TableCell>
+                    <TextField
+                      value={r.duration_minutes ?? ""}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? { ...x, duration_minutes: Number(e.target.value) }
+                              : x
+                          )
                         )
-                      )
-                    }
-                    inputMode="numeric"
-                  />
-                </td>
-                <td className="admin-crud__td">
-                  <div className="admin-crud__actions">
-                    <button
-                      type="button"
-                      className="admin-crud__button admin-crud__button--primary"
-                      onClick={() => void update(r)}
-                      disabled={status.type === "loading"}
-                    >
-                      Guardar
-                    </button>
-                    <button
-                      type="button"
-                      className="admin-crud__button admin-crud__button--danger"
-                      onClick={() => void remove(r.id)}
-                      disabled={status.type === "loading"}
-                    >
-                      Eliminar
-                    </button>
-                  </div>
-                </td>
-              </tr>
-            ))}
-            {sorted.length === 0 ? (
-              <tr>
-                <td className="admin-crud__td" colSpan={5}>
-                  Sin registros.
-                </td>
-              </tr>
-            ) : null}
-          </tbody>
-        </table>
-      </section>
+                      }
+                      inputProps={{ inputMode: "numeric" }}
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Stack direction="row" spacing={1}>
+                      <Button
+                        variant="contained"
+                        onClick={() => void update(r)}
+                        disabled={status.type === "loading"}
+                      >
+                        Guardar
+                      </Button>
+                      <Button
+                        variant="outlined"
+                        color="error"
+                        onClick={() => void remove(r.id)}
+                        disabled={status.type === "loading"}
+                      >
+                        Eliminar
+                      </Button>
+                    </Stack>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {sorted.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={5}>Sin registros.</TableCell>
+                </TableRow>
+              ) : null}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Paper>
     </div>
   );
 }
-
