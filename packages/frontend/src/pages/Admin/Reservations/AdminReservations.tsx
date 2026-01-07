@@ -299,10 +299,10 @@ export default function AdminReservations() {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ minWidth: 70 }}>#</TableCell>
-                <TableCell sx={{ minWidth: 360 }}>Fecha y Hora</TableCell>
-                <TableCell sx={{ minWidth: 140 }}>Sala</TableCell>
-                <TableCell sx={{ minWidth: 320 }}>Cliente</TableCell>
-                <TableCell sx={{ minWidth: 320 }}>Contacto</TableCell>
+                <TableCell sx={{ minWidth: 100 }}>Fecha y Hora</TableCell>
+                <TableCell sx={{ minWidth: 100 }}>Sala</TableCell>
+                <TableCell sx={{ minWidth: 200 }}>Cliente</TableCell>
+                <TableCell sx={{ minWidth: 250 }}>Contacto</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Pax</TableCell>
                 <TableCell sx={{ minWidth: 140 }}>Total</TableCell>
                 <TableCell sx={{ minWidth: 380 }}>Notas</TableCell>
@@ -314,68 +314,40 @@ export default function AdminReservations() {
               {pagedRows.map((r) => (
                 <TableRow key={r.id} hover>
                   <TableCell>{r.id}</TableCell>
-                  <TableCell sx={{ minWidth: 360 }}>
+                  <TableCell>
                     <LocalizationProvider
                       dateAdapter={AdapterDayjs}
                       adapterLocale={pickerLocale}
                       localeText={pickerLocaleText}
                     >
-                      <Stack direction="row" spacing={1}>
-                        <DateTimePicker
-                          label="Inicio"
-                          value={parseRowDateTime(r.date, r.start_time)}
-                          onChange={(value) => {
-                            if (!value || !value.isValid()) return;
-                            setRows((prev) =>
-                              prev.map((x) =>
-                                x.id === r.id
-                                  ? {
-                                      ...x,
-                                      date: value.format("YYYY-MM-DD"),
-                                      start_time: value.format("HH:mm"),
-                                    }
-                                  : x
-                              )
-                            );
-                          }}
-                          format="YYYY-MM-DD HH:mm"
-                          slotProps={{
-                            textField: {
-                              size: "small",
-                              placeholder: `${r.date} ${String(
-                                r.start_time || ""
-                              ).trim()}`,
-                            },
-                          }}
-                        />
-                        <DateTimePicker
-                          label="Fin"
-                          value={parseRowDateTime(r.date, r.end_time)}
-                          onChange={(value) => {
-                            if (!value || !value.isValid()) return;
-                            setRows((prev) =>
-                              prev.map((x) =>
-                                x.id === r.id
-                                  ? {
-                                      ...x,
-                                      date: value.format("YYYY-MM-DD"),
-                                      end_time: value.format("HH:mm"),
-                                    }
-                                  : x
-                              )
-                            );
-                          }}
-                          format="YYYY-MM-DD HH:mm"
-                          slotProps={{
-                            textField: {
-                              size: "small",
-                              placeholder: `${r.date} ${String(
-                                r.end_time || ""
-                              ).trim()}`,
-                            },
-                          }}
-                        />
-                      </Stack>
+                      <DateTimePicker
+                        label="Inicio"
+                        value={parseRowDateTime(r.date, r.start_time)}
+                        onChange={(value) => {
+                          if (!value || !value.isValid()) return;
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? {
+                                    ...x,
+                                    date: value.format("YYYY-MM-DD"),
+                                    start_time: value.format("HH:mm"),
+                                  }
+                                : x
+                            )
+                          );
+                        }}
+                        format="YYYY-MM-DD HH:mm"
+                        slotProps={{
+                          textField: {
+                            size: "small",
+                            placeholder: `${r.date} ${String(
+                              r.start_time || ""
+                            ).trim()}`,
+                          },
+                        }}
+                        disabled
+                      />
                     </LocalizationProvider>
                   </TableCell>
                   <TableCell>
@@ -398,7 +370,7 @@ export default function AdminReservations() {
                       size="small"
                       fullWidth
                       displayEmpty
-                      disabled={rooms.length === 0}
+                      disabled
                     >
                       <MenuItem value="">
                         {rooms.length === 0 ? "Cargando..." : "Seleccionar"}
