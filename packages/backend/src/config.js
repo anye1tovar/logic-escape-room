@@ -10,14 +10,4 @@ module.exports = {
     secret: process.env.AUTH_SECRET || "dev-secret-change-me",
     tokenTtlSeconds: Number(process.env.AUTH_TOKEN_TTL_SECONDS || 8 * 60 * 60),
   },
-  google: {
-    clientId: process.env.GOOGLE_CLIENT_ID || "",
-    clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
-    redirectUri:
-      process.env.GOOGLE_REDIRECT_URI ||
-      "http://localhost:4000/auth/google/callback",
-    calendarId: process.env.GOOGLE_CALENDAR_ID || "",
-    serviceAccountEmail: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL || "",
-    serviceAccountPrivateKey: process.env.GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY || "",
-  },
 };

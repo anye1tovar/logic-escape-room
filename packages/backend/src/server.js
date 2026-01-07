@@ -70,8 +70,6 @@ async function start() {
   const openingHoursConsumer = await initOpeningHoursConsumer();
   const initColombianHolidaysConsumer = require("./consumers/colombianHolidaysConsumer");
   const colombianHolidaysConsumer = await initColombianHolidaysConsumer();
-  const initGoogleCalendarConsumer = require("./consumers/googleCalendarConsumer");
-  const calendarConsumer = await initGoogleCalendarConsumer(config.google);
 
   const ratesConsumer = await initRatesConsumer();
   const ratesService = buildRatesService(ratesConsumer);
@@ -85,7 +83,6 @@ async function start() {
     openingHoursConsumer,
     colombianHolidaysConsumer,
     ratesService,
-    calendarConsumer,
   });
   const bookingController = buildBookingController(bookingService);
   const bookingsRouter = createBookingsRouter(bookingController);

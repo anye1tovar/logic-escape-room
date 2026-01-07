@@ -1,4 +1,4 @@
-/**
+﻿/**
  * bookingService: contains business logic and uses a consumer for persistence.
  * The consumer must implement: createBooking({name,email,date}), getBookingById(id), listBookings()
  */
@@ -175,10 +175,14 @@ function buildBookingService(consumer, deps = {}) {
     const isHoliday = await colombianHolidaysConsumer.isHoliday(dateString);
 
     // Use midday in Bogota to avoid DST/day boundary issues.
-    const actualDayOfWeek = new Date(`${dateString}T12:00:00-05:00`).getUTCDay();
+    const actualDayOfWeek = new Date(
+      `${dateString}T12:00:00-05:00`
+    ).getUTCDay();
     const dayOfWeek = isHoliday ? 0 : actualDayOfWeek;
 
-    const row = await openingHoursConsumer.getOpeningHoursByDayOfWeek(dayOfWeek);
+    const row = await openingHoursConsumer.getOpeningHoursByDayOfWeek(
+      dayOfWeek
+    );
     return row;
   }
 
@@ -193,7 +197,9 @@ function buildBookingService(consumer, deps = {}) {
     }
 
     const isHoliday = await colombianHolidaysConsumer.isHoliday(dateString);
-    const actualDayOfWeek = new Date(`${dateString}T12:00:00-05:00`).getUTCDay();
+    const actualDayOfWeek = new Date(
+      `${dateString}T12:00:00-05:00`
+    ).getUTCDay();
     const isWeekend =
       isHoliday ||
       actualDayOfWeek === 0 ||
@@ -234,7 +240,9 @@ function buildBookingService(consumer, deps = {}) {
     const ratesConsumer = deps.ratesConsumer;
     const listRates = ratesService?.listRates || ratesConsumer?.listRates;
     if (!listRates) {
-      const err = new Error("Rates provider is required for quote calculation.");
+      const err = new Error(
+        "Rates provider is required for quote calculation."
+      );
       err.status = 500;
       throw err;
     }
@@ -332,12 +340,14 @@ function buildBookingService(consumer, deps = {}) {
     const room = (availability?.rooms || []).find((r) => r.roomId === roomId);
     const slot = room?.slots?.find((s) => s.start === startIso) || null;
     if (!room || !slot) {
-      const err = new Error("Este horario no existe para la fecha seleccionada.");
+      const err = new Error(
+        "Este horario no existe para la fecha seleccionada."
+      );
       err.status = 400;
       throw err;
     }
     if (!slot.available) {
-      const err = new Error("Este horario ya no está disponible.");
+      const err = new Error("Este horario ya no estÃ¡ disponible.");
       err.status = 409;
       throw err;
     }
@@ -355,7 +365,7 @@ function buildBookingService(consumer, deps = {}) {
       Number.isFinite(maxPlayers) &&
       (players < minPlayers || players > maxPlayers)
     ) {
-      const err = new Error("Número de jugadores inválido para esta sala.");
+      const err = new Error("NÃºmero de jugadores invÃ¡lido para esta sala.");
       err.status = 400;
       throw err;
     }
@@ -379,8 +389,9 @@ function buildBookingService(consumer, deps = {}) {
     try {
       const rooms = await listRoomsForAvailability();
       const match =
-        (rooms || []).find((roomRow) => derivePublicRoomId(roomRow) === roomId) ||
-        null;
+        (rooms || []).find(
+          (roomRow) => derivePublicRoomId(roomRow) === roomId
+        ) || null;
       resolvedRoomName = match?.name || null;
       resolvedRoomDbId = match?.id != null ? Number(match.id) : null;
     } catch (err) {
@@ -408,8 +419,7 @@ function buildBookingService(consumer, deps = {}) {
       attendees: players,
     });
     const finalTotal = quote?.total ?? null;
-
-    const booking = await consumer.createBooking({
+const booking = await consumer.createBooking({
       firstName: safeFirstName,
       lastName: safeLastName,
       name: fullName,
@@ -426,22 +436,6 @@ function buildBookingService(consumer, deps = {}) {
       consultCode: computedConsultCode,
       isFirstTime: Boolean(isFirstTime),
     });
-
-    try {
-      if (deps.calendarConsumer?.createEvent) {
-        await deps.calendarConsumer.createEvent({
-          summary: `Logic Escape Room - ${resolvedRoomName || roomId}`,
-          description: `Reserva ${computedConsultCode}\nSala: ${resolvedRoomName || roomId}\nFecha: ${requestedDate}\nHora: ${startIso}\nJugadores: ${players}\nWhatsApp: ${whatsapp || ""}`.trim(),
-          startDateTime: startIso,
-          endDateTime: endIso,
-          timeZone: TIMEZONE,
-          attendees: [email].filter(Boolean),
-        });
-      }
-    } catch (err) {
-      // Calendar errors should not block reservations.
-    }
-
     return { ...booking, reservationCode: booking.consultCode };
   }
 
@@ -567,7 +561,7 @@ function buildBookingService(consumer, deps = {}) {
     const isOpen = openingHours?.is_open;
     if (isOpen === 0 || isOpen === false || isOpen === "0") {
       const err = new Error(
-        "Este día no está disponible. Por favor escoge otra fecha."
+        "Este dÃ­a no estÃ¡ disponible. Por favor escoge otra fecha."
       );
       err.status = 400;
       err.code = "DAY_CLOSED";
@@ -582,7 +576,7 @@ function buildBookingService(consumer, deps = {}) {
       Number(endMinutes) < Number(startMinutes)
     ) {
       const err = new Error(
-        "No hay horario configurado para este día. Por favor escoge otra fecha."
+        "No hay horario configurado para este dÃ­a. Por favor escoge otra fecha."
       );
       err.status = 400;
       err.code = "OPENING_HOURS_MISSING";
