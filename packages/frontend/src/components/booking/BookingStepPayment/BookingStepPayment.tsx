@@ -1,6 +1,5 @@
 import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import brebQrImg from "../../../assets/img/bre-b-qr.jpg";
 import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStepDetails";
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
 
@@ -16,6 +15,7 @@ const BREB_KEY = "@PLATA3123715177";
 const DEPOSIT_AMOUNT_COP = 50000;
 const WHATSAPP_NUMBER = "3181278688";
 const WHATSAPP_BASE_URL = "https://wa.me/573181278688";
+const brebQrImg = "/img/bre-b-qr.jpg";
 
 function formatTime(value: string) {
   const match = String(value).match(/T(\d{2}):(\d{2})/);

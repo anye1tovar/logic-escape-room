@@ -177,22 +177,6 @@ export default function CafeteriaMenu() {
               <p className="cafeteria-menu__subtitle">
                 {t("cafeteria.subtitle")}
               </p>
-
-              <div className="cafeteria-menu__banner" role="region">
-                <div className="cafeteria-menu__banner-text">
-                  <h3 className="cafeteria-menu__banner-title">
-                    {t("cafeteria.banner.title")}
-                  </h3>
-                </div>
-                <a
-                  className="cafeteria-menu__banner-cta"
-                  href={t("cafeteria.banner.playlistUrl", "#")}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  {t("cafeteria.banner.cta")}
-                </a>
-              </div>
             </div>
           </div>
 

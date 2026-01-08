@@ -7,7 +7,6 @@ import { Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 
 import socials from "../../../assets/data/socials.json";
-import logicLogo from "../../../assets/img/logic.png";
 import "./Footer.scss";
 
 type SocialItem = {
@@ -15,6 +14,8 @@ type SocialItem = {
   url: string;
   icon?: string;
 };
+
+const logicLogo = "/img/logic.png";
 
 const Footer = () => {
   const { t } = useTranslation();

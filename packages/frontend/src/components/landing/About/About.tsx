@@ -1,7 +1,8 @@
 import { Box, Grid, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import "./About.scss";
-import noxImage from "../../../assets/img/nox-complete.png";
+
+const noxImage = "/img/nox-complete.png";
 
 const About = () => {
   const { t } = useTranslation();

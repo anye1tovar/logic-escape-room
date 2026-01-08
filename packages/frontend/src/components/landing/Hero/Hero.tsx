@@ -1,10 +1,10 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
-import logicLogo from "../../../assets/img/logic.png";
 import "./Hero.scss";
 import { useNavigate } from "react-router-dom";
 
 const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
+const logicLogo = "/img/logic.png";
 
 const statsValues = [
   { labelKey: "hero.stats.teams", value: "+1564" },

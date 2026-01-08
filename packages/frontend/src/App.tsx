@@ -1,9 +1,6 @@
 import { ThemeProvider } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
 import { BrowserRouter, Route, Routes } from "react-router-dom";
-import jugadoresImg from "./assets/landing/jugadores.png";
-import notasImg from "./assets/landing/notas.png";
-import wallmapImg from "./assets/landing/wallmap.png";
 import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
 import About from "./components/landing/About/About";
 import Guidelines from "./components/landing/Guidelines";
@@ -28,6 +25,10 @@ import AdminSettings from "./pages/Admin/Settings/AdminSettings";
 import AdminReservations from "./pages/Admin/Reservations/AdminReservations";
 import AdminCafeteriaProducts from "./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts";
 import theme from "./theme";
+
+const jugadoresImg = "/landing/jugadores.png";
+const notasImg = "/landing/notas.png";
+const wallmapImg = "/landing/wallmap.png";
 
 function HomeContent() {
   const { t } = useTranslation();

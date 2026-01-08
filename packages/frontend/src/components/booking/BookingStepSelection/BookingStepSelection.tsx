@@ -8,9 +8,9 @@ import { useTranslation } from "react-i18next";
 import "dayjs/locale/en";
 import "dayjs/locale/es";
 
-import portalImg from "../../../assets/rooms/portal.png";
-import canibalImg from "../../../assets/rooms/canibal.png";
-import manicomioImg from "../../../assets/rooms/manicomio.png";
+const portalImg = "/rooms/portal.png";
+const canibalImg = "/rooms/canibal.png";
+const manicomioImg = "/rooms/manicomio.png";
 
 type AvailabilitySlot = {
   start: string;

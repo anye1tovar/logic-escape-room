@@ -3,10 +3,11 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { fetchRooms } from "../../../api/rooms";
-import portalImg from "../../../assets/rooms/portal.png";
-import canibalImg from "../../../assets/rooms/canibal.png";
-import manicomioImg from "../../../assets/rooms/manicomio.png";
 import "./Rooms.scss";
+
+const portalImg = "/rooms/portal.png";
+const canibalImg = "/rooms/canibal.png";
+const manicomioImg = "/rooms/manicomio.png";
 
 type ApiRoom = {
   id?: string | number;

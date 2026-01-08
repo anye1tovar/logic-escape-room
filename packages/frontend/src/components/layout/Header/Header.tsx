@@ -3,12 +3,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Header.scss";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import coFlag from "../../../assets/icons/co.svg";
-// eslint-disable-next-line @typescript-eslint/ban-ts-comment
-// @ts-ignore
-import usFlag from "../../../assets/icons/us.svg";
+
+const coFlag = "/icons/co.svg";
+const usFlag = "/icons/us.svg";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
