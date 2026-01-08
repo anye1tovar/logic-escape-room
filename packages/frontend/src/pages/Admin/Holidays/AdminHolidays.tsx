@@ -3,6 +3,11 @@ import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Paper,
   Stack,
   Table,
@@ -28,6 +33,7 @@ export default function AdminHolidays() {
     | { type: "error"; message: string }
     | { type: "success"; message: string }
   >({ type: "loading" });
+  const [confirmDeleteDate, setConfirmDeleteDate] = useState<string | null>(null);
 
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => a.date.localeCompare(b.date));
@@ -76,6 +82,9 @@ export default function AdminHolidays() {
       setStatus({ type: "error", message: "No se pudo eliminar el festivo." });
     }
   }
+
+  const confirmDeleteRow =
+    rows.find((row) => row.date === confirmDeleteDate) || null;
 
   return (
     <div className="admin-crud">
@@ -157,7 +166,7 @@ export default function AdminHolidays() {
                       <Button
                         variant="outlined"
                         color="error"
-                        onClick={() => void remove(r.date)}
+                        onClick={() => setConfirmDeleteDate(r.date)}
                         disabled={status.type === "loading"}
                       >
                         Eliminar
@@ -175,6 +184,43 @@ export default function AdminHolidays() {
           </Table>
         </TableContainer>
       </Paper>
+      <Dialog
+        open={confirmDeleteDate != null}
+        onClose={() => setConfirmDeleteDate(null)}
+        aria-labelledby="confirm-delete-holiday-title"
+      >
+        <DialogTitle id="confirm-delete-holiday-title">
+          Confirmar eliminacion
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmDeleteRow
+              ? `¿Eliminar el festivo ${confirmDeleteRow.date}?`
+              : "¿Eliminar este festivo?"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setConfirmDeleteDate(null)}
+            disabled={status.type === "loading"}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (!confirmDeleteDate) return;
+              const dateValue = confirmDeleteDate;
+              setConfirmDeleteDate(null);
+              void remove(dateValue);
+            }}
+            disabled={status.type === "loading"}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

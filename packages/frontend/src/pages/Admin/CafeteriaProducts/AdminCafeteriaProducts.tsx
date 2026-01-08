@@ -3,6 +3,11 @@ import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   MenuItem,
   Paper,
   Select,
@@ -55,6 +60,7 @@ export default function AdminCafeteriaProducts() {
     category: "",
     image: "",
   });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -181,6 +187,8 @@ export default function AdminCafeteriaProducts() {
       setStatus({ type: "error", message: "No se pudo eliminar el producto." });
     }
   }
+
+  const confirmDeleteRow = rows.find((row) => row.id === confirmDeleteId) || null;
 
   const canCreate =
     form.name.trim().length > 0 &&
@@ -458,7 +466,7 @@ export default function AdminCafeteriaProducts() {
                       <Button
                         variant="outlined"
                         color="error"
-                        onClick={() => void remove(r.id)}
+                        onClick={() => setConfirmDeleteId(r.id)}
                         disabled={status.type === "loading"}
                       >
                         Eliminar
@@ -485,6 +493,43 @@ export default function AdminCafeteriaProducts() {
           rowsPerPageOptions={[5, 10, 20, 50]}
         />
       </Paper>
+      <Dialog
+        open={confirmDeleteId != null}
+        onClose={() => setConfirmDeleteId(null)}
+        aria-labelledby="confirm-delete-product-title"
+      >
+        <DialogTitle id="confirm-delete-product-title">
+          Confirmar eliminacion
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmDeleteRow
+              ? `¿Eliminar el producto "${confirmDeleteRow.name}"?`
+              : "¿Eliminar este producto?"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setConfirmDeleteId(null)}
+            disabled={status.type === "loading"}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (confirmDeleteId == null) return;
+              const id = confirmDeleteId;
+              setConfirmDeleteId(null);
+              void remove(id);
+            }}
+            disabled={status.type === "loading"}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

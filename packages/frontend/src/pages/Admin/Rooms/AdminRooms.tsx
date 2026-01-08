@@ -3,6 +3,11 @@ import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   MenuItem,
   Paper,
   Select,
@@ -63,6 +68,7 @@ export default function AdminRooms() {
     difficulty: "",
     active: "1",
   });
+  const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
   const sorted = useMemo(() => [...rows].sort((a, b) => b.id - a.id), [rows]);
 
@@ -140,6 +146,8 @@ export default function AdminRooms() {
       setStatus({ type: "error", message: "No se pudo eliminar la sala." });
     }
   }
+
+  const confirmDeleteRow = rows.find((row) => row.id === confirmDeleteId) || null;
 
   return (
     <div className="admin-crud">
@@ -372,7 +380,7 @@ export default function AdminRooms() {
                       <Button
                         variant="outlined"
                         color="error"
-                        onClick={() => void remove(r.id)}
+                        onClick={() => setConfirmDeleteId(r.id)}
                         disabled={status.type === "loading"}
                       >
                         Eliminar
@@ -390,6 +398,43 @@ export default function AdminRooms() {
           </Table>
         </TableContainer>
       </Paper>
+      <Dialog
+        open={confirmDeleteId != null}
+        onClose={() => setConfirmDeleteId(null)}
+        aria-labelledby="confirm-delete-room-title"
+      >
+        <DialogTitle id="confirm-delete-room-title">
+          Confirmar eliminacion
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmDeleteRow
+              ? `¿Eliminar la sala "${confirmDeleteRow.name}"?`
+              : "¿Eliminar esta sala?"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setConfirmDeleteId(null)}
+            disabled={status.type === "loading"}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (confirmDeleteId == null) return;
+              const id = confirmDeleteId;
+              setConfirmDeleteId(null);
+              void remove(id);
+            }}
+            disabled={status.type === "loading"}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

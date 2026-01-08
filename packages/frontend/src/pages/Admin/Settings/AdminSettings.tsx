@@ -3,6 +3,11 @@ import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
   Button,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
   Paper,
   Stack,
   Table,
@@ -28,6 +33,7 @@ export default function AdminSettings() {
     | { type: "error"; message: string }
     | { type: "success"; message: string }
   >({ type: "loading" });
+  const [confirmDeleteKey, setConfirmDeleteKey] = useState<string | null>(null);
 
   const sorted = useMemo(
     () => [...rows].sort((a, b) => a.key.localeCompare(b.key)),
@@ -78,6 +84,8 @@ export default function AdminSettings() {
       setStatus({ type: "error", message: "No se pudo eliminar la configuración." });
     }
   }
+
+  const confirmDeleteRow = rows.find((row) => row.key === confirmDeleteKey) || null;
 
   return (
     <div className="admin-crud">
@@ -178,7 +186,7 @@ export default function AdminSettings() {
                       <Button
                         variant="outlined"
                         color="error"
-                        onClick={() => void remove(r.key)}
+                        onClick={() => setConfirmDeleteKey(r.key)}
                         disabled={status.type === "loading"}
                       >
                         Eliminar
@@ -196,6 +204,43 @@ export default function AdminSettings() {
           </Table>
         </TableContainer>
       </Paper>
+      <Dialog
+        open={confirmDeleteKey != null}
+        onClose={() => setConfirmDeleteKey(null)}
+        aria-labelledby="confirm-delete-setting-title"
+      >
+        <DialogTitle id="confirm-delete-setting-title">
+          Confirmar eliminacion
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            {confirmDeleteRow
+              ? `¿Eliminar la configuracion "${confirmDeleteRow.key}"?`
+              : "¿Eliminar esta configuracion?"}
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => setConfirmDeleteKey(null)}
+            disabled={status.type === "loading"}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            color="error"
+            onClick={() => {
+              if (!confirmDeleteKey) return;
+              const keyValue = confirmDeleteKey;
+              setConfirmDeleteKey(null);
+              void remove(keyValue);
+            }}
+            disabled={status.type === "loading"}
+          >
+            Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
