@@ -26,6 +26,7 @@ import AdminOpeningHours from "./pages/Admin/OpeningHours/AdminOpeningHours";
 import AdminRooms from "./pages/Admin/Rooms/AdminRooms";
 import AdminSettings from "./pages/Admin/Settings/AdminSettings";
 import AdminReservations from "./pages/Admin/Reservations/AdminReservations";
+import AdminCafeteriaProducts from "./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts";
 import theme from "./theme";
 
 function HomeContent() {
@@ -65,6 +66,7 @@ function App() {
             <Route index element={<AdminReservations />} />
             <Route path="reservas" element={<AdminReservations />} />
             <Route path="precios" element={<AdminRates />} />
+            <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
             <Route path="festivos" element={<AdminHolidays />} />
             <Route path="horarios" element={<AdminOpeningHours />} />
             <Route path="salas" element={<AdminRooms />} />

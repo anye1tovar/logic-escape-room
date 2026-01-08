@@ -110,6 +110,18 @@ db.serialize(() => {
       currency TEXT DEFAULT 'COP'
     )
   `);
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS cafeteria_products (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      name TEXT NOT NULL,
+      price INTEGER NOT NULL,
+      description TEXT,
+      available INTEGER NOT NULL DEFAULT 1,
+      category TEXT,
+      image TEXT
+    )
+  `);
 });
 
 module.exports = db;

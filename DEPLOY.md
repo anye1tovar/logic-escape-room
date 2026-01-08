@@ -70,7 +70,5 @@ No hay `Dockerfile` incluido actualmente. Si se decide contenerizar:
 
 ## Pendientes (Infraestructura)
 
-- Reemplazar la ruta actual del JSON del menú de cafetería (hoy embebido como archivo local `packages/frontend/src/assets/data/cafeteria-menu.json` e importado desde `packages/frontend/src/pages/CafeteriaMenu/CafeteriaMenu.tsx`) por un **link público** a un JSON alojado en **S3**.
-  - Esto queda pendiente porque todavía no existe S3 ni infraestructura asociada.
-  - Cuando exista, lo ideal es cargarlo por `fetch()` desde una URL configurable (por ejemplo `VITE_CAFETERIA_MENU_URL`) en vez de importarlo desde el bundle.
-
+- Configurar `VITE_IMAGES_BASE_URL` en el frontend para servir las imágenes de productos (el backend devuelve solo el nombre de la imagen).
+- (Opcional) Definir un flujo de administración/carga para poblar `cafeteria_products` en la BD.

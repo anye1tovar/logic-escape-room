@@ -2,28 +2,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
-import menuData from "../../assets/data/cafeteria-menu.json";
+import {
+  fetchCafeteriaProducts,
+  type CafeteriaProduct,
+} from "../../api/cafeteria";
 import "./CafeteriaMenu.scss";
-
-type CafeteriaMenuItem = {
-  name: string;
-  price: number;
-  description?: string;
-  available?: boolean;
-  category?: string;
-  image?: string;
-};
 
 type CafeteriaCategory = {
   key: string;
   label: string;
-  items: CafeteriaMenuItem[];
-};
-
-type CafeteriaMenuData = {
-  source?: string;
-  currency: string;
-  categories: CafeteriaCategory[];
+  items: CafeteriaProduct[];
 };
 
 function formatCurrency(value: number, currency: string, locale: string) {
@@ -43,21 +31,82 @@ function isImageUrl(value: string) {
   );
 }
 
+function joinUrl(base: string, path: string) {
+  const cleanBase = base.replace(/\/+$/, "");
+  const cleanPath = path.replace(/^\/+/, "");
+  return `${cleanBase}/${cleanPath}`;
+}
+
+function buildCategoryKey(label: string) {
+  return (
+    label
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "_")
+      .replace(/^_+|_+$/g, "") || "category"
+  );
+}
+
 export default function CafeteriaMenu() {
   const { t, i18n } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [products, setProducts] = useState<CafeteriaProduct[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     window.scrollTo(0, 0);
   }, []);
 
-  const data = menuData as CafeteriaMenuData;
-  const currency = data.currency || "COP";
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    setError(null);
+
+    fetchCafeteriaProducts()
+      .then((rows) => {
+        if (cancelled) return;
+        setProducts(Array.isArray(rows) ? rows : []);
+      })
+      .catch((err: unknown) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : "Failed to load menu");
+      })
+      .finally(() => {
+        if (cancelled) return;
+        setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const currency = "COP";
+  const imagesBaseUrl = (import.meta.env.VITE_IMAGES_BASE_URL || "").trim();
 
   const locale =
     i18n.language && i18n.language.startsWith("en") ? "en-US" : "es-CO";
 
-  const categories = useMemo(() => data.categories || [], [data.categories]);
+  const categories = useMemo<CafeteriaCategory[]>(() => {
+    const byLabel = new Map<string, CafeteriaProduct[]>();
+
+    for (const product of products) {
+      const label =
+        (product.category || "").trim() ||
+        t("cafeteria.uncategorized", "Otros");
+      const list = byLabel.get(label) || [];
+      list.push(product);
+      byLabel.set(label, list);
+    }
+
+    return Array.from(byLabel.entries()).map(([label, items]) => ({
+      key: buildCategoryKey(label),
+      label,
+      items,
+    }));
+  }, [products, t]);
+
   const titleLines = useMemo(() => {
     const maybeLines = t("cafeteria.titleLines", {
       returnObjects: true,
@@ -72,7 +121,7 @@ export default function CafeteriaMenu() {
     }
 
     const title = t("cafeteria.title");
-    const separators = [" & ", " - ", " – ", " | ", ": "];
+    const separators = [" & ", " - ", " | ", ": "];
     for (const separator of separators) {
       const idx = title.indexOf(separator);
       if (idx > 0) {
@@ -89,6 +138,14 @@ export default function CafeteriaMenu() {
     if (selectedCategory === "all") return categories;
     return categories.filter((c) => c.key === selectedCategory);
   }, [categories, selectedCategory]);
+
+  const statusText = useMemo(() => {
+    if (loading) return t("cafeteria.loading", "Cargando menú...");
+    if (error) return error;
+    if (!products.length)
+      return t("cafeteria.empty", "No hay productos disponibles.");
+    return null;
+  }, [error, loading, products.length, t]);
 
   return (
     <div className="cafeteria-menu">
@@ -173,6 +230,11 @@ export default function CafeteriaMenu() {
           </div>
 
           <div className="cafeteria-menu__grid">
+            {statusText && (
+              <section className="cafeteria-menu__section" aria-live="polite">
+                <p>{statusText}</p>
+              </section>
+            )}
             {visibleCategories.map((section) => (
               <section key={section.key} className="cafeteria-menu__section">
                 <h2 className="cafeteria-menu__section-title">
@@ -189,9 +251,14 @@ export default function CafeteriaMenu() {
                       }`}
                     >
                       <div className="cafeteria-menu__media">
-                        {item.image && isImageUrl(item.image) ? (
+                        {item.image &&
+                        (isImageUrl(item.image) || imagesBaseUrl) ? (
                           <img
-                            src={item.image}
+                            src={
+                              isImageUrl(item.image)
+                                ? item.image
+                                : joinUrl(imagesBaseUrl, item.image)
+                            }
                             alt={item.name}
                             loading="lazy"
                             onError={(e) => {

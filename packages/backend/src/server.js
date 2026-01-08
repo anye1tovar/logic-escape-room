@@ -47,6 +47,16 @@ const buildAdminReservationsService = require("./services/adminReservationsServi
 const buildAdminReservationsController = require("./controllers/adminReservationsController");
 const createAdminReservationsRouter = require("./routes/adminReservations");
 
+const initAdminCafeteriaProductsConsumer = require("./consumers/adminCafeteriaProductsConsumerSqlite");
+const buildAdminCafeteriaProductsService = require("./services/adminCafeteriaProductsService");
+const buildAdminCafeteriaProductsController = require("./controllers/adminCafeteriaProductsController");
+const createAdminCafeteriaProductsRouter = require("./routes/adminCafeteriaProducts");
+
+const initCafeteriaProductsConsumer = require("./consumers/cafeteriaProductsConsumer");
+const buildCafeteriaProductsService = require("./services/cafeteriaProductsService");
+const buildCafeteriaProductsController = require("./controllers/cafeteriaProductsController");
+const createCafeteriaProductsRouter = require("./routes/cafeteriaProducts");
+
 async function start() {
   const app = express();
   app.use(cors());
@@ -75,6 +85,17 @@ async function start() {
   const ratesService = buildRatesService(ratesConsumer);
   const ratesController = buildRatesController(ratesService);
   const ratesRouter = createRatesRouter(ratesController);
+
+  const cafeteriaProductsConsumer = await initCafeteriaProductsConsumer();
+  const cafeteriaProductsService = buildCafeteriaProductsService(
+    cafeteriaProductsConsumer
+  );
+  const cafeteriaProductsController = buildCafeteriaProductsController(
+    cafeteriaProductsService
+  );
+  const cafeteriaProductsRouter = createCafeteriaProductsRouter(
+    cafeteriaProductsController
+  );
 
   // build layers (bookingConsumer is async to initialize)
   const bookingConsumer = await initBookingConsumer();
@@ -144,9 +165,21 @@ async function start() {
     adminReservationsController
   );
 
+  const adminCafeteriaProductsConsumer =
+    await initAdminCafeteriaProductsConsumer();
+  const adminCafeteriaProductsService = buildAdminCafeteriaProductsService(
+    adminCafeteriaProductsConsumer
+  );
+  const adminCafeteriaProductsController =
+    buildAdminCafeteriaProductsController(adminCafeteriaProductsService);
+  const adminCafeteriaProductsRouter = createAdminCafeteriaProductsRouter(
+    adminCafeteriaProductsController
+  );
+
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/rooms", roomsRouter);
   app.use("/api/rates", ratesRouter);
+  app.use("/api/cafeteria/products", cafeteriaProductsRouter);
   app.use("/api/users", usersRouter);
   app.use("/api/auth", authRouter);
   app.use("/api/admin/rooms", adminAuth, adminRoomsRouter);
@@ -155,6 +188,11 @@ async function start() {
   app.use("/api/admin/holidays", adminAuth, adminHolidaysRouter);
   app.use("/api/admin/settings", adminAuth, adminSettingsRouter);
   app.use("/api/admin/reservations", adminAuth, adminReservationsRouter);
+  app.use(
+    "/api/admin/cafeteria-products",
+    adminAuth,
+    adminCafeteriaProductsRouter
+  );
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 
