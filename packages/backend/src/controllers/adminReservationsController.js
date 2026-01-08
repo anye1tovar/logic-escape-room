@@ -1,9 +1,19 @@
 function buildAdminReservationsController(service) {
   async function listReservations(req, res) {
     try {
-      const { date, name } = req.query;
-      const rows = await service.listReservations({ date, name });
-      res.json(rows);
+      const source = req.method === "POST" ? req.body : req.query;
+      const rawFilters = source?.filters && typeof source.filters === "object" ? source.filters : null;
+      const date = rawFilters?.date ?? source?.date;
+      const search = rawFilters?.search ?? source?.search ?? source?.name;
+      const page = source?.page;
+      const pageSize = source?.pageSize ?? source?.size;
+
+      const payload = await service.listReservationsPage({
+        filters: { date, search },
+        page,
+        pageSize,
+      });
+      res.json(payload);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });
     }
@@ -31,4 +41,3 @@ function buildAdminReservationsController(service) {
 }
 
 module.exports = buildAdminReservationsController;
-

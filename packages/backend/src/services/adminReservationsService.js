@@ -5,11 +5,26 @@ function buildAdminReservationsService(consumer) {
     return Number.isFinite(num) ? Math.trunc(num) : null;
   }
 
+  function normalizePositiveInt(value, { defaultValue, min = 1, max = 200 } = {}) {
+    const parsed = normalizeInt(value);
+    const base = parsed == null ? defaultValue : parsed;
+    if (!Number.isFinite(base)) return defaultValue;
+    return Math.min(Math.max(base, min), max);
+  }
+
   function normalizeText(value, { allowEmpty = true } = {}) {
     if (value == null) return allowEmpty ? "" : null;
     const text = String(value);
     if (!text.trim() && !allowEmpty) return null;
     return text;
+  }
+
+  function todayLocalDate() {
+    const now = new Date();
+    const yyyy = String(now.getFullYear()).padStart(4, "0");
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const dd = String(now.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
   }
 
   function normalizeDate(value) {
@@ -46,10 +61,54 @@ function buildAdminReservationsService(consumer) {
     return raw;
   }
 
-  async function listReservations(filters) {
-    const date = filters?.date ? normalizeDate(filters.date) : "";
-    const name = String(filters?.name || "").trim();
-    return consumer.listReservations({ date, name });
+  async function listReservationsPage(input) {
+    const rawFilters = input?.filters && typeof input.filters === "object" ? input.filters : {};
+    const rawDate = rawFilters?.date;
+    const rawSearch = rawFilters?.search ?? rawFilters?.name;
+
+    const date = rawDate == null || String(rawDate).trim() === "" ? todayLocalDate() : normalizeDate(rawDate);
+    const search = String(rawSearch || "").trim();
+    const pageSize = normalizePositiveInt(input?.pageSize, { defaultValue: 10, min: 1, max: 200 });
+    const page = normalizePositiveInt(input?.page, { defaultValue: 1, min: 1, max: 1_000_000 });
+
+    const result = await consumer.listReservationsPage({
+      date,
+      search,
+      page,
+      pageSize,
+    });
+
+    const totalRecords = normalizeInt(result?.totalRecords) ?? 0;
+    const totalPages = Math.max(1, Math.ceil(totalRecords / pageSize));
+    const safePage = Math.min(page, totalPages);
+
+    // If the requested page is out of range, refetch once with a safe page.
+    if (safePage !== page) {
+      const retry = await consumer.listReservationsPage({
+        date,
+        search,
+        page: safePage,
+        pageSize,
+      });
+      const retryTotal = normalizeInt(retry?.totalRecords) ?? 0;
+      return {
+        filters: { date, search },
+        records: retry?.records || [],
+        page: safePage,
+        size: pageSize,
+        totalRecords: retryTotal,
+        totalPages: Math.max(1, Math.ceil(retryTotal / pageSize)),
+      };
+    }
+
+    return {
+      filters: { date, search },
+      records: result?.records || [],
+      page: safePage,
+      size: pageSize,
+      totalRecords,
+      totalPages,
+    };
   }
 
   async function updateReservation(id, input) {
@@ -123,8 +182,7 @@ function buildAdminReservationsService(consumer) {
     return { ok: true };
   }
 
-  return { listReservations, updateReservation, deleteReservation };
+  return { listReservationsPage, updateReservation, deleteReservation };
 }
 
 module.exports = buildAdminReservationsService;
-

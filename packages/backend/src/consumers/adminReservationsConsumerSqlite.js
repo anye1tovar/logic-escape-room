@@ -1,28 +1,61 @@
 const db = require("../db/initDb");
 
+function buildWhere(filters) {
+  const where = [];
+  const params = [];
+
+  const date = String(filters?.date || "").trim();
+  if (date) {
+    where.push("date = ?");
+    params.push(date);
+  }
+
+  const search = String(filters?.search || "").trim();
+  if (search) {
+    where.push(
+      "(LOWER(first_name || ' ' || last_name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(consult_code) LIKE ?)"
+    );
+    const q = `%${search.toLowerCase()}%`;
+    params.push(q, q, q, q);
+  }
+
+  return { where, params };
+}
+
+function listReservationsPage(input) {
+  return new Promise((resolve, reject) => {
+    const page = Number(input?.page || 1);
+    const pageSize = Number(input?.pageSize || 10);
+    const safePage = Number.isFinite(page) && page > 0 ? Math.trunc(page) : 1;
+    const safeSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.trunc(pageSize) : 10;
+    const offset = (safePage - 1) * safeSize;
+
+    const { where, params } = buildWhere(input);
+    const whereSql = where.length ? ` WHERE ${where.join(" AND ")}` : "";
+
+    db.get(`SELECT COUNT(*) as total FROM reservations${whereSql};`, params, (err, row) => {
+      if (err) return reject(err);
+      const totalRecords = Number(row?.total || 0);
+
+      const listSql =
+        `SELECT * FROM reservations${whereSql}` +
+        " ORDER BY date ASC, start_time ASC, id ASC" +
+        " LIMIT ? OFFSET ?;";
+
+      db.all(listSql, [...params, safeSize, offset], (err2, rows) => {
+        if (err2) return reject(err2);
+        resolve({ records: rows || [], totalRecords });
+      });
+    });
+  });
+}
+
 function listReservations(filters) {
   return new Promise((resolve, reject) => {
-    const where = [];
-    const params = [];
-
-    const date = String(filters?.date || "").trim();
-    if (date) {
-      where.push("date = ?");
-      params.push(date);
-    }
-
-    const name = String(filters?.name || "").trim();
-    if (name) {
-      where.push(
-        "(LOWER(first_name || ' ' || last_name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(consult_code) LIKE ?)"
-      );
-      const q = `%${name.toLowerCase()}%`;
-      params.push(q, q, q, q);
-    }
-
+    const { where, params } = buildWhere({ ...filters, search: filters?.search ?? filters?.name });
     let sql = "SELECT * FROM reservations";
     if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
-    sql += " ORDER BY date DESC, start_time DESC, id DESC;";
+    sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 
     db.all(sql, params, (err, rows) => {
       if (err) return reject(err);
@@ -85,6 +118,5 @@ function deleteReservation(id) {
 }
 
 module.exports = async function initConsumer() {
-  return { listReservations, updateReservation, deleteReservation };
+  return { listReservations, listReservationsPage, updateReservation, deleteReservation };
 };
-

@@ -1,7 +1,7 @@
 import { createTheme } from "@mui/material/styles";
 
 const headingFamily = '"Bebas Neue", "Impact", "Arial Narrow", sans-serif';
-const bodyFamily = '"Indie Flower", "Comic Sans MS", "Segoe UI", cursive';
+const bodyFamily = '"Inter", "InterDisplay", "Segoe UI", cursive';
 
 const theme = createTheme({
   palette: {

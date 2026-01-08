@@ -54,9 +54,7 @@ const About = () => {
                 <Typography component="h6" variant="h6">
                   {section.title}
                 </Typography>
-                <Typography component="p" pb={2}>
-                  {section.body}
-                </Typography>
+                <p style={{ paddingBottom: "16px" }}>{section.body}</p>
               </>
             ))}
           </Grid>

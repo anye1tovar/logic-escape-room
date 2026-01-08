@@ -19,7 +19,6 @@ import {
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
-import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { enUS, esES } from "@mui/x-date-pickers/locales";
@@ -68,13 +67,32 @@ function parseRowDateTime(date: string, value: string) {
   return parsed.isValid() ? parsed : null;
 }
 
+function formatRowDateTime(r: ReservationRow) {
+  const dt = parseRowDateTime(r.date, r.start_time);
+  if (dt) return dt.format("YYYY-MM-DD HH:mm");
+  const time = String(r.start_time || "").trim();
+  return `${String(r.date || "").trim()}${time ? ` ${time}` : ""}`.trim();
+}
+
+type ReservationsPageResponse = {
+  filters: { date: string; search: string };
+  records: ReservationRow[];
+  page: number;
+  size: number;
+  totalRecords: number;
+  totalPages: number;
+};
+
 export default function AdminReservations() {
   const { i18n } = useTranslation();
   const [rows, setRows] = useState<ReservationRow[]>([]);
   const [rooms, setRooms] = useState<RoomRow[]>([]);
-  const [filterDate, setFilterDate] = useState<Dayjs | null>(null);
-  const [filterName, setFilterName] = useState("");
+  const [filterDate, setFilterDate] = useState<Dayjs | null>(() => dayjs());
+  const [filterSearch, setFilterSearch] = useState("");
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+  const [pageCount, setPageCount] = useState(1);
+  const [totalRecords, setTotalRecords] = useState(0);
   const [status, setStatus] = useState<
     | { type: "idle" }
     | { type: "loading" }
@@ -93,42 +111,45 @@ export default function AdminReservations() {
   }, [pickerLocale]);
 
   const filterDateString = useMemo(() => {
-    if (!filterDate || !filterDate.isValid()) return "";
-    return filterDate.format("YYYY-MM-DD");
+    if (filterDate && filterDate.isValid()) return filterDate.format("YYYY-MM-DD");
+    return dayjs().format("YYYY-MM-DD");
   }, [filterDate]);
 
-  const sorted = useMemo(() => {
-    return [...rows].sort((a, b) => {
-      if (a.date !== b.date) return b.date.localeCompare(a.date);
-      if (a.start_time !== b.start_time)
-        return b.start_time.localeCompare(a.start_time);
-      return b.id - a.id;
-    });
-  }, [rows]);
+  const roomNameById = useMemo(() => {
+    return new Map(rooms.map((r) => [r.id, r.name]));
+  }, [rooms]);
 
-  const pageSize = 5;
-  const pageCount = useMemo(() => {
-    return Math.max(1, Math.ceil(sorted.length / pageSize));
-  }, [sorted.length]);
-
-  const pagedRows = useMemo(() => {
-    const safePage = Math.min(Math.max(page, 1), pageCount);
-    const start = (safePage - 1) * pageSize;
-    return sorted.slice(start, start + pageSize);
-  }, [page, pageCount, sorted]);
-
-  async function load(filters?: { date?: string; name?: string }) {
+  async function load(input?: {
+    filters?: { date?: string; search?: string };
+    page?: number;
+    pageSize?: number;
+  }) {
     setStatus({ type: "loading" });
     try {
-      const base = "/api/admin/reservations";
-      const url = new URL(base, window.location.origin);
-      if (filters?.date) url.searchParams.set("date", filters.date);
-      if (filters?.name) url.searchParams.set("name", filters.name);
-      const data = await adminRequest<ReservationRow[]>(
-        url.pathname + url.search
+      const nextPage = input?.page ?? page;
+      const nextPageSize = input?.pageSize ?? pageSize;
+      const date = input?.filters?.date ?? filterDateString;
+      const search = input?.filters?.search ?? filterSearch.trim();
+
+      const data = await adminRequest<ReservationsPageResponse>(
+        "/api/admin/reservations",
+        {
+          method: "POST",
+          body: {
+            filters: { date, search },
+            page: nextPage,
+            pageSize: nextPageSize,
+          },
+        }
       );
-      setRows(data);
-      setPage(1);
+
+      setRows(data.records || []);
+      setPage(Number(data.page) || 1);
+      setPageSize(Number(data.size) || nextPageSize);
+      setPageCount(Number(data.totalPages) || 1);
+      setTotalRecords(Number(data.totalRecords) || 0);
+      setFilterDate(dayjs(data.filters?.date || date));
+      setFilterSearch(String(data.filters?.search || search));
       setStatus({ type: "idle" });
     } catch {
       setStatus({
@@ -196,7 +217,11 @@ export default function AdminReservations() {
         type: "success",
         message: `Reserva #${row.id} actualizada.`,
       });
-      await load({ date: filterDateString, name: filterName.trim() });
+      await load({
+        filters: { date: filterDateString, search: filterSearch.trim() },
+        page,
+        pageSize,
+      });
     } catch (err: unknown) {
       setStatus({
         type: "error",
@@ -211,7 +236,11 @@ export default function AdminReservations() {
     try {
       await adminRequest(`/api/admin/reservations/${id}`, { method: "DELETE" });
       setStatus({ type: "success", message: `Reserva #${id} eliminada.` });
-      await load({ date: filterDateString, name: filterName.trim() });
+      await load({
+        filters: { date: filterDateString, search: filterSearch.trim() },
+        page,
+        pageSize,
+      });
     } catch {
       setStatus({ type: "error", message: "No se pudo eliminar la reserva." });
     }
@@ -225,7 +254,7 @@ export default function AdminReservations() {
             Reservas
           </Typography>
           <Typography className="admin-crud__subtitle">
-            Filtra por fecha y nombre; edita y actualiza el estado.
+            Filtra por fecha y búsqueda; edita y actualiza el estado.
           </Typography>
         </div>
       </header>
@@ -254,8 +283,8 @@ export default function AdminReservations() {
             </LocalizationProvider>
             <TextField
               label="Nombre / Email / Teléfono"
-              value={filterName}
-              onChange={(e) => setFilterName(e.target.value)}
+              value={filterSearch}
+              onChange={(e) => setFilterSearch(e.target.value)}
               placeholder="Juan / gmail / 300..."
               size="small"
               fullWidth
@@ -264,9 +293,14 @@ export default function AdminReservations() {
           <Stack direction="row" spacing={1} sx={{ flexWrap: "wrap" }}>
             <Button
               variant="contained"
-              onClick={() =>
-                void load({ date: filterDateString, name: filterName.trim() })
-              }
+              onClick={() => {
+                setPage(1);
+                void load({
+                  filters: { date: filterDateString, search: filterSearch.trim() },
+                  page: 1,
+                  pageSize,
+                });
+              }}
               disabled={status.type === "loading"}
             >
               Buscar
@@ -274,9 +308,15 @@ export default function AdminReservations() {
             <Button
               variant="outlined"
               onClick={() => {
-                setFilterDate(null);
-                setFilterName("");
-                void load();
+                const today = dayjs().format("YYYY-MM-DD");
+                setFilterDate(dayjs(today));
+                setFilterSearch("");
+                setPage(1);
+                void load({
+                  filters: { date: today, search: "" },
+                  page: 1,
+                  pageSize,
+                });
               }}
               disabled={status.type === "loading"}
             >
@@ -311,76 +351,14 @@ export default function AdminReservations() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {pagedRows.map((r) => (
+              {rows.map((r) => (
                 <TableRow key={r.id} hover>
                   <TableCell>{r.id}</TableCell>
                   <TableCell>
-                    <LocalizationProvider
-                      dateAdapter={AdapterDayjs}
-                      adapterLocale={pickerLocale}
-                      localeText={pickerLocaleText}
-                    >
-                      <DateTimePicker
-                        label="Inicio"
-                        value={parseRowDateTime(r.date, r.start_time)}
-                        onChange={(value) => {
-                          if (!value || !value.isValid()) return;
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? {
-                                    ...x,
-                                    date: value.format("YYYY-MM-DD"),
-                                    start_time: value.format("HH:mm"),
-                                  }
-                                : x
-                            )
-                          );
-                        }}
-                        format="YYYY-MM-DD HH:mm"
-                        slotProps={{
-                          textField: {
-                            size: "small",
-                            placeholder: `${r.date} ${String(
-                              r.start_time || ""
-                            ).trim()}`,
-                          },
-                        }}
-                        disabled
-                      />
-                    </LocalizationProvider>
+                    <Box sx={{ whiteSpace: "nowrap" }}>{formatRowDateTime(r)}</Box>
                   </TableCell>
                   <TableCell>
-                    <Select
-                      value={r.room_id ?? ""}
-                      onChange={(e) => {
-                        const next =
-                          typeof e.target.value === "number"
-                            ? e.target.value
-                            : Number(e.target.value);
-                        if (!Number.isFinite(next) || next <= 0) return;
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? { ...x, room_id: Math.trunc(next) }
-                              : x
-                          )
-                        );
-                      }}
-                      size="small"
-                      fullWidth
-                      displayEmpty
-                      disabled
-                    >
-                      <MenuItem value="">
-                        {rooms.length === 0 ? "Cargando..." : "Seleccionar"}
-                      </MenuItem>
-                      {rooms.map((room) => (
-                        <MenuItem key={room.id} value={room.id}>
-                          {room.name || `Sala #${room.id}`}
-                        </MenuItem>
-                      ))}
-                    </Select>
+                    {roomNameById.get(r.room_id) || `Sala #${r.room_id}`}
                   </TableCell>
                   <TableCell>
                     <Stack spacing={1}>
@@ -564,7 +542,7 @@ export default function AdminReservations() {
                   </TableCell>
                 </TableRow>
               ))}
-              {sorted.length === 0 ? (
+              {totalRecords === 0 ? (
                 <TableRow>
                   <TableCell colSpan={11}>Sin registros.</TableCell>
                 </TableRow>
@@ -572,16 +550,57 @@ export default function AdminReservations() {
             </TableBody>
           </Table>
         </TableContainer>
-        {sorted.length > 0 ? (
-          <Stack direction="row" justifyContent="flex-end" sx={{ p: 2 }}>
-            <Pagination
-              count={pageCount}
-              page={Math.min(page, pageCount)}
-              onChange={(_, next) => setPage(next)}
-              color="primary"
-              variant="outlined"
-              shape="rounded"
-            />
+        {totalRecords > 0 ? (
+          <Stack
+            direction="row"
+            justifyContent="space-between"
+            alignItems="center"
+            sx={{ p: 2, gap: 2, flexWrap: "wrap" }}
+          >
+            <Typography variant="body2">{`Total: ${totalRecords}`}</Typography>
+            <Stack direction="row" alignItems="center" spacing={2}>
+              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                <Typography variant="body2">Por página</Typography>
+                <Select
+                  size="small"
+                  value={pageSize}
+                  onChange={(e) => {
+                    const next =
+                      typeof e.target.value === "number"
+                        ? e.target.value
+                        : Number(e.target.value);
+                    if (!Number.isFinite(next) || next <= 0) return;
+                    setPageSize(next);
+                    setPage(1);
+                    void load({
+                      filters: { date: filterDateString, search: filterSearch.trim() },
+                      page: 1,
+                      pageSize: next,
+                    });
+                  }}
+                >
+                  <MenuItem value={5}>5</MenuItem>
+                  <MenuItem value={10}>10</MenuItem>
+                  <MenuItem value={20}>20</MenuItem>
+                  <MenuItem value={50}>50</MenuItem>
+                </Select>
+              </Box>
+              <Pagination
+                count={pageCount}
+                page={Math.min(page, pageCount)}
+                onChange={(_, next) => {
+                  setPage(next);
+                  void load({
+                    filters: { date: filterDateString, search: filterSearch.trim() },
+                    page: next,
+                    pageSize,
+                  });
+                }}
+                color="primary"
+                variant="outlined"
+                shape="rounded"
+              />
+            </Stack>
           </Stack>
         ) : null}
       </Paper>
