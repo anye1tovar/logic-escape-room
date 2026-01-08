@@ -15,6 +15,7 @@ import PinZoomOverlay from "./components/PinnedZoomOverlay/PinnedZoomOverlay";
 import Booking from "./pages/Booking/Booking";
 import BookingStatus from "./pages/BookingStatus/BookingStatus";
 import CafeteriaMenu from "./pages/CafeteriaMenu/CafeteriaMenu";
+import Qr from "./pages/Qr/Qr";
 import AdminLogin from "./pages/AdminLogin/AdminLogin";
 import AdminLayout from "./pages/Admin/AdminLayout/AdminLayout";
 import AdminRates from "./pages/Admin/Rates/AdminRates";
@@ -60,6 +61,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomeContent />} />
           <Route path="/cafeteria" element={<CafeteriaMenu />} />
+          <Route path="/qr" element={<Qr />} />
           <Route path="/reservar" element={<Booking />} />
           <Route path="/consulta-reserva" element={<BookingStatus />} />
           <Route path="/admin" element={<AdminLogin />} />

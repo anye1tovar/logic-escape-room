@@ -1,0 +1,217 @@
+@use "../../assets/styles/variables" as *;
+
+.qr-page {
+  background: radial-gradient(
+      circle at 20% 10%,
+      rgba(203, 171, 255, 0.18),
+      transparent 55%
+    ),
+    radial-gradient(
+      circle at 80% 20%,
+      rgba(239, 187, 61, 0.14),
+      transparent 50%
+    ),
+    linear-gradient(180deg, #0b0518 0%, #110a26 55%, #0a0619 100%);
+  color: $text-light;
+  min-height: 100vh;
+}
+
+.qr-page__main {
+  padding: clamp(96px, 12vw, 140px) 20px 80px;
+}
+
+.qr-page__content {
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+.qr-page__header {
+  max-width: 640px;
+  margin-bottom: 36px;
+}
+
+.qr-page__eyebrow {
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: $secondary-color;
+}
+
+.qr-page__title {
+  font-size: clamp(2.1rem, 3vw, 2.8rem);
+  margin: 12px 0 8px;
+}
+
+.qr-page__subtitle {
+  color: rgba(255, 255, 255, 0.78);
+  font-size: 1.02rem;
+}
+
+.qr-page__grid {
+  display: grid;
+  gap: 28px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  align-items: start;
+}
+
+.qr-page__panel {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 24px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.35);
+}
+
+.qr-page__field {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 18px;
+}
+
+.qr-page__field label {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: rgba(255, 255, 255, 0.86);
+}
+
+.qr-page__field select,
+.qr-page__field input[type="range"],
+.qr-page__field input[type="number"] {
+  width: 100%;
+}
+
+.qr-page__field select,
+.qr-page__field input[type="range"],
+.qr-page__field input[type="number"],
+.qr-page__field input[type="color"] {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  color: $text-light;
+}
+
+.qr-page__field input[type="color"] {
+  padding: 0;
+  height: 40px;
+  width: 64px;
+}
+
+.qr-page__toggle {
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+}
+
+.qr-page__range,
+.qr-page__color {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.qr-page__range input[type="number"] {
+  flex: 1;
+  min-width: 120px;
+}
+
+.qr-page__range span,
+.qr-page__color span {
+  min-width: 70px;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.qr-page__url {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 0.9rem;
+  color: rgba(255, 255, 255, 0.8);
+  word-break: break-all;
+}
+
+.qr-page__download {
+  margin-top: 6px;
+  background: linear-gradient(135deg, $primary-color, $secondary-color);
+  color: #1c102e;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 18px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.qr-page__download:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 28px rgba(30, 26, 22, 0.28);
+}
+
+.qr-page__preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 24px;
+  border-radius: 20px;
+  border: 1px dashed rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.qr-page__canvas-wrap {
+  background: rgba(255, 255, 255, 0.08);
+  padding: 16px;
+  border-radius: 20px;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.4);
+  width: min(100%, 520px);
+  overflow: hidden;
+}
+
+.qr-page__canvas-wrap--transparent {
+  background: linear-gradient(45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+    linear-gradient(-45deg, rgba(255, 255, 255, 0.08) 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%),
+    linear-gradient(-45deg, transparent 75%, rgba(255, 255, 255, 0.08) 75%);
+  background-size: 18px 18px;
+  background-position:
+    0 0,
+    0 9px,
+    9px -9px,
+    -9px 0;
+}
+
+.qr-page__canvas-wrap canvas,
+.qr-page__canvas-wrap svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 100%;
+}
+
+.qr-page__note {
+  font-size: 0.85rem;
+  color: rgba(255, 255, 255, 0.68);
+}
+
+@media (max-width: 720px) {
+  .qr-page__main {
+    padding: 104px 16px 64px;
+  }
+
+  .qr-page__panel,
+  .qr-page__preview {
+    padding: 20px;
+  }
+
+  .qr-page__grid {
+    grid-template-columns: 1fr;
+  }
+}
