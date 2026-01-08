@@ -50,6 +50,14 @@ const fallbackImages: Record<string, string> = {
   manicomio: manicomioImg,
 };
 
+const normalizeCoverImage = (value: string | undefined, slug: string) => {
+  if (!value) return fallbackImages[slug];
+  if (/^https?:\/\//i.test(value)) return value;
+  if (value.startsWith("/")) return value;
+  const filename = value.split("/").pop();
+  return filename ? `/rooms/${filename}` : fallbackImages[slug];
+};
+
 const normalizeName = (value: string) =>
   value
     .toLowerCase()
@@ -83,12 +91,13 @@ const normalizeRoom = (room: ApiRoom): RoomCard => {
     durationMinutes: durationMinutes || undefined,
     difficulty: room.difficulty,
     status,
-    coverImage:
+    coverImage: normalizeCoverImage(
       room.coverImage ||
-      room.cover_image ||
-      room.image ||
-      room.image_url ||
-      fallbackImages[slug],
+        room.cover_image ||
+        room.image ||
+        room.image_url,
+      slug
+    ),
     badge: room.badge,
   };
 };

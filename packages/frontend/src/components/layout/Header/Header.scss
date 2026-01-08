@@ -39,21 +39,12 @@
       cursor: pointer;
     }
 
-    &-icon {
-      font-size: 2rem;
-      filter: drop-shadow(0 0 10px rgba(139, 92, 246, 0.6));
-    }
-
-    &-text {
-      display: flex;
-      gap: 0.3rem;
-    }
-
-    &-highlight {
-      background: linear-gradient(135deg, $primary-color, $secondary-color);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
+    &-image {
+      display: block;
+      width: 120px;
+      max-width: 42vw;
+      height: auto;
+      filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.35));
     }
   }
 
@@ -183,18 +174,13 @@
       &.is-active {
         background: rgba(255, 255, 255, 0.06);
       }
-      svg {
-        width: 20px;
-        height: auto;
-        display: block;
-      }
-      img.flag-img {
-        width: 22px;
-        height: auto;
-        display: block;
-        opacity: 0;
-        animation: flagFadeIn 180ms ease forwards;
-      }
+    }
+
+    &-text {
+      display: block;
+      text-align: center;
+      letter-spacing: 0.06em;
+      color: $text-light;
     }
 
     &--mobile {
@@ -254,13 +240,3 @@
   }
 }
 
-@keyframes flagFadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(-4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}

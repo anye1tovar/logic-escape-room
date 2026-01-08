@@ -4,8 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Header.scss";
 
-const coFlag = "/icons/co.svg";
-const usFlag = "/icons/us.svg";
+const logicLogo = "/img/logic.png";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -101,10 +100,11 @@ const Header = () => {
               }
             }}
           >
-            <span className="header__logo-icon">🔐</span>
-            <span className="header__logo-text">
-              LOGIC <span className="header__logo-highlight">Escape Room</span>
-            </span>
+            <img
+              src={logicLogo}
+              alt="Logic Escape Room"
+              className="header__logo-image"
+            />
           </a>
         </motion.div>
 
@@ -153,12 +153,7 @@ const Header = () => {
             }
             title={otherLang === "en" ? "English" : "Español"}
           >
-            <img
-              key={otherLang}
-              src={otherLang === "en" ? usFlag : coFlag}
-              alt={otherLang === "en" ? "English" : "Español"}
-              className="flag-img"
-            />
+            <span className="header__lang-text">{otherLang === "en" ? "EN" : "ES"}</span>
           </button>
         </div>
 
@@ -257,12 +252,7 @@ const Header = () => {
             }
             title={otherLang === "en" ? "English" : "Español"}
           >
-            <img
-              key={otherLang}
-              src={otherLang === "en" ? usFlag : coFlag}
-              alt={otherLang === "en" ? "English" : "Español"}
-              className="flag-img"
-            />
+            <span className="header__lang-text">{otherLang === "en" ? "EN" : "ES"}</span>
           </button>
         </div>
         <motion.button

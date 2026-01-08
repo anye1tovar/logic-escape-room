@@ -1,8 +1,6 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Alert, Button, TextField } from "@mui/material";
-import Footer from "../../components/layout/Footer";
-import Header from "../../components/layout/Header";
 import { login } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
 import "./AdminLogin.scss";
@@ -26,8 +24,6 @@ export default function AdminLogin() {
 
   return (
     <div className="admin-login">
-      <Header />
-
       <main className="admin-login__main">
         <div className="admin-login__container">
           <header className="admin-login__header">
@@ -142,8 +138,6 @@ export default function AdminLogin() {
           </section>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }

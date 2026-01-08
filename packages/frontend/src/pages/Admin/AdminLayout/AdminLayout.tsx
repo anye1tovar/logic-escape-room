@@ -7,8 +7,8 @@ import "./AdminLayout.scss";
 
 const navItems = [
   { to: "/admin/dashboard/reservas", label: "Reservas" },
-  { to: "/admin/dashboard/precios", label: "Precios" },
   { to: "/admin/dashboard/cafeteria", label: "Cafeteria" },
+  { to: "/admin/dashboard/precios", label: "Precios Salas" },
   { to: "/admin/dashboard/festivos", label: "Festivos" },
   { to: "/admin/dashboard/horarios", label: "Horarios de apertura" },
   { to: "/admin/dashboard/salas", label: "Salas" },
