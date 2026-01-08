@@ -423,6 +423,12 @@
       "resultLoading": "Consultando estado de la reserva...",
       "resultFound": "Reserva encontrada. Estado actual: {{status}}.",
       "unknownStatus": "Desconocido ({{status}})",
+      "detailFallback": "-",
+      "labels": {
+        "room": "Sala",
+        "date": "Fecha",
+        "time": "Hora"
+      },
       "resultEmpty": "Aún no se ha realizado una consulta. Ingresa un código para ver el estado aquí.",
       "timelineAria": "Estado",
       "timeline": {

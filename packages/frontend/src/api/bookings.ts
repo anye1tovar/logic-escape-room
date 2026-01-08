@@ -19,6 +19,10 @@ export async function createBooking(payload: Record<string, unknown>) {
 export type BookingStatusResponse = {
   consultCode: string;
   status: string | null;
+  roomId?: number | string | null;
+  roomName?: string | null;
+  date?: string | null;
+  time?: string | null;
 };
 
 export async function fetchBookingStatus(

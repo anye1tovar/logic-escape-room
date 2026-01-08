@@ -449,6 +449,12 @@
       "resultLoading": "Checking booking status...",
       "resultFound": "Booking found. Current status: {{status}}.",
       "unknownStatus": "Unknown ({{status}})",
+      "detailFallback": "-",
+      "labels": {
+        "room": "Room",
+        "date": "Date",
+        "time": "Time"
+      },
       "timelineAria": "Status",
       "timeline": {
         "registered": {

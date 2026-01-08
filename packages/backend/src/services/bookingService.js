@@ -452,6 +452,35 @@ function buildBookingService(consumer, deps = {}) {
     return /^[a-zA-Z0-9\s-]+$/.test(trimmed);
   }
 
+  async function resolveRoomName(roomId) {
+    if (roomId == null) return null;
+
+    const roomsService = deps.roomsService;
+    const roomsConsumer = deps.roomsConsumer;
+    const numericId = Number(roomId);
+    const normalizedId = Number.isFinite(numericId) ? numericId : roomId;
+
+    if (roomsService?.getRoom) {
+      const room = await roomsService.getRoom(normalizedId);
+      return room?.name || null;
+    }
+
+    if (roomsConsumer?.getRoomById) {
+      const room = await roomsConsumer.getRoomById(normalizedId);
+      return room?.name || null;
+    }
+
+    const listRooms = roomsService?.listRooms || roomsConsumer?.listRooms;
+    if (!listRooms) return null;
+
+    const rooms = await listRooms();
+    const match = (rooms || []).find((room) => {
+      if (room?.id == null) return false;
+      return String(room.id) === String(normalizedId);
+    });
+    return match?.name || null;
+  }
+
   async function getBookingStatusByConsultCode(code) {
     const consultCode = String(code || "").trim();
     if (!consultCode) {
@@ -475,10 +504,20 @@ function buildBookingService(consumer, deps = {}) {
     const booking = await consumer.getBookingByConsultCode(consultCode);
     if (!booking) return null;
 
+    const roomId = booking.room_id ?? booking.roomId ?? null;
+    const roomName = await resolveRoomName(roomId);
+    const date = booking.date ?? booking.booking_date ?? null;
+    const time =
+      booking.start_time ?? booking.time ?? booking.startTime ?? null;
+
     return {
       consultCode:
         booking.consult_code ?? booking.consultCode ?? String(consultCode),
       status: booking.status ?? null,
+      roomId,
+      roomName,
+      date,
+      time,
     };
   }
 

@@ -200,6 +200,45 @@
     opacity: 0.9;
   }
 
+  &__details {
+    margin: $spacing-md 0 0;
+    padding: 0;
+    display: grid;
+    gap: $spacing-sm;
+  }
+
+  &__detail {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: $spacing-md;
+    padding: $spacing-sm $spacing-md;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    @media (max-width: $mobile) {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+  }
+
+  &__detail-label {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+    opacity: 0.85;
+  }
+
+  &__detail-value {
+    margin: 0;
+    font-weight: 700;
+    text-align: right;
+
+    @media (max-width: $mobile) {
+      text-align: left;
+    }
+  }
+
   &__timeline {
     margin-top: $spacing-lg;
     display: grid;

@@ -9,7 +9,14 @@ import "./BookingStatus.scss";
 type LookupState =
   | { type: "idle" }
   | { type: "loading" }
-  | { type: "success"; status: string | null; consultCode: string }
+  | {
+      type: "success";
+      status: string | null;
+      consultCode: string;
+      roomName?: string | null;
+      date?: string | null;
+      time?: string | null;
+    }
   | { type: "error"; message: string };
 
 function statusRank(status: string | null) {
@@ -20,6 +27,15 @@ function statusRank(status: string | null) {
   if (normalized === "CONFIRMED") return 2;
   if (normalized === "PENDING") return 1;
   return 0;
+}
+
+function formatTime(value: string | null | undefined) {
+  if (!value) return "";
+  const match = String(value).match(/T(\d{2}):(\d{2})/);
+  if (match) return `${match[1]}:${match[2]}`;
+  const matchPlain = String(value).match(/^(\d{2}):(\d{2})$/);
+  if (matchPlain) return `${matchPlain[1]}:${matchPlain[2]}`;
+  return String(value);
 }
 
 export default function BookingStatus() {
@@ -65,6 +81,18 @@ export default function BookingStatus() {
     return t("booking.status.resultFound", { status: statusLabel });
   }, [lookup, statusLabel, t]);
 
+  const detailFallback = t("booking.status.detailFallback");
+  const detailRoom =
+    lookup.type === "success" ? lookup.roomName || detailFallback : null;
+  const detailDate =
+    lookup.type === "success" ? lookup.date || detailFallback : null;
+  const detailTime =
+    lookup.type === "success"
+      ? lookup.time
+        ? formatTime(lookup.time)
+        : detailFallback
+      : null;
+
   const runLookup = useCallback(
     async (nextCode: string, options?: { updateUrl?: boolean }) => {
       const consultCode = String(nextCode || "").trim();
@@ -92,6 +120,9 @@ export default function BookingStatus() {
           type: "success",
           status: res.status ?? null,
           consultCode: res.consultCode ?? consultCode,
+          roomName: res.roomName ?? null,
+          date: res.date ?? null,
+          time: res.time ?? null,
         });
       } catch (err: unknown) {
         if (lookupSeqRef.current !== seq) return;
@@ -217,6 +248,34 @@ export default function BookingStatus() {
                   {t("booking.status.resultTitle")}
                 </h2>
                 <p className="booking-status__result-text">{resultText}</p>
+                {lookup.type === "success" ? (
+                  <dl className="booking-status__details">
+                    <div className="booking-status__detail">
+                      <dt className="booking-status__detail-label">
+                        {t("booking.status.labels.room")}
+                      </dt>
+                      <dd className="booking-status__detail-value">
+                        {detailRoom}
+                      </dd>
+                    </div>
+                    <div className="booking-status__detail">
+                      <dt className="booking-status__detail-label">
+                        {t("booking.status.labels.date")}
+                      </dt>
+                      <dd className="booking-status__detail-value">
+                        {detailDate}
+                      </dd>
+                    </div>
+                    <div className="booking-status__detail">
+                      <dt className="booking-status__detail-label">
+                        {t("booking.status.labels.time")}
+                      </dt>
+                      <dd className="booking-status__detail-value">
+                        {detailTime}
+                      </dd>
+                    </div>
+                  </dl>
+                ) : null}
 
                 <div
                   className="booking-status__timeline"
