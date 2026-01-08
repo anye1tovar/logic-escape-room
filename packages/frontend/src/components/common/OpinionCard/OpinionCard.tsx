@@ -14,6 +14,17 @@ type OpinionCardProps = {
   index?: number;
 };
 
+const DEFAULT_AVATAR = "/icons/nox-icon.png";
+
+const normalizeAvatar = (value?: string) => {
+  const trimmed = (value || "").trim();
+  if (!trimmed) return DEFAULT_AVATAR;
+  if (trimmed.startsWith("//")) return `https:${trimmed}`;
+  if (/^https?:\/\//i.test(trimmed)) return trimmed;
+  if (trimmed.startsWith("/")) return trimmed;
+  return DEFAULT_AVATAR;
+};
+
 const renderStars = (rating: number) => {
   const maxStars = 5;
   const safeRating = Math.max(0, Math.min(maxStars, Math.round(rating)));
@@ -32,7 +43,7 @@ const renderStars = (rating: number) => {
 
 const OpinionCard = ({ opinion, index = 0 }: OpinionCardProps) => {
   const { name, role = "Usuario", rating = 5, text, avatar } = opinion;
-  const initial = name?.trim()?.charAt(0)?.toUpperCase() || "?";
+  const avatarSrc = normalizeAvatar(avatar);
 
   return (
     <motion.article
@@ -50,11 +61,16 @@ const OpinionCard = ({ opinion, index = 0 }: OpinionCardProps) => {
 
       <div className="opinion-card__footer">
         <div className="opinion-card__avatar" aria-hidden={!avatar}>
-          {avatar ? (
-            <img src={avatar} alt={`Foto de ${name}`} loading="lazy" />
-          ) : (
-            <span className="opinion-card__initial">{initial}</span>
-          )}
+          <img
+            src={avatarSrc}
+            alt={`Foto de ${name}`}
+            loading="lazy"
+            onError={(e) => {
+              const target = e.currentTarget as HTMLImageElement;
+              if (target.src.endsWith(DEFAULT_AVATAR)) return;
+              target.src = DEFAULT_AVATAR;
+            }}
+          />
         </div>
 
         <div className="opinion-card__meta">

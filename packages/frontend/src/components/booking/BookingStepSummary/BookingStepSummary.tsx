@@ -245,7 +245,6 @@ export default function BookingStepSummary({
                 name: details.fullName,
                 firstName,
                 lastName,
-                email: details.email,
                 whatsapp,
                 date: selection.date,
                 roomId: selection.roomId,

@@ -15,7 +15,7 @@ npm run dev
 Endpoints
 
 - `GET /api/bookings` — list bookings
-- `POST /api/bookings` — create a booking (JSON body: `name`, `email`, `date`)
+- `POST /api/bookings` — create a booking (JSON body: `name`, `date`, `roomId`, `time`)
 
 Notes
 

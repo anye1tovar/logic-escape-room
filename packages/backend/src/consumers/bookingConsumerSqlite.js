@@ -5,7 +5,6 @@ function createBooking({
   firstName,
   lastName,
   name,
-  email,
   whatsapp,
   roomId,
   time,
@@ -25,7 +24,7 @@ function createBooking({
     const isFirstTimeInt = isFirstTime ? 1 : 0;
     const finalName = name || `${firstName || ""} ${lastName || ""}`.trim();
     db.run(
-      `INSERT INTO reservations (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, email, players, notes, total, status, is_first_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
+      `INSERT INTO reservations (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
       [
         roomId || null,
         date,
@@ -35,7 +34,6 @@ function createBooking({
         firstName ?? "",
         lastName ?? "",
         whatsapp || null,
-        email || null,
         attendees || null,
         notes || null,
         Number.isFinite(Number(total)) ? Number(total) : null,
@@ -50,7 +48,6 @@ function createBooking({
           firstName,
           lastName,
           name: finalName,
-          email,
           whatsapp,
           roomId,
           time,

@@ -77,7 +77,6 @@ db.serialize(() => {
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
       phone TEXT,
-      email TEXT,
       players INTEGER NOT NULL,
       notes TEXT,
       total INTEGER,

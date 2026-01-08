@@ -331,12 +331,6 @@
         "label": "Nombre completo",
         "placeholder": "Tu nombre y apellido"
       },
-      "email": {
-        "label": "Correo",
-        "placeholder": "tucorreo@ejemplo.com",
-        "tooltip": "Usaremos tu correo para enviarte la confirmación de tu reserva y para invitarte al evento en Google Calendar.",
-        "tooltipAria": "Información del correo"
-      },
       "phone": {
         "aria": "Número de contacto",
         "dialCodeLabel": "Indicativo",
@@ -355,8 +349,6 @@
       },
       "validation": {
         "fullNameRequired": "El nombre completo es requerido.",
-        "emailInvalid": "Ingresa un correo válido.",
-        "emailRequired": "El correo es requerido.",
         "dialCodeRequired": "El indicativo es requerido.",
         "phoneDigitsOnly": "El teléfono debe contener solo números.",
         "phoneRequired": "El teléfono es requerido.",

@@ -215,8 +215,9 @@ const Rooms = () => {
   const difficultyLabel = (value?: number | string) => {
     if (!value && value !== 0) return t("rooms.difficulty.medium", "Media");
     if (typeof value === "string") return value;
-    if (value >= 4) return t("rooms.difficulty.high", "Alta");
-    if (value <= 2) return t("rooms.difficulty.low", "Baja");
+    if (value === 1) return t("rooms.difficulty.low", "Baja");
+    if (value === 2) return t("rooms.difficulty.medium", "Media");
+    if (value === 3) return t("rooms.difficulty.high", "Alta");
     return t("rooms.difficulty.medium", "Media");
   };
 

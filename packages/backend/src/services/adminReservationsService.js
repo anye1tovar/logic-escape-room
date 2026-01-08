@@ -151,7 +151,6 @@ function buildAdminReservationsService(consumer) {
       firstName: normalizeText(input?.firstName ?? input?.first_name, { allowEmpty: true }),
       lastName: normalizeText(input?.lastName ?? input?.last_name, { allowEmpty: true }),
       phone: input?.phone != null ? String(input.phone) : null,
-      email: input?.email != null ? String(input.email) : null,
       players: normalizeInt(input?.players),
       notes: input?.notes != null ? String(input.notes) : null,
       total: input?.total == null || input?.total === "" ? null : Number(input.total),

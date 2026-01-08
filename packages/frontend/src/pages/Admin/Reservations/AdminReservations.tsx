@@ -38,7 +38,6 @@ type ReservationRow = {
   first_name: string;
   last_name: string;
   phone: string | null;
-  email: string | null;
   players: number;
   notes: string | null;
   total: number | null;
@@ -217,7 +216,6 @@ export default function AdminReservations() {
           firstName: row.first_name,
           lastName: row.last_name,
           phone: row.phone,
-          email: row.email,
           players: row.players,
           notes: row.notes,
           total: row.total,
@@ -323,10 +321,10 @@ export default function AdminReservations() {
               </Stack>
             </LocalizationProvider>
             <TextField
-              label="Nombre / Email / Teléfono"
+              label="Nombre / Teléfono / Código"
               value={filterSearch}
               onChange={(e) => setFilterSearch(e.target.value)}
-              placeholder="Juan / gmail / 300..."
+              placeholder="Juan / 300 / LGC..."
               size="small"
               fullWidth
             />
@@ -388,7 +386,7 @@ export default function AdminReservations() {
                 <TableCell sx={{ minWidth: 100 }}>Fecha y Hora</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Sala</TableCell>
                 <TableCell sx={{ minWidth: 200 }}>Cliente</TableCell>
-                <TableCell sx={{ minWidth: 250 }}>Contacto</TableCell>
+                <TableCell sx={{ minWidth: 250 }}>Teléfono</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Pax</TableCell>
                 <TableCell sx={{ minWidth: 140 }}>Total</TableCell>
                 <TableCell sx={{ minWidth: 380 }}>Notas</TableCell>
@@ -447,20 +445,6 @@ export default function AdminReservations() {
                   </TableCell>
                   <TableCell>
                     <Stack spacing={1}>
-                      <TextField
-                        value={r.email ?? ""}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? { ...x, email: e.target.value || null }
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        placeholder="email"
-                      />
                       <TextField
                         value={r.phone ?? ""}
                         onChange={(e) =>
@@ -592,7 +576,7 @@ export default function AdminReservations() {
               ))}
               {totalRecords === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={11}>Sin registros.</TableCell>
+                  <TableCell colSpan={10}>Sin registros.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

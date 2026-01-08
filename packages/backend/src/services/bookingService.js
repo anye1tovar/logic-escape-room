@@ -1,6 +1,6 @@
 ﻿/**
  * bookingService: contains business logic and uses a consumer for persistence.
- * The consumer must implement: createBooking({name,email,date}), getBookingById(id), listBookings()
+ * The consumer must implement: createBooking({name,date}), getBookingById(id), listBookings()
  */
 
 function buildBookingService(consumer, deps = {}) {
@@ -291,7 +291,6 @@ function buildBookingService(consumer, deps = {}) {
       firstName,
       lastName,
       name,
-      email,
       date,
       roomId,
       time,
@@ -301,10 +300,8 @@ function buildBookingService(consumer, deps = {}) {
       notes,
       isFirstTime,
     } = data;
-    if (!email || !date || !roomId || !time) {
-      const err = new Error(
-        "Missing required fields: email, date, roomId, time"
-      );
+    if (!date || !roomId || !time) {
+      const err = new Error("Missing required fields: date, roomId, time");
       err.status = 400;
       throw err;
     }
@@ -419,11 +416,10 @@ function buildBookingService(consumer, deps = {}) {
       attendees: players,
     });
     const finalTotal = quote?.total ?? null;
-const booking = await consumer.createBooking({
+    const booking = await consumer.createBooking({
       firstName: safeFirstName,
       lastName: safeLastName,
       name: fullName,
-      email,
       whatsapp,
       date: requestedDate,
       roomId: resolvedRoomDbId,

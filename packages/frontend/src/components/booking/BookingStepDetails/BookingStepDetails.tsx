@@ -2,23 +2,18 @@ import {
   Box,
   Button,
   ButtonGroup,
-  ClickAwayListener,
   FormControl,
   FormHelperText,
   Grid,
-  IconButton,
   InputLabel,
-  InputAdornment,
   MenuItem,
   Select,
   TextField,
-  Tooltip,
   Typography,
 } from "@mui/material";
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import * as yup from "yup";
-import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 
 import countryDialCodes from "../../../assets/data/countryDialCodes.json";
 
@@ -36,7 +31,6 @@ type CountryDialCode = {
 
 export type BookingDetailsFormValues = {
   fullName: string;
-  email: string;
   dialCode: string;
   phone: string;
   notes: string;
@@ -50,7 +44,6 @@ export default function BookingStepDetails({
 }: BookingStepDetailsProps) {
   const { t } = useTranslation();
   const dialCodes = countryDialCodes as CountryDialCode[];
-  const [isEmailTooltipOpen, setIsEmailTooltipOpen] = useState(false);
 
   const validationSchema = useMemo(
     () =>
@@ -59,11 +52,6 @@ export default function BookingStepDetails({
           .string()
           .trim()
           .required(t("booking.details.validation.fullNameRequired")),
-        email: yup
-          .string()
-          .trim()
-          .email(t("booking.details.validation.emailInvalid"))
-          .required(t("booking.details.validation.emailRequired")),
         dialCode: yup
           .string()
           .trim()
@@ -84,7 +72,6 @@ export default function BookingStepDetails({
 
   const [values, setValues] = useState<BookingDetailsFormValues>({
     fullName: "",
-    email: "",
     dialCode: "+57",
     phone: "",
     notes: "",
@@ -169,7 +156,6 @@ export default function BookingStepDetails({
             event.preventDefault();
             setTouched({
               fullName: true,
-              email: true,
               dialCode: true,
               phone: true,
               notes: true,
@@ -202,62 +188,6 @@ export default function BookingStepDetails({
                 sx={fieldSx}
               />
             </Grid>
-            <Grid item xs={12} md={6}>
-              <TextField
-                label={t("booking.details.email.label")}
-                placeholder={t("booking.details.email.placeholder")}
-                type="email"
-                fullWidth
-                variant="outlined"
-                value={values.email}
-                onChange={(event) => {
-                  const email = event.target.value;
-                  setValues((prev) => ({ ...prev, email }));
-                }}
-                onBlur={() => {
-                  setTouched((prev) => ({ ...prev, email: true }));
-                  void validateField("email");
-                }}
-                error={Boolean(touched.email && errors.email)}
-                helperText={touched.email ? errors.email : undefined}
-                InputProps={{
-                  endAdornment: (
-                    <InputAdornment position="end">
-                      <ClickAwayListener
-                        onClickAway={() => setIsEmailTooltipOpen(false)}
-                      >
-                         <Tooltip
-                           title={t("booking.details.email.tooltip")}
-                           arrow
-                           open={isEmailTooltipOpen}
-                           onClose={() => setIsEmailTooltipOpen(false)}
-                          disableHoverListener
-                          disableFocusListener
-                          disableTouchListener
-                        >
-                          <IconButton
-                            aria-label={t("booking.details.email.tooltipAria")}
-                            size="small"
-                            onClick={() =>
-                              setIsEmailTooltipOpen((prev) => !prev)
-                            }
-                            edge="end"
-                          >
-                            <InfoOutlinedIcon
-                              fontSize="small"
-                              sx={{ color: "rgba(255,255,255,0.75)" }}
-                            />
-                          </IconButton>
-                        </Tooltip>
-                      </ClickAwayListener>
-                    </InputAdornment>
-                  ),
-                }}
-                InputLabelProps={{ sx: labelSx }}
-                sx={fieldSx}
-              />
-            </Grid>
-
             <Grid item xs={12} md={6}>
               <Box
                 className="booking-form__phone"

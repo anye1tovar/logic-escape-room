@@ -1,16 +1,6 @@
-export async function fetchBookings() {
-  const res = await fetch(
-    `${import.meta.env.VITE_API_BASE_URL || ""}/api/bookings`
-  );
-  if (!res.ok) throw new Error("Failed to fetch bookings");
-  return res.json();
-}
-
-export type CreateBookingPayload = Record<string, unknown>;
-
 type ApiError = Error & { status?: number };
 
-export async function createBooking(payload: CreateBookingPayload) {
+export async function createBooking(payload: Record<string, unknown>) {
   const res = await fetch(
     `${import.meta.env.VITE_API_BASE_URL || ""}/api/bookings`,
     {

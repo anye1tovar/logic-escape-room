@@ -24,10 +24,10 @@ function buildWhere(filters) {
   const search = String(filters?.search || "").trim();
   if (search) {
     where.push(
-      "(LOWER(first_name || ' ' || last_name) LIKE ? OR LOWER(email) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(consult_code) LIKE ?)"
+      "(LOWER(first_name || ' ' || last_name) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(consult_code) LIKE ?)"
     );
     const q = `%${search.toLowerCase()}%`;
-    params.push(q, q, q, q);
+    params.push(q, q, q);
   }
 
   return { where, params };
@@ -48,10 +48,10 @@ function listReservationsPage(input) {
       if (err) return reject(err);
       const totalRecords = Number(row?.total || 0);
 
-      const listSql =
-        `SELECT * FROM reservations${whereSql}` +
-        " ORDER BY date ASC, start_time ASC, id ASC" +
-        " LIMIT ? OFFSET ?;";
+    const listSql =
+      `SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations${whereSql}` +
+      " ORDER BY date ASC, start_time ASC, id ASC" +
+      " LIMIT ? OFFSET ?;";
 
       db.all(listSql, [...params, safeSize, offset], (err2, rows) => {
         if (err2) return reject(err2);
@@ -69,7 +69,8 @@ function listReservations(filters) {
       dateFrom: filters?.dateFrom ?? filters?.from ?? filters?.date,
       dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
     });
-    let sql = "SELECT * FROM reservations";
+    let sql =
+      "SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations";
     if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
     sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 
@@ -92,7 +93,6 @@ function updateReservation(id, payload) {
            first_name = ?,
            last_name = ?,
            phone = ?,
-           email = ?,
            players = ?,
            notes = ?,
            total = ?,
@@ -108,7 +108,6 @@ function updateReservation(id, payload) {
         payload.firstName,
         payload.lastName,
         payload.phone,
-        payload.email,
         payload.players,
         payload.notes,
         payload.total,
