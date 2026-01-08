@@ -75,7 +75,7 @@ function formatRowDateTime(r: ReservationRow) {
 }
 
 type ReservationsPageResponse = {
-  filters: { date: string; search: string };
+  filters: { dateFrom: string; dateTo: string; search: string };
   records: ReservationRow[];
   page: number;
   size: number;
@@ -87,7 +87,10 @@ export default function AdminReservations() {
   const { i18n } = useTranslation();
   const [rows, setRows] = useState<ReservationRow[]>([]);
   const [rooms, setRooms] = useState<RoomRow[]>([]);
-  const [filterDate, setFilterDate] = useState<Dayjs | null>(() => dayjs());
+  const [filterDateFrom, setFilterDateFrom] = useState<Dayjs | null>(() =>
+    dayjs()
+  );
+  const [filterDateTo, setFilterDateTo] = useState<Dayjs | null>(() => dayjs());
   const [filterSearch, setFilterSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -110,17 +113,24 @@ export default function AdminReservations() {
     return base.components.MuiLocalizationProvider.defaultProps.localeText;
   }, [pickerLocale]);
 
-  const filterDateString = useMemo(() => {
-    if (filterDate && filterDate.isValid()) return filterDate.format("YYYY-MM-DD");
+  const filterDateFromString = useMemo(() => {
+    if (filterDateFrom && filterDateFrom.isValid())
+      return filterDateFrom.format("YYYY-MM-DD");
     return dayjs().format("YYYY-MM-DD");
-  }, [filterDate]);
+  }, [filterDateFrom]);
+
+  const filterDateToString = useMemo(() => {
+    if (filterDateTo && filterDateTo.isValid())
+      return filterDateTo.format("YYYY-MM-DD");
+    return dayjs().format("YYYY-MM-DD");
+  }, [filterDateTo]);
 
   const roomNameById = useMemo(() => {
     return new Map(rooms.map((r) => [r.id, r.name]));
   }, [rooms]);
 
   async function load(input?: {
-    filters?: { date?: string; search?: string };
+    filters?: { dateFrom?: string; dateTo?: string; search?: string };
     page?: number;
     pageSize?: number;
   }) {
@@ -128,7 +138,8 @@ export default function AdminReservations() {
     try {
       const nextPage = input?.page ?? page;
       const nextPageSize = input?.pageSize ?? pageSize;
-      const date = input?.filters?.date ?? filterDateString;
+      const dateFrom = input?.filters?.dateFrom ?? filterDateFromString;
+      const dateTo = input?.filters?.dateTo ?? filterDateToString;
       const search = input?.filters?.search ?? filterSearch.trim();
 
       const data = await adminRequest<ReservationsPageResponse>(
@@ -136,7 +147,7 @@ export default function AdminReservations() {
         {
           method: "POST",
           body: {
-            filters: { date, search },
+            filters: { dateFrom, dateTo, search },
             page: nextPage,
             pageSize: nextPageSize,
           },
@@ -148,7 +159,8 @@ export default function AdminReservations() {
       setPageSize(Number(data.size) || nextPageSize);
       setPageCount(Number(data.totalPages) || 1);
       setTotalRecords(Number(data.totalRecords) || 0);
-      setFilterDate(dayjs(data.filters?.date || date));
+      setFilterDateFrom(dayjs(data.filters?.dateFrom || dateFrom));
+      setFilterDateTo(dayjs(data.filters?.dateTo || dateTo));
       setFilterSearch(String(data.filters?.search || search));
       setStatus({ type: "idle" });
     } catch {
@@ -218,7 +230,11 @@ export default function AdminReservations() {
         message: `Reserva #${row.id} actualizada.`,
       });
       await load({
-        filters: { date: filterDateString, search: filterSearch.trim() },
+        filters: {
+          dateFrom: filterDateFromString,
+          dateTo: filterDateToString,
+          search: filterSearch.trim(),
+        },
         page,
         pageSize,
       });
@@ -237,7 +253,11 @@ export default function AdminReservations() {
       await adminRequest(`/api/admin/reservations/${id}`, { method: "DELETE" });
       setStatus({ type: "success", message: `Reserva #${id} eliminada.` });
       await load({
-        filters: { date: filterDateString, search: filterSearch.trim() },
+        filters: {
+          dateFrom: filterDateFromString,
+          dateTo: filterDateToString,
+          search: filterSearch.trim(),
+        },
         page,
         pageSize,
       });
@@ -267,19 +287,40 @@ export default function AdminReservations() {
               adapterLocale={pickerLocale}
               localeText={pickerLocaleText}
             >
-              <DatePicker
-                label="Fecha"
-                value={filterDate}
-                onChange={(value) => setFilterDate(value)}
-                format="YYYY-MM-DD"
-                slotProps={{
-                  textField: {
-                    size: "small",
-                    fullWidth: true,
-                    placeholder: "2026-01-05",
-                  },
-                }}
-              />
+              <Stack
+                direction={{ xs: "column", md: "row" }}
+                spacing={1}
+                sx={{ width: "100%" }}
+              >
+                <DatePicker
+                  label="Desde"
+                  value={filterDateFrom}
+                  onChange={(value) => setFilterDateFrom(value)}
+                  format="YYYY-MM-DD"
+                  sx={{ flex: 1 }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      placeholder: "2026-01-05",
+                    },
+                  }}
+                />
+                <DatePicker
+                  label="Hasta"
+                  value={filterDateTo}
+                  onChange={(value) => setFilterDateTo(value)}
+                  format="YYYY-MM-DD"
+                  sx={{ flex: 1 }}
+                  slotProps={{
+                    textField: {
+                      size: "small",
+                      fullWidth: true,
+                      placeholder: "2026-01-05",
+                    },
+                  }}
+                />
+              </Stack>
             </LocalizationProvider>
             <TextField
               label="Nombre / Email / Teléfono"
@@ -296,7 +337,11 @@ export default function AdminReservations() {
               onClick={() => {
                 setPage(1);
                 void load({
-                  filters: { date: filterDateString, search: filterSearch.trim() },
+                  filters: {
+                    dateFrom: filterDateFromString,
+                    dateTo: filterDateToString,
+                    search: filterSearch.trim(),
+                  },
                   page: 1,
                   pageSize,
                 });
@@ -309,11 +354,12 @@ export default function AdminReservations() {
               variant="outlined"
               onClick={() => {
                 const today = dayjs().format("YYYY-MM-DD");
-                setFilterDate(dayjs(today));
+                setFilterDateFrom(dayjs(today));
+                setFilterDateTo(dayjs(today));
                 setFilterSearch("");
                 setPage(1);
                 void load({
-                  filters: { date: today, search: "" },
+                  filters: { dateFrom: today, dateTo: today, search: "" },
                   page: 1,
                   pageSize,
                 });
@@ -338,7 +384,7 @@ export default function AdminReservations() {
           <Table size="small" sx={{ minWidth: 2000 }}>
             <TableHead>
               <TableRow>
-                <TableCell sx={{ minWidth: 70 }}>#</TableCell>
+                <TableCell sx={{ minWidth: 40 }}>#</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Fecha y Hora</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Sala</TableCell>
                 <TableCell sx={{ minWidth: 200 }}>Cliente</TableCell>
@@ -355,7 +401,9 @@ export default function AdminReservations() {
                 <TableRow key={r.id} hover>
                   <TableCell>{r.id}</TableCell>
                   <TableCell>
-                    <Box sx={{ whiteSpace: "nowrap" }}>{formatRowDateTime(r)}</Box>
+                    <Box sx={{ whiteSpace: "nowrap" }}>
+                      {formatRowDateTime(r)}
+                    </Box>
                   </TableCell>
                   <TableCell>
                     {roomNameById.get(r.room_id) || `Sala #${r.room_id}`}
@@ -573,7 +621,11 @@ export default function AdminReservations() {
                     setPageSize(next);
                     setPage(1);
                     void load({
-                      filters: { date: filterDateString, search: filterSearch.trim() },
+                      filters: {
+                        dateFrom: filterDateFromString,
+                        dateTo: filterDateToString,
+                        search: filterSearch.trim(),
+                      },
                       page: 1,
                       pageSize: next,
                     });
@@ -591,7 +643,11 @@ export default function AdminReservations() {
                 onChange={(_, next) => {
                   setPage(next);
                   void load({
-                    filters: { date: filterDateString, search: filterSearch.trim() },
+                    filters: {
+                      dateFrom: filterDateFromString,
+                      dateTo: filterDateToString,
+                      search: filterSearch.trim(),
+                    },
                     page: next,
                     pageSize,
                   });

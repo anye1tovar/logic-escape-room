@@ -3,13 +3,15 @@ function buildAdminReservationsController(service) {
     try {
       const source = req.method === "POST" ? req.body : req.query;
       const rawFilters = source?.filters && typeof source.filters === "object" ? source.filters : null;
+      const dateFrom = rawFilters?.dateFrom ?? rawFilters?.from ?? source?.dateFrom ?? source?.from;
+      const dateTo = rawFilters?.dateTo ?? rawFilters?.to ?? source?.dateTo ?? source?.to;
       const date = rawFilters?.date ?? source?.date;
       const search = rawFilters?.search ?? source?.search ?? source?.name;
       const page = source?.page;
       const pageSize = source?.pageSize ?? source?.size;
 
       const payload = await service.listReservationsPage({
-        filters: { date, search },
+        filters: { dateFrom, dateTo, date, search },
         page,
         pageSize,
       });

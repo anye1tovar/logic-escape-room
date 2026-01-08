@@ -4,8 +4,19 @@ function buildWhere(filters) {
   const where = [];
   const params = [];
 
+  const dateFrom = String(filters?.dateFrom || "").trim();
+  const dateTo = String(filters?.dateTo || "").trim();
   const date = String(filters?.date || "").trim();
-  if (date) {
+  if (dateFrom && dateTo) {
+    where.push("date >= ? AND date <= ?");
+    params.push(dateFrom, dateTo);
+  } else if (dateFrom) {
+    where.push("date = ?");
+    params.push(dateFrom);
+  } else if (dateTo) {
+    where.push("date = ?");
+    params.push(dateTo);
+  } else if (date) {
     where.push("date = ?");
     params.push(date);
   }
@@ -52,7 +63,12 @@ function listReservationsPage(input) {
 
 function listReservations(filters) {
   return new Promise((resolve, reject) => {
-    const { where, params } = buildWhere({ ...filters, search: filters?.search ?? filters?.name });
+    const { where, params } = buildWhere({
+      ...filters,
+      search: filters?.search ?? filters?.name,
+      dateFrom: filters?.dateFrom ?? filters?.from ?? filters?.date,
+      dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
+    });
     let sql = "SELECT * FROM reservations";
     if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
     sql += " ORDER BY date ASC, start_time ASC, id ASC;";

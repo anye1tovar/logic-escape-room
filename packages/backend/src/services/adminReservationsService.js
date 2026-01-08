@@ -64,15 +64,37 @@ function buildAdminReservationsService(consumer) {
   async function listReservationsPage(input) {
     const rawFilters = input?.filters && typeof input.filters === "object" ? input.filters : {};
     const rawDate = rawFilters?.date;
+    const rawDateFrom = rawFilters?.dateFrom ?? rawFilters?.from;
+    const rawDateTo = rawFilters?.dateTo ?? rawFilters?.to;
     const rawSearch = rawFilters?.search ?? rawFilters?.name;
 
-    const date = rawDate == null || String(rawDate).trim() === "" ? todayLocalDate() : normalizeDate(rawDate);
+    const fallbackDate = todayLocalDate();
+    const singleDate =
+      rawDate == null || String(rawDate).trim() === "" ? null : normalizeDate(rawDate);
+
+    const dateFromRaw =
+      rawDateFrom == null || String(rawDateFrom).trim() === ""
+        ? null
+        : normalizeDate(rawDateFrom);
+    const dateToRaw =
+      rawDateTo == null || String(rawDateTo).trim() === "" ? null : normalizeDate(rawDateTo);
+
+    const dateFrom = dateFromRaw ?? singleDate ?? dateToRaw ?? fallbackDate;
+    const dateTo = dateToRaw ?? singleDate ?? dateFromRaw ?? fallbackDate;
+
+    if (dateFrom > dateTo) {
+      const err = new Error("dateFrom must be <= dateTo");
+      err.status = 400;
+      throw err;
+    }
+
     const search = String(rawSearch || "").trim();
     const pageSize = normalizePositiveInt(input?.pageSize, { defaultValue: 10, min: 1, max: 200 });
     const page = normalizePositiveInt(input?.page, { defaultValue: 1, min: 1, max: 1_000_000 });
 
     const result = await consumer.listReservationsPage({
-      date,
+      dateFrom,
+      dateTo,
       search,
       page,
       pageSize,
@@ -85,14 +107,15 @@ function buildAdminReservationsService(consumer) {
     // If the requested page is out of range, refetch once with a safe page.
     if (safePage !== page) {
       const retry = await consumer.listReservationsPage({
-        date,
+        dateFrom,
+        dateTo,
         search,
         page: safePage,
         pageSize,
       });
       const retryTotal = normalizeInt(retry?.totalRecords) ?? 0;
       return {
-        filters: { date, search },
+        filters: { dateFrom, dateTo, search },
         records: retry?.records || [],
         page: safePage,
         size: pageSize,
@@ -102,7 +125,7 @@ function buildAdminReservationsService(consumer) {
     }
 
     return {
-      filters: { date, search },
+      filters: { dateFrom, dateTo, search },
       records: result?.records || [],
       page: safePage,
       size: pageSize,

@@ -6,8 +6,58 @@
   grid-template-columns: 280px 1fr;
   background: $dark-bg;
 
-  @media (max-width: $tablet) {
+  // Keep in sync with the React breakpoint used to enable the hamburger menu (md = 900px).
+  @media (max-width: 900px) {
     grid-template-columns: 1fr;
+  }
+
+  &__drawer {
+    padding: $spacing-lg;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+  }
+
+  &__drawer-paper {
+    width: 280px;
+    background: rgba(15, 23, 42, 0.92);
+    backdrop-filter: blur(12px);
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    color: $text-light;
+  }
+
+  &__mobile-topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    gap: $spacing-sm;
+    padding: 10px 8px;
+    margin: calc(-1 * var(--admin-layout-content-padding))
+      calc(-1 * var(--admin-layout-content-padding)) $spacing-lg
+      calc(-1 * var(--admin-layout-content-padding));
+    background: rgba(15, 23, 42, 0.75);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+
+    @media (max-width: $tablet) {
+      margin: calc(-1 * var(--admin-layout-content-padding))
+        calc(-1 * var(--admin-layout-content-padding)) $spacing-md
+        calc(-1 * var(--admin-layout-content-padding));
+    }
+  }
+
+  &__mobile-menu-button {
+    color: $text-light;
+  }
+
+  &__mobile-brand {
+    font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
+    letter-spacing: 0.08em;
+    font-size: 1.6rem;
+    line-height: 1;
   }
 
   &__sidebar {
@@ -22,7 +72,7 @@
     flex-direction: column;
     gap: $spacing-md;
 
-    @media (max-width: $tablet) {
+    @media (max-width: 900px) {
       position: static;
       height: auto;
     }
@@ -78,11 +128,11 @@
   }
 
   &__content {
-    padding: $spacing-xl;
+    --admin-layout-content-padding: #{$spacing-xl};
+    padding: var(--admin-layout-content-padding);
 
-    @media (max-width: $tablet) {
-      padding: $spacing-lg;
+    @media (max-width: 900px) {
+      --admin-layout-content-padding: #{$spacing-lg};
     }
   }
 }
-
