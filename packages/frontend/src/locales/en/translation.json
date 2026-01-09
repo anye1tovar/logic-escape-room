@@ -290,6 +290,15 @@
       }
     }
   },
+  "notFound": {
+    "eyebrow": "Error 404",
+    "titleLine1": "Page",
+    "titleLine2": "not found",
+    "description": "The route you are looking for does not exist or moved. Use the button to go back home.",
+    "cta": "Back to home",
+    "clueTitle": "Clue",
+    "clueText": "The maze always leads back to the start."
+  },
   "booking": {
     "actions": {
       "back": "Back",

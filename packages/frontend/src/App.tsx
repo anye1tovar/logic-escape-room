@@ -16,6 +16,7 @@ import Booking from "./pages/Booking/Booking";
 import BookingStatus from "./pages/BookingStatus/BookingStatus";
 import CafeteriaMenu from "./pages/CafeteriaMenu/CafeteriaMenu";
 import Qr from "./pages/Qr/Qr";
+import NotFound from "./pages/NotFound/NotFound";
 import AdminLogin from "./pages/AdminLogin/AdminLogin";
 import AdminLayout from "./pages/Admin/AdminLayout/AdminLayout";
 import AdminRates from "./pages/Admin/Rates/AdminRates";
@@ -73,11 +74,12 @@ function App() {
             <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
             <Route path="festivos" element={<AdminHolidays />} />
             <Route path="horarios" element={<AdminOpeningHours />} />
-          <Route path="salas" element={<AdminRooms />} />
-          <Route path="configuraciones" element={<AdminSettings />} />
-          <Route path="usuarios" element={<AdminUsers />} />
-        </Route>
-      </Routes>
+            <Route path="salas" element={<AdminRooms />} />
+            <Route path="configuraciones" element={<AdminSettings />} />
+            <Route path="usuarios" element={<AdminUsers />} />
+          </Route>
+          <Route path="*" element={<NotFound />} />
+        </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );

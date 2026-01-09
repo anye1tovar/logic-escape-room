@@ -3,6 +3,7 @@ import QRCodeStyling from "qr-code-styling";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import "./Qr.scss";
+import { MenuItem, Select } from "@mui/material";
 
 type RouteOption = {
   label: string;
@@ -99,17 +100,17 @@ export default function Qr() {
             <section className="qr-page__panel" aria-label="Configuracion QR">
               <div className="qr-page__field">
                 <label htmlFor="qr-route">Ruta</label>
-                <select
+                <Select
                   id="qr-route"
                   value={path}
                   onChange={(event) => setPath(event.target.value)}
                 >
                   {routeOptions.map((option) => (
-                    <option key={option.path} value={option.path}>
+                    <MenuItem key={option.path} value={option.path}>
                       {option.label}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
+                </Select>
               </div>
 
               <div className="qr-page__field">

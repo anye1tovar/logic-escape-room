@@ -261,6 +261,15 @@
       "combo2": { "name": "Combo 2", "desc": "Bebida + brownie o nachos." }
     }
   },
+  "notFound": {
+    "eyebrow": "Error 404",
+    "titleLine1": "Pagina",
+    "titleLine2": "no encontrada",
+    "description": "La ruta que buscas no existe o se movio. Usa el boton para volver al inicio.",
+    "cta": "Volver al inicio",
+    "clueTitle": "Pista",
+    "clueText": "El laberinto siempre vuelve al inicio."
+  },
   "booking": {
     "actions": {
       "back": "Volver",
