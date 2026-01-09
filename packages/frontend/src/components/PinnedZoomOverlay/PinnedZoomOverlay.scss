@@ -38,8 +38,15 @@
 /* Scroll “extra” para el zoom.
    Ajusta este valor si quieres el zoom más lento o más rápido. */
 .pzo__spacer {
-  height: calc(110vh - var(--pzo-header-h));
-  height: calc(110dvh - var(--pzo-header-h));
+  height: max(140px, calc(30vh - var(--pzo-header-h)));
+  height: max(140px, calc(30dvh - var(--pzo-header-h)));
+}
+
+@media (max-width: 768px) {
+  .pzo__spacer {
+    height: max(120px, calc(22vh - var(--pzo-header-h)));
+    height: max(120px, calc(22dvh - var(--pzo-header-h)));
+  }
 }
 
 /* Overlay: sube por encima de la imagen y ocupa toda la pantalla */

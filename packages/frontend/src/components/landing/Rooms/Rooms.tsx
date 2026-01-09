@@ -336,7 +336,7 @@ const Rooms = () => {
                       {t("rooms.badges.comingSoon")}
                     </span>
                   ) : (
-                    <Link to="/booking" className="room-card__cta-button">
+                    <Link to="/reservar" className="room-card__cta-button">
                       {t("rooms.actions.book")}
                     </Link>
                   )}

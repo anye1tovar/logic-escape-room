@@ -45,6 +45,9 @@ export default function BookingStepPayment({
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
     "idle"
   );
+  const [brebCopyState, setBrebCopyState] = useState<
+    "idle" | "copied" | "failed"
+  >("idle");
 
   const consultCode = reservationCode;
 
@@ -87,7 +90,7 @@ export default function BookingStepPayment({
             {t("booking.payment.instructionsTitle")}
           </h3>
 
-          <ol style={{ marginLeft: "1.5rem" }}>
+          <ol className="booking-payment__list">
             <li className="booking-form__hint">
               {t("booking.payment.depositPrefix")}{" "}
               <strong className="booking-payment__amount">
@@ -116,8 +119,26 @@ export default function BookingStepPayment({
               <div
                 className="booking-payment__breb-key"
                 aria-label={t("booking.payment.brebAria")}
+                role="button"
+                tabIndex={0}
+                onClick={async () => {
+                  const ok = await copyToClipboard(BREB_KEY);
+                  setBrebCopyState(ok ? "copied" : "failed");
+                  window.setTimeout(() => setBrebCopyState("idle"), 1500);
+                }}
+                onKeyDown={async (event) => {
+                  if (event.key !== "Enter" && event.key !== " ") return;
+                  event.preventDefault();
+                  const ok = await copyToClipboard(BREB_KEY);
+                  setBrebCopyState(ok ? "copied" : "failed");
+                  window.setTimeout(() => setBrebCopyState("idle"), 1500);
+                }}
+                data-copy-state={brebCopyState}
               >
-                {BREB_KEY}
+                <span className="booking-payment__breb-key-text">
+                  {BREB_KEY}
+                </span>
+                <span className="booking-payment__breb-key-status">Copiado</span>
               </div>
               <button
                 type="button"
