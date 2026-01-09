@@ -3,6 +3,21 @@ const cors = require("cors");
 const bodyParser = require("express").json;
 const config = require("./config");
 
+const allowedOrigins = String(process.env.CORS_ORIGINS || "")
+  .split(",")
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+const corsOptions =
+  allowedOrigins.length > 0
+    ? {
+        origin: (origin, callback) => {
+          if (!origin) return callback(null, true);
+          if (allowedOrigins.includes(origin)) return callback(null, true);
+          return callback(new Error("Not allowed by CORS"));
+        },
+      }
+    : undefined;
+
 // consumers, services, controllers
 const initBookingConsumer = require("./consumers/bookingConsumerSqlite");
 const buildBookingService = require("./services/bookingService");
@@ -61,7 +76,7 @@ const createCafeteriaProductsRouter = require("./routes/cafeteriaProducts");
 async function start() {
   await db.ready;
   const app = express();
-  app.use(cors());
+  app.use(cors(corsOptions));
   app.use(bodyParser());
 
   const initRoomsConsumer = require("./consumers/roomsConsumer");
