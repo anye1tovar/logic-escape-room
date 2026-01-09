@@ -27,7 +27,10 @@ function buildAdminOpeningHoursService(consumer) {
         dayOfWeek: day,
         openTime: row?.open_time ?? null,
         closeTime: row?.close_time ?? null,
-        isOpen: row?.is_open === 1 || row?.is_open === true || row?.is_open === "1" ? 1 : 0,
+        isOpen:
+          row?.is_open === 1 || row?.is_open === true || row?.is_open === "1"
+            ? 1
+            : 0,
       });
     }
     return result;
@@ -42,9 +45,7 @@ function buildAdminOpeningHoursService(consumer) {
     }
 
     const isOpen =
-      input?.isOpen === 1 || input?.isOpen === true || input?.isOpen === "1"
-        ? 1
-        : 0;
+      input?.isOpen === 1 || input?.isOpen === true || input?.isOpen === "1";
 
     const openTime = normalizeTime(input?.openTime ?? input?.open_time);
     const closeTime = normalizeTime(input?.closeTime ?? input?.close_time);
@@ -63,4 +64,3 @@ function buildAdminOpeningHoursService(consumer) {
 }
 
 module.exports = buildAdminOpeningHoursService;
-

@@ -1,21 +1,13 @@
 const db = require("../db/initDb");
 
-function listRooms() {
-  return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM rooms;", (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows || []);
-    });
-  });
+async function listRooms() {
+  const result = await db.query("SELECT * FROM rooms;");
+  return result.rows || [];
 }
 
-function getRoomById(id) {
-  return new Promise((resolve, reject) => {
-    db.get("SELECT * FROM rooms WHERE id = ?;", [id], (err, row) => {
-      if (err) return reject(err);
-      resolve(row || null);
-    });
-  });
+async function getRoomById(id) {
+  const result = await db.query("SELECT * FROM rooms WHERE id = $1;", [id]);
+  return result.rows[0] || null;
 }
 
 module.exports = async function initRoomsConsumer() {

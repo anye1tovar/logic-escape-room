@@ -79,7 +79,7 @@ function formatRowDateTime(r: ReservationRow) {
 }
 
 type ReservationsPageResponse = {
-  filters: { dateFrom: string; dateTo: string; search: string };
+  filters: { dateFrom: string; dateTo?: string | null; search: string };
   records: ReservationRow[];
   page: number;
   size: number;
@@ -94,7 +94,7 @@ export default function AdminReservations() {
   const [filterDateFrom, setFilterDateFrom] = useState<Dayjs | null>(() =>
     dayjs()
   );
-  const [filterDateTo, setFilterDateTo] = useState<Dayjs | null>(() => dayjs());
+  const [filterDateTo, setFilterDateTo] = useState<Dayjs | null>(null);
   const [filterSearch, setFilterSearch] = useState("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
@@ -127,7 +127,7 @@ export default function AdminReservations() {
   const filterDateToString = useMemo(() => {
     if (filterDateTo && filterDateTo.isValid())
       return filterDateTo.format("YYYY-MM-DD");
-    return dayjs().format("YYYY-MM-DD");
+    return null;
   }, [filterDateTo]);
 
   const roomNameById = useMemo(() => {
@@ -146,13 +146,18 @@ export default function AdminReservations() {
       const dateFrom = input?.filters?.dateFrom ?? filterDateFromString;
       const dateTo = input?.filters?.dateTo ?? filterDateToString;
       const search = input?.filters?.search ?? filterSearch.trim();
+      const filters = {
+        dateFrom,
+        ...(dateTo ? { dateTo } : {}),
+        search,
+      };
 
       const data = await adminRequest<ReservationsPageResponse>(
         "/api/admin/reservations",
         {
           method: "POST",
           body: {
-            filters: { dateFrom, dateTo, search },
+            filters,
             page: nextPage,
             pageSize: nextPageSize,
           },
@@ -165,7 +170,8 @@ export default function AdminReservations() {
       setPageCount(Number(data.totalPages) || 1);
       setTotalRecords(Number(data.totalRecords) || 0);
       setFilterDateFrom(dayjs(data.filters?.dateFrom || dateFrom));
-      setFilterDateTo(dayjs(data.filters?.dateTo || dateTo));
+      const nextDateTo = data.filters?.dateTo || dateTo;
+      setFilterDateTo(nextDateTo ? dayjs(nextDateTo) : null);
       setFilterSearch(String(data.filters?.search || search));
       setStatus({ type: "idle" });
     } catch {
@@ -236,7 +242,7 @@ export default function AdminReservations() {
       await load({
         filters: {
           dateFrom: filterDateFromString,
-          dateTo: filterDateToString,
+          ...(filterDateToString ? { dateTo: filterDateToString } : {}),
           search: filterSearch.trim(),
         },
         page,
@@ -259,7 +265,7 @@ export default function AdminReservations() {
       await load({
         filters: {
           dateFrom: filterDateFromString,
-          dateTo: filterDateToString,
+          ...(filterDateToString ? { dateTo: filterDateToString } : {}),
           search: filterSearch.trim(),
         },
         page,
@@ -345,7 +351,7 @@ export default function AdminReservations() {
                 void load({
                   filters: {
                     dateFrom: filterDateFromString,
-                    dateTo: filterDateToString,
+                    ...(filterDateToString ? { dateTo: filterDateToString } : {}),
                     search: filterSearch.trim(),
                   },
                   page: 1,
@@ -361,11 +367,11 @@ export default function AdminReservations() {
               onClick={() => {
                 const today = dayjs().format("YYYY-MM-DD");
                 setFilterDateFrom(dayjs(today));
-                setFilterDateTo(dayjs(today));
+                setFilterDateTo(null);
                 setFilterSearch("");
                 setPage(1);
                 void load({
-                  filters: { dateFrom: today, dateTo: today, search: "" },
+                  filters: { dateFrom: today, search: "" },
                   page: 1,
                   pageSize,
                 });
@@ -615,7 +621,9 @@ export default function AdminReservations() {
                     void load({
                       filters: {
                         dateFrom: filterDateFromString,
-                        dateTo: filterDateToString,
+                        ...(filterDateToString
+                          ? { dateTo: filterDateToString }
+                          : {}),
                         search: filterSearch.trim(),
                       },
                       page: 1,
@@ -637,7 +645,9 @@ export default function AdminReservations() {
                   void load({
                     filters: {
                       dateFrom: filterDateFromString,
-                      dateTo: filterDateToString,
+                      ...(filterDateToString
+                        ? { dateTo: filterDateToString }
+                        : {}),
                       search: filterSearch.trim(),
                     },
                     page: next,

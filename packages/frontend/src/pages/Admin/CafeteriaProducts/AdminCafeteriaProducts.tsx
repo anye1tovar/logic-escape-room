@@ -111,7 +111,19 @@ export default function AdminCafeteriaProducts() {
       const data = await adminRequest<ProductRow[]>(
         "/api/admin/cafeteria-products"
       );
-      setRows(data);
+      const normalized = data.map((row) => {
+        const raw = row.available;
+        const available =
+          typeof raw === "boolean"
+            ? raw
+              ? 1
+              : 0
+            : Number(raw) === 1
+            ? 1
+            : 0;
+        return { ...row, available };
+      });
+      setRows(normalized);
       setStatus({ type: "idle" });
     } catch {
       setStatus({

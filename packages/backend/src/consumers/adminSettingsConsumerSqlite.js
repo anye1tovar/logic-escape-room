@@ -1,39 +1,27 @@
 const db = require("../db/initDb");
 
-function listSettings() {
-  return new Promise((resolve, reject) => {
-    db.all("SELECT key, value FROM settings ORDER BY key ASC;", (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows || []);
-    });
-  });
+async function listSettings() {
+  const result = await db.query(
+    "SELECT key, value FROM settings ORDER BY key ASC;"
+  );
+  return result.rows || [];
 }
 
-function setSetting(payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO settings (key, value)
-       VALUES (?, ?)
-       ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
-      [payload.key, payload.value],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ ok: true });
-      }
-    );
-  });
+async function setSetting(payload) {
+  await db.query(
+    `INSERT INTO settings (key, value)
+     VALUES ($1, $2)
+     ON CONFLICT(key) DO UPDATE SET value = excluded.value;`,
+    [payload.key, payload.value]
+  );
+  return { ok: true };
 }
 
-function deleteSetting(key) {
-  return new Promise((resolve, reject) => {
-    db.run("DELETE FROM settings WHERE key = ?;", [key], function (err) {
-      if (err) return reject(err);
-      resolve({ changes: this.changes });
-    });
-  });
+async function deleteSetting(key) {
+  const result = await db.query("DELETE FROM settings WHERE key = $1;", [key]);
+  return { changes: result.rowCount };
 }
 
 module.exports = async function initConsumer() {
   return { listSettings, setSetting, deleteSetting };
 };
-

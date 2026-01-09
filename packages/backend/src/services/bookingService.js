@@ -124,7 +124,11 @@ function buildBookingService(consumer, deps = {}) {
   }
 
   function derivePublicRoomId(roomRow) {
-    const cover = (roomRow?.coverImage || "").trim();
+    const cover = (
+      roomRow?.coverImage ||
+      roomRow?.cover_image ||
+      ""
+    ).trim();
     const match = cover.match(/([^/\\]+)\.(png|jpg|jpeg|webp)$/i);
     if (match?.[1]) return slugify(match[1]);
     return slugify(roomRow?.name || String(roomRow?.id ?? "room"));

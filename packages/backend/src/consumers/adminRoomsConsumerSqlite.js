@@ -1,74 +1,56 @@
 const db = require("../db/initDb");
 
-function listRooms() {
-  return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM rooms ORDER BY id DESC;", (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows || []);
-    });
-  });
+async function listRooms() {
+  const result = await db.query("SELECT * FROM rooms ORDER BY id DESC;");
+  return result.rows || [];
 }
 
-function createRoom(payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO rooms (name, description, theme, min_players, max_players, min_age, duration_minutes, difficulty, active)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      [
-        payload.name,
-        payload.description ?? null,
-        payload.theme ?? null,
-        payload.minPlayers ?? null,
-        payload.maxPlayers ?? null,
-        payload.minAge ?? null,
-        payload.durationMinutes ?? null,
-        payload.difficulty ?? null,
-        payload.active ?? 1,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ id: this.lastID });
-      }
-    );
-  });
+async function createRoom(payload) {
+  const result = await db.query(
+    `INSERT INTO rooms (name, description, theme, min_players, max_players, min_age, duration_minutes, difficulty, active)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+     RETURNING id;`,
+    [
+      payload.name,
+      payload.description ?? null,
+      payload.theme ?? null,
+      payload.minPlayers ?? null,
+      payload.maxPlayers ?? null,
+      payload.minAge ?? null,
+      payload.durationMinutes ?? null,
+      payload.difficulty ?? null,
+      payload.active ?? true,
+    ]
+  );
+  return { id: result.rows[0]?.id ?? null };
 }
 
-function updateRoom(id, payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `UPDATE rooms
-       SET name = ?, description = ?, theme = ?, min_players = ?, max_players = ?, min_age = ?, duration_minutes = ?, difficulty = ?, active = ?
-       WHERE id = ?;`,
-      [
-        payload.name,
-        payload.description ?? null,
-        payload.theme ?? null,
-        payload.minPlayers ?? null,
-        payload.maxPlayers ?? null,
-        payload.minAge ?? null,
-        payload.durationMinutes ?? null,
-        payload.difficulty ?? null,
-        payload.active ?? 1,
-        id,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ changes: this.changes });
-      }
-    );
-  });
+async function updateRoom(id, payload) {
+  const result = await db.query(
+    `UPDATE rooms
+     SET name = $1, description = $2, theme = $3, min_players = $4, max_players = $5, min_age = $6, duration_minutes = $7, difficulty = $8, active = $9
+     WHERE id = $10;`,
+    [
+      payload.name,
+      payload.description ?? null,
+      payload.theme ?? null,
+      payload.minPlayers ?? null,
+      payload.maxPlayers ?? null,
+      payload.minAge ?? null,
+      payload.durationMinutes ?? null,
+      payload.difficulty ?? null,
+      payload.active ?? true,
+      id,
+    ]
+  );
+  return { changes: result.rowCount };
 }
 
-function deleteRoom(id) {
-  return new Promise((resolve, reject) => {
-    db.run("DELETE FROM rooms WHERE id = ?;", [id], function (err) {
-      if (err) return reject(err);
-      resolve({ changes: this.changes });
-    });
-  });
+async function deleteRoom(id) {
+  const result = await db.query("DELETE FROM rooms WHERE id = $1;", [id]);
+  return { changes: result.rowCount };
 }
 
 module.exports = async function initConsumer() {
   return { listRooms, createRoom, updateRoom, deleteRoom };
 };
-

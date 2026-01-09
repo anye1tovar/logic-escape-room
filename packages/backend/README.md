@@ -1,6 +1,6 @@
 # Backend (local dev)
 
-This backend is a minimal Express + SQLite app built to act as a local monolith during development. It uses a consumer/service/controller pattern so the data access (`consumer`) can later be swapped for a DynamoDB implementation (for deploying as Lambdas).
+This backend is a minimal Express + Postgres app built to act as a local monolith during development. It uses a consumer/service/controller pattern so the data access (`consumer`) can later be swapped for another implementation.
 
 Quick start
 
@@ -19,5 +19,5 @@ Endpoints
 
 Notes
 
-- DB file is `./data/bookings.sqlite` by default (see `.env.example`).
+- Database connection is configured via `DATABASE_URL` (see `.env.example`).
 - To swap the consumer later, implement the same methods in a new consumer file (e.g. `bookingConsumerDynamo.js`) and inject it into the service.

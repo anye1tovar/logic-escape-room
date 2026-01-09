@@ -1,68 +1,53 @@
 const db = require("../db/initDb");
 
-function listProducts() {
-  return new Promise((resolve, reject) => {
-    db.all(
-      "SELECT * FROM cafeteria_products ORDER BY category ASC, name ASC;",
-      (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows || []);
-      }
-    );
-  });
+async function listProducts() {
+  const result = await db.query(
+    "SELECT * FROM cafeteria_products ORDER BY category ASC, name ASC;"
+  );
+  return result.rows || [];
 }
 
-function createProduct(payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO cafeteria_products (name, price, description, available, category, image)
-       VALUES (?, ?, ?, ?, ?, ?);`,
-      [
-        payload.name,
-        payload.price,
-        payload.description ?? null,
-        payload.available ?? 1,
-        payload.category ?? null,
-        payload.image ?? null,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ id: this.lastID });
-      }
-    );
-  });
+async function createProduct(payload) {
+  const result = await db.query(
+    `INSERT INTO cafeteria_products (name, price, description, available, category, image)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id;`,
+    [
+      payload.name,
+      payload.price,
+      payload.description ?? null,
+      payload.available ?? true,
+      payload.category ?? null,
+      payload.image ?? null,
+    ]
+  );
+  return { id: result.rows[0]?.id ?? null };
 }
 
-function updateProduct(id, payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `UPDATE cafeteria_products
-       SET name = ?, price = ?, description = ?, available = ?, category = ?, image = ?
-       WHERE id = ?;`,
-      [
-        payload.name,
-        payload.price,
-        payload.description ?? null,
-        payload.available ?? 1,
-        payload.category ?? null,
-        payload.image ?? null,
-        id,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ changes: this.changes });
-      }
-    );
-  });
+async function updateProduct(id, payload) {
+  const result = await db.query(
+    `UPDATE cafeteria_products
+     SET name = $1, price = $2, description = $3, available = $4, category = $5, image = $6
+     WHERE id = $7;`,
+    [
+      payload.name,
+      payload.price,
+      payload.description ?? null,
+      payload.available ?? true,
+      payload.category ?? null,
+      payload.image ?? null,
+      id,
+    ]
+  );
+  return { changes: result.rowCount };
 }
 
-function deleteProduct(id) {
-  return new Promise((resolve, reject) => {
-    db.run("DELETE FROM cafeteria_products WHERE id = ?;", [id], function (err) {
-      if (err) return reject(err);
-      resolve({ changes: this.changes });
-    });
-  });
+async function deleteProduct(id) {
+  const result = await db.query(
+    "DELETE FROM cafeteria_products WHERE id = $1;",
+    [id]
+  );
+  return { changes: result.rowCount };
 }
 
 module.exports = async function initConsumer() {

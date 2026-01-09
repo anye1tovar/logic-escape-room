@@ -3,7 +3,7 @@
 Este repo es un monorepo con:
 
 - `packages/frontend`: React + Vite (sitio estático).
-- `packages/backend`: Express + SQLite (API).
+- `packages/backend`: Express + PostgreSQL (API).
 
 ## Requisitos
 
@@ -19,7 +19,8 @@ Este repo es un monorepo con:
 ### Backend (`packages/backend/.env`)
 
 - `PORT`: puerto del servidor (default `4000`).
-- `DATABASE_FILE`: ruta del archivo SQLite (default `./data/bookings.sqlite`).
+- `DATABASE_URL`: cadena de conexi?n a Postgres.
+- `DATABASE_SSL`: `true` si el proveedor requiere SSL.
 
 ## Deploy del Backend (API)
 
@@ -42,7 +43,7 @@ El backend expone:
 
 Notas:
 
-- Asegura persistencia para el archivo `DATABASE_FILE` (volumen/disco persistente). Si el contenedor/instancia se recrea sin persistencia, se pierde la base de datos.
+- Asegura que el proveedor tenga una base de datos Postgres persistente.
 - `cors()` está habilitado en `packages/backend/src/server.js`, pero en producción es recomendable restringir orígenes al dominio del frontend.
 
 ### Opción B: Contenedor (Docker)
@@ -50,7 +51,7 @@ Notas:
 No hay `Dockerfile` incluido actualmente. Si se decide contenerizar:
 
 - El contenedor debe exponer el puerto `PORT`.
-- Debe montar un volumen para `DATABASE_FILE` para persistir `bookings.sqlite`.
+- Debe apuntar a un Postgres externo o incluir Postgres en el stack de Docker.
 
 ## Deploy del Frontend (sitio estático)
 
@@ -66,7 +67,7 @@ No hay `Dockerfile` incluido actualmente. Si se decide contenerizar:
 - Backend accesible públicamente (ej. `https://api.tudominio.com/health`).
 - Frontend configurado con `VITE_API_BASE_URL` apuntando al backend.
 - CORS validado para el dominio del frontend.
-- Persistencia de SQLite configurada (si se usa SQLite en producción).
+- Postgres configurado y accesible desde el backend.
 
 ## Pendientes (Infraestructura)
 

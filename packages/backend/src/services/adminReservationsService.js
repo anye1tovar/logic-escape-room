@@ -79,10 +79,14 @@ function buildAdminReservationsService(consumer) {
     const dateToRaw =
       rawDateTo == null || String(rawDateTo).trim() === "" ? null : normalizeDate(rawDateTo);
 
-    const dateFrom = dateFromRaw ?? singleDate ?? dateToRaw ?? fallbackDate;
-    const dateTo = dateToRaw ?? singleDate ?? dateFromRaw ?? fallbackDate;
+    let dateFrom = dateFromRaw ?? singleDate ?? null;
+    let dateTo = dateToRaw ?? singleDate ?? null;
 
-    if (dateFrom > dateTo) {
+    if (!dateFrom && !dateTo) {
+      dateFrom = fallbackDate;
+    }
+
+    if (dateFrom && dateTo && dateFrom > dateTo) {
       const err = new Error("dateFrom must be <= dateTo");
       err.status = 400;
       throw err;
@@ -156,9 +160,9 @@ function buildAdminReservationsService(consumer) {
       total: input?.total == null || input?.total === "" ? null : Number(input.total),
       status: normalizeStatus(input?.status),
       isFirstTime:
-        input?.isFirstTime === 1 || input?.isFirstTime === true || input?.isFirstTime === "1"
-          ? 1
-          : 0,
+        input?.isFirstTime === 1 ||
+        input?.isFirstTime === true ||
+        input?.isFirstTime === "1",
     };
 
     if (!payload.roomId) {

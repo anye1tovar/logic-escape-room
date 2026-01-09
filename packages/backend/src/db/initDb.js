@@ -1,30 +1,15 @@
-const fs = require("fs");
-const path = require("path");
-const sqlite3 = require("sqlite3").verbose();
+const { Pool } = require("pg");
 const config = require("../config");
 
-const dbFile =
-  config.databaseFile ||
-  path.join(__dirname, "..", "data", "logic-escape-room.db");
-const dbDir = path.dirname(dbFile);
-
-if (!fs.existsSync(dbDir)) {
-  fs.mkdirSync(dbDir, { recursive: true });
-}
-
-const db = new sqlite3.Database(dbFile, (err) => {
-  if (err) {
-    console.error("Error opening database", err);
-    return;
-  }
-  console.log("SQLite DB ready at", dbFile);
+const pool = new Pool({
+  connectionString: config.databaseUrl,
+  ssl: config.databaseSsl ? { rejectUnauthorized: false } : undefined,
 });
 
-// Initialize schema if missing
-db.serialize(() => {
-  db.run(`
+async function initSchema() {
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS rooms (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       description TEXT,
       theme TEXT,
@@ -33,43 +18,40 @@ db.serialize(() => {
       min_age INTEGER,
       duration_minutes INTEGER,
       difficulty INTEGER,
-      active INTEGER DEFAULT 1
-    )
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      cover_image TEXT
+    );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS opening_hours (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      day_of_week INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      day_of_week INTEGER NOT NULL UNIQUE,
       open_time TEXT,
       close_time TEXT,
-      is_open INTEGER NOT NULL
-    )
+      is_open BOOLEAN NOT NULL
+    );
   `);
 
-  db.run(
-    "CREATE UNIQUE INDEX IF NOT EXISTS idx_opening_hours_day_of_week ON opening_hours(day_of_week);"
-  );
-
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS colombian_holidays (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       holiday_date TEXT NOT NULL UNIQUE,
       name TEXT
-    )
+    );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
-    )
+    );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS reservations (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      room_id INTEGER NOT NULL,
+      id SERIAL PRIMARY KEY,
+      room_id INTEGER,
       date TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
@@ -81,46 +63,56 @@ db.serialize(() => {
       notes TEXT,
       total INTEGER,
       status TEXT DEFAULT 'PENDING',
-      is_first_time INTEGER NOT NULL DEFAULT 0
-    )
+      is_first_time BOOLEAN NOT NULL DEFAULT FALSE
+    );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       email TEXT NOT NULL UNIQUE,
       password_hash TEXT NOT NULL,
       password_salt TEXT NOT NULL,
       name TEXT,
       role TEXT NOT NULL DEFAULT 'admin',
-      active INTEGER NOT NULL DEFAULT 1,
-      created_at INTEGER NOT NULL
-    )
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      created_at BIGINT NOT NULL
+    );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS rates (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       day_type TEXT NOT NULL,
       day_label TEXT,
       day_range TEXT,
       players INTEGER NOT NULL,
       price_per_person INTEGER NOT NULL,
       currency TEXT DEFAULT 'COP'
-    )
+    );
   `);
 
-  db.run(`
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS cafeteria_products (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
       price INTEGER NOT NULL,
       description TEXT,
-      available INTEGER NOT NULL DEFAULT 1,
+      available BOOLEAN NOT NULL DEFAULT TRUE,
       category TEXT,
       image TEXT
-    )
+    );
   `);
+}
+
+const ready = initSchema().catch((err) => {
+  console.error("Failed to initialize Postgres schema", err);
+  throw err;
 });
 
-module.exports = db;
+async function query(text, params) {
+  await ready;
+  return pool.query(text, params);
+}
+
+module.exports = { query, pool, ready };

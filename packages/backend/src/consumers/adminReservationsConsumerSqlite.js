@@ -8,128 +8,125 @@ function buildWhere(filters) {
   const dateTo = String(filters?.dateTo || "").trim();
   const date = String(filters?.date || "").trim();
   if (dateFrom && dateTo) {
-    where.push("date >= ? AND date <= ?");
-    params.push(dateFrom, dateTo);
-  } else if (dateFrom) {
-    where.push("date = ?");
+    const fromIndex = params.length + 1;
     params.push(dateFrom);
-  } else if (dateTo) {
-    where.push("date = ?");
+    const toIndex = params.length + 1;
     params.push(dateTo);
+    where.push(`date >= $${fromIndex} AND date <= $${toIndex}`);
+  } else if (dateFrom) {
+    params.push(dateFrom);
+    where.push(`date >= $${params.length}`);
+  } else if (dateTo) {
+    params.push(dateTo);
+    where.push(`date <= $${params.length}`);
   } else if (date) {
-    where.push("date = ?");
     params.push(date);
+    where.push(`date = $${params.length}`);
   }
 
   const search = String(filters?.search || "").trim();
   if (search) {
-    where.push(
-      "(LOWER(first_name || ' ' || last_name) LIKE ? OR LOWER(phone) LIKE ? OR LOWER(consult_code) LIKE ?)"
-    );
     const q = `%${search.toLowerCase()}%`;
-    params.push(q, q, q);
+    const firstIndex = params.length + 1;
+    params.push(q);
+    const secondIndex = params.length + 1;
+    params.push(q);
+    const thirdIndex = params.length + 1;
+    params.push(q);
+    where.push(
+      `(LOWER(first_name || ' ' || last_name) LIKE $${firstIndex} OR LOWER(phone) LIKE $${secondIndex} OR LOWER(consult_code) LIKE $${thirdIndex})`
+    );
   }
 
   return { where, params };
 }
 
-function listReservationsPage(input) {
-  return new Promise((resolve, reject) => {
-    const page = Number(input?.page || 1);
-    const pageSize = Number(input?.pageSize || 10);
-    const safePage = Number.isFinite(page) && page > 0 ? Math.trunc(page) : 1;
-    const safeSize = Number.isFinite(pageSize) && pageSize > 0 ? Math.trunc(pageSize) : 10;
-    const offset = (safePage - 1) * safeSize;
+async function listReservationsPage(input) {
+  const page = Number(input?.page || 1);
+  const pageSize = Number(input?.pageSize || 10);
+  const safePage = Number.isFinite(page) && page > 0 ? Math.trunc(page) : 1;
+  const safeSize =
+    Number.isFinite(pageSize) && pageSize > 0 ? Math.trunc(pageSize) : 10;
+  const offset = (safePage - 1) * safeSize;
 
-    const { where, params } = buildWhere(input);
-    const whereSql = where.length ? ` WHERE ${where.join(" AND ")}` : "";
+  const { where, params } = buildWhere(input);
+  const whereSql = where.length ? ` WHERE ${where.join(" AND ")}` : "";
 
-    db.get(`SELECT COUNT(*) as total FROM reservations${whereSql};`, params, (err, row) => {
-      if (err) return reject(err);
-      const totalRecords = Number(row?.total || 0);
+  const countResult = await db.query(
+    `SELECT COUNT(*) as total FROM reservations${whereSql};`,
+    params
+  );
+  const totalRecords = Number(countResult.rows[0]?.total || 0);
 
-    const listSql =
-      `SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations${whereSql}` +
-      " ORDER BY date ASC, start_time ASC, id ASC" +
-      " LIMIT ? OFFSET ?;";
+  const limitIndex = params.length + 1;
+  const offsetIndex = params.length + 2;
+  const listSql =
+    `SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations${whereSql}` +
+    ` ORDER BY date ASC, start_time ASC, id ASC LIMIT $${limitIndex} OFFSET $${offsetIndex};`;
 
-      db.all(listSql, [...params, safeSize, offset], (err2, rows) => {
-        if (err2) return reject(err2);
-        resolve({ records: rows || [], totalRecords });
-      });
-    });
-  });
+  const listResult = await db.query(listSql, [...params, safeSize, offset]);
+  return { records: listResult.rows || [], totalRecords };
 }
 
-function listReservations(filters) {
-  return new Promise((resolve, reject) => {
-    const { where, params } = buildWhere({
-      ...filters,
-      search: filters?.search ?? filters?.name,
-      dateFrom: filters?.dateFrom ?? filters?.from ?? filters?.date,
-      dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
-    });
-    let sql =
-      "SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations";
-    if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
-    sql += " ORDER BY date ASC, start_time ASC, id ASC;";
-
-    db.all(sql, params, (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows || []);
-    });
+async function listReservations(filters) {
+  const { where, params } = buildWhere({
+    ...filters,
+    search: filters?.search ?? filters?.name,
+    dateFrom: filters?.dateFrom ?? filters?.from ?? filters?.date,
+    dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
   });
+  let sql =
+    "SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations";
+  if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
+  sql += " ORDER BY date ASC, start_time ASC, id ASC;";
+
+  const result = await db.query(sql, params);
+  return result.rows || [];
 }
 
-function updateReservation(id, payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `UPDATE reservations
-       SET room_id = ?,
-           date = ?,
-           start_time = ?,
-           end_time = ?,
-           consult_code = ?,
-           first_name = ?,
-           last_name = ?,
-           phone = ?,
-           players = ?,
-           notes = ?,
-           total = ?,
-           status = ?,
-           is_first_time = ?
-       WHERE id = ?;`,
-      [
-        payload.roomId,
-        payload.date,
-        payload.startTime,
-        payload.endTime,
-        payload.consultCode,
-        payload.firstName,
-        payload.lastName,
-        payload.phone,
-        payload.players,
-        payload.notes,
-        payload.total,
-        payload.status,
-        payload.isFirstTime,
-        id,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ changes: this.changes });
-      }
-    );
-  });
+async function updateReservation(id, payload) {
+  const result = await db.query(
+    `UPDATE reservations
+     SET room_id = $1,
+         date = $2,
+         start_time = $3,
+         end_time = $4,
+         consult_code = $5,
+         first_name = $6,
+         last_name = $7,
+         phone = $8,
+         players = $9,
+         notes = $10,
+         total = $11,
+         status = $12,
+         is_first_time = $13
+     WHERE id = $14;`,
+    [
+      payload.roomId,
+      payload.date,
+      payload.startTime,
+      payload.endTime,
+      payload.consultCode,
+      payload.firstName,
+      payload.lastName,
+      payload.phone,
+      payload.players,
+      payload.notes,
+      payload.total,
+      payload.status,
+      payload.isFirstTime,
+      id,
+    ]
+  );
+  return { changes: result.rowCount };
 }
 
-function deleteReservation(id) {
-  return new Promise((resolve, reject) => {
-    db.run("DELETE FROM reservations WHERE id = ?;", [id], function (err) {
-      if (err) return reject(err);
-      resolve({ changes: this.changes });
-    });
-  });
+async function deleteReservation(id) {
+  const result = await db.query(
+    "DELETE FROM reservations WHERE id = $1;",
+    [id]
+  );
+  return { changes: result.rowCount };
 }
 
 module.exports = async function initConsumer() {

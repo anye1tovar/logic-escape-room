@@ -1,7 +1,7 @@
 const db = require("../db/initDb");
 const { v4: uuidv4 } = require("uuid");
 
-function createBooking({
+async function createBooking({
   firstName,
   lastName,
   name,
@@ -17,107 +17,92 @@ function createBooking({
   consultCode,
   isFirstTime,
 }) {
-  return new Promise((resolve, reject) => {
-    const id = uuidv4();
-    const createdAt = Date.now();
-    const sendReceiptInt = sendReceipt ? 1 : 0;
-    const isFirstTimeInt = isFirstTime ? 1 : 0;
-    const finalName = name || `${firstName || ""} ${lastName || ""}`.trim();
-    db.run(
-      `INSERT INTO reservations (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);`,
-      [
-        roomId || null,
-        date,
-        time || null,
-        endTime || time || null,
-        consultCode || null,
-        firstName ?? "",
-        lastName ?? "",
-        whatsapp || null,
-        attendees || null,
-        notes || null,
-        Number.isFinite(Number(total)) ? Number(total) : null,
-        "PENDING",
-        isFirstTimeInt,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        // return created booking data
-        resolve({
-          id: this.lastID,
-          firstName,
-          lastName,
-          name: finalName,
-          whatsapp,
-          roomId,
-          time,
-          endTime: endTime || time || null,
-          attendees,
-          notes: notes || null,
-          total: Number.isFinite(Number(total)) ? Number(total) : null,
-          sendReceipt: !!sendReceiptInt,
-          isFirstTime: !!isFirstTimeInt,
-          date,
-          consultCode: consultCode || null,
-          createdAt,
-        });
-      }
-    );
-  });
+  const id = uuidv4();
+  const createdAt = Date.now();
+  const isFirstTimeBool = Boolean(isFirstTime);
+  const finalName = name || `${firstName || ""} ${lastName || ""}`.trim();
+
+  const result = await db.query(
+    `INSERT INTO reservations
+      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     RETURNING id;`,
+    [
+      roomId || null,
+      date,
+      time || null,
+      endTime || time || null,
+      consultCode || null,
+      firstName ?? "",
+      lastName ?? "",
+      whatsapp || null,
+      attendees || null,
+      notes || null,
+      Number.isFinite(Number(total)) ? Number(total) : null,
+      "PENDING",
+      isFirstTimeBool,
+    ]
+  );
+
+  return {
+    id: result.rows[0]?.id ?? null,
+    firstName,
+    lastName,
+    name: finalName,
+    whatsapp,
+    roomId,
+    time,
+    endTime: endTime || time || null,
+    attendees,
+    notes: notes || null,
+    total: Number.isFinite(Number(total)) ? Number(total) : null,
+    sendReceipt: Boolean(sendReceipt),
+    isFirstTime: isFirstTimeBool,
+    date,
+    consultCode: consultCode || null,
+    createdAt,
+  };
 }
 
-function getBookingById(id) {
-  return new Promise((resolve, reject) => {
-    db.get("SELECT * FROM reservations WHERE id = ?;", [id], (err, row) => {
-      if (err) return reject(err);
-      resolve(row || null);
-    });
-  });
+async function getBookingById(id) {
+  const result = await db.query(
+    "SELECT * FROM reservations WHERE id = $1;",
+    [id]
+  );
+  return result.rows[0] || null;
 }
 
-function getBookingByConsultCode(consultCode) {
-  return new Promise((resolve, reject) => {
-    const raw = String(consultCode || "").trim();
-    if (!raw) return resolve(null);
+async function getBookingByConsultCode(consultCode) {
+  const raw = String(consultCode || "").trim();
+  if (!raw) return null;
 
-    const upper = raw.toUpperCase();
-    const compact = upper.replace(/[\s-]+/g, "");
+  const upper = raw.toUpperCase();
+  const compact = upper.replace(/[\s-]+/g, "");
 
-    db.get(
-      `SELECT * FROM reservations
-       WHERE UPPER(consult_code) = ?
-          OR REPLACE(REPLACE(UPPER(consult_code), '-', ''), ' ', '') = ?
-       ORDER BY id DESC
-       LIMIT 1;`,
-      [upper, compact],
-      (err, row) => {
-        if (err) return reject(err);
-        resolve(row || null);
-      }
-    );
-  });
+  const result = await db.query(
+    `SELECT * FROM reservations
+     WHERE UPPER(consult_code) = $1
+        OR REPLACE(REPLACE(UPPER(consult_code), '-', ''), ' ', '') = $2
+     ORDER BY id DESC
+     LIMIT 1;`,
+    [upper, compact]
+  );
+  return result.rows[0] || null;
 }
 
-function listBookings() {
-  return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM reservations ORDER BY id DESC;", (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows || []);
-    });
-  });
+async function listBookings() {
+  const result = await db.query(
+    "SELECT * FROM reservations ORDER BY id DESC;"
+  );
+  return result.rows || [];
 }
 
-function listBookingsByDate(date) {
-  return new Promise((resolve, reject) => {
-    db.all(
-      "SELECT * FROM reservations WHERE date = ? ORDER BY id DESC;",
-      [date],
-      (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows || []);
-      }
-    );
-  });
+async function listBookingsByDate(date) {
+  const result = await db.query(
+    "SELECT * FROM reservations WHERE date = $1 ORDER BY id DESC;",
+    [date]
+  );
+  return result.rows || [];
 }
 
 module.exports = async function initConsumer() {

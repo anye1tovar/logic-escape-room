@@ -1,68 +1,52 @@
 const db = require("../db/initDb");
 
-function listRates() {
-  return new Promise((resolve, reject) => {
-    db.all("SELECT * FROM rates ORDER BY day_type ASC, players DESC;", (err, rows) => {
-      if (err) return reject(err);
-      resolve(rows || []);
-    });
-  });
+async function listRates() {
+  const result = await db.query(
+    "SELECT * FROM rates ORDER BY day_type ASC, players DESC;"
+  );
+  return result.rows || [];
 }
 
-function createRate(payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `INSERT INTO rates (day_type, day_label, day_range, players, price_per_person, currency)
-       VALUES (?, ?, ?, ?, ?, ?);`,
-      [
-        payload.dayType,
-        payload.dayLabel ?? null,
-        payload.dayRange ?? null,
-        payload.players,
-        payload.pricePerPerson,
-        payload.currency ?? "COP",
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ id: this.lastID });
-      }
-    );
-  });
+async function createRate(payload) {
+  const result = await db.query(
+    `INSERT INTO rates (day_type, day_label, day_range, players, price_per_person, currency)
+     VALUES ($1, $2, $3, $4, $5, $6)
+     RETURNING id;`,
+    [
+      payload.dayType,
+      payload.dayLabel ?? null,
+      payload.dayRange ?? null,
+      payload.players,
+      payload.pricePerPerson,
+      payload.currency ?? "COP",
+    ]
+  );
+  return { id: result.rows[0]?.id ?? null };
 }
 
-function updateRate(id, payload) {
-  return new Promise((resolve, reject) => {
-    db.run(
-      `UPDATE rates
-       SET day_type = ?, day_label = ?, day_range = ?, players = ?, price_per_person = ?, currency = ?
-       WHERE id = ?;`,
-      [
-        payload.dayType,
-        payload.dayLabel ?? null,
-        payload.dayRange ?? null,
-        payload.players,
-        payload.pricePerPerson,
-        payload.currency ?? "COP",
-        id,
-      ],
-      function (err) {
-        if (err) return reject(err);
-        resolve({ changes: this.changes });
-      }
-    );
-  });
+async function updateRate(id, payload) {
+  const result = await db.query(
+    `UPDATE rates
+     SET day_type = $1, day_label = $2, day_range = $3, players = $4, price_per_person = $5, currency = $6
+     WHERE id = $7;`,
+    [
+      payload.dayType,
+      payload.dayLabel ?? null,
+      payload.dayRange ?? null,
+      payload.players,
+      payload.pricePerPerson,
+      payload.currency ?? "COP",
+      id,
+    ]
+  );
+  return { changes: result.rowCount };
 }
 
-function deleteRate(id) {
-  return new Promise((resolve, reject) => {
-    db.run("DELETE FROM rates WHERE id = ?;", [id], function (err) {
-      if (err) return reject(err);
-      resolve({ changes: this.changes });
-    });
-  });
+async function deleteRate(id) {
+  const result = await db.query("DELETE FROM rates WHERE id = $1;", [id]);
+  return { changes: result.rowCount };
 }
 
 module.exports = async function initConsumer() {
   return { listRates, createRate, updateRate, deleteRate };
 };
-

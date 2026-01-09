@@ -16,6 +16,7 @@ const buildAuthService = require("./services/authService");
 const buildAuthController = require("./controllers/authController");
 const createAuthRouter = require("./routes/auth");
 const requireAuth = require("./middleware/requireAuth");
+const db = require("./db/initDb");
 
 const initAdminRoomsConsumer = require("./consumers/adminRoomsConsumerSqlite");
 const buildAdminRoomsService = require("./services/adminRoomsService");
@@ -58,6 +59,7 @@ const buildCafeteriaProductsController = require("./controllers/cafeteriaProduct
 const createCafeteriaProductsRouter = require("./routes/cafeteriaProducts");
 
 async function start() {
+  await db.ready;
   const app = express();
   app.use(cors());
   app.use(bodyParser());

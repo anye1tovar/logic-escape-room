@@ -5,40 +5,29 @@ function normalizeEmail(email) {
   return raw || null;
 }
 
-function getUserByEmail(email) {
-  return new Promise((resolve, reject) => {
-    const normalized = normalizeEmail(email);
-    if (!normalized) return resolve(null);
-    db.get(
-      "SELECT * FROM users WHERE email = ? LIMIT 1;",
-      [normalized],
-      (err, row) => {
-        if (err) return reject(err);
-        resolve(row || null);
-      }
-    );
-  });
+async function getUserByEmail(email) {
+  const normalized = normalizeEmail(email);
+  if (!normalized) return null;
+  const result = await db.query(
+    "SELECT * FROM users WHERE email = $1 LIMIT 1;",
+    [normalized]
+  );
+  return result.rows[0] || null;
 }
 
-function getUserById(id) {
-  return new Promise((resolve, reject) => {
-    db.get("SELECT * FROM users WHERE id = ? LIMIT 1;", [id], (err, row) => {
-      if (err) return reject(err);
-      resolve(row || null);
-    });
-  });
+async function getUserById(id) {
+  const result = await db.query(
+    "SELECT * FROM users WHERE id = $1 LIMIT 1;",
+    [id]
+  );
+  return result.rows[0] || null;
 }
 
-function listUsers() {
-  return new Promise((resolve, reject) => {
-    db.all(
-      "SELECT id, email, name, role, active, created_at FROM users ORDER BY id DESC;",
-      (err, rows) => {
-        if (err) return reject(err);
-        resolve(rows || []);
-      }
-    );
-  });
+async function listUsers() {
+  const result = await db.query(
+    "SELECT id, email, name, role, active, created_at FROM users ORDER BY id DESC;"
+  );
+  return result.rows || [];
 }
 
 module.exports = async function initConsumer() {
@@ -48,4 +37,3 @@ module.exports = async function initConsumer() {
     listUsers,
   };
 };
-

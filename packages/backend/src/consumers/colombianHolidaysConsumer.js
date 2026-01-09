@@ -1,19 +1,13 @@
 const db = require("../db/initDb");
 
-function isHoliday(dateString) {
-  return new Promise((resolve, reject) => {
-    db.get(
-      "SELECT 1 AS ok FROM colombian_holidays WHERE holiday_date = ? LIMIT 1;",
-      [dateString],
-      (err, row) => {
-        if (err) return reject(err);
-        resolve(Boolean(row));
-      }
-    );
-  });
+async function isHoliday(dateString) {
+  const result = await db.query(
+    "SELECT 1 AS ok FROM colombian_holidays WHERE holiday_date = $1 LIMIT 1;",
+    [dateString]
+  );
+  return Boolean(result.rows[0]);
 }
 
 module.exports = async function initColombianHolidaysConsumer() {
   return { isHoliday };
 };
-
