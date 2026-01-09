@@ -21,3 +21,10 @@ Notes
 
 - Database connection is configured via `DATABASE_URL` (see `.env.example`).
 - To swap the consumer later, implement the same methods in a new consumer file (e.g. `bookingConsumerDynamo.js`) and inject it into the service.
+
+Usuarios de prueba en local
+gamemaster@logic.com
+q2bpIdLPi8KqAnET
+
+admin@logic.com
+eVOgGvFxvytFXupu

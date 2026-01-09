@@ -32,6 +32,10 @@ const buildAuthController = require("./controllers/authController");
 const createAuthRouter = require("./routes/auth");
 const requireAuth = require("./middleware/requireAuth");
 const db = require("./db/initDb");
+const initAdminUsersConsumer = require("./consumers/adminUsersConsumerSqlite");
+const buildAdminUsersService = require("./services/adminUsersService");
+const buildAdminUsersController = require("./controllers/adminUsersController");
+const createAdminUsersRouter = require("./routes/adminUsers");
 
 const initAdminRoomsConsumer = require("./consumers/adminRoomsConsumerSqlite");
 const buildAdminRoomsService = require("./services/adminRoomsService");
@@ -134,7 +138,10 @@ async function start() {
   const authController = buildAuthController(authService);
   const authRouter = createAuthRouter(authController);
 
-  const adminAuth = requireAuth(config.auth);
+  const adminAuth = requireAuth(config.auth, { roles: ["admin"] });
+  const adminOrGameMasterAuth = requireAuth(config.auth, {
+    roles: ["admin", "game_master"],
+  });
 
   const adminRoomsConsumer = await initAdminRoomsConsumer();
   const adminRoomsService = buildAdminRoomsService(adminRoomsConsumer);
@@ -193,21 +200,40 @@ async function start() {
     adminCafeteriaProductsController
   );
 
+  const adminUsersConsumer = await initAdminUsersConsumer();
+  const adminUsersService = buildAdminUsersService(adminUsersConsumer);
+  const adminUsersController = buildAdminUsersController(adminUsersService);
+  const adminUsersRouter = createAdminUsersRouter(adminUsersController);
+
   app.use("/api/bookings", bookingsRouter);
   app.use("/api/rooms", roomsRouter);
   app.use("/api/rates", ratesRouter);
   app.use("/api/cafeteria/products", cafeteriaProductsRouter);
-  app.use("/api/users", usersRouter);
+  app.use("/api/users", adminAuth, usersRouter);
   app.use("/api/auth", authRouter);
-  app.use("/api/admin/rooms", adminAuth, adminRoomsRouter);
+  app.use(
+    "/api/admin/rooms",
+    (req, res, next) => {
+      if (req.method === "GET") {
+        return adminOrGameMasterAuth(req, res, next);
+      }
+      return adminAuth(req, res, next);
+    },
+    adminRoomsRouter
+  );
   app.use("/api/admin/rates", adminAuth, adminRatesRouter);
   app.use("/api/admin/opening-hours", adminAuth, adminOpeningHoursRouter);
   app.use("/api/admin/holidays", adminAuth, adminHolidaysRouter);
   app.use("/api/admin/settings", adminAuth, adminSettingsRouter);
-  app.use("/api/admin/reservations", adminAuth, adminReservationsRouter);
+  app.use(
+    "/api/admin/reservations",
+    adminOrGameMasterAuth,
+    adminReservationsRouter
+  );
+  app.use("/api/admin/users", adminAuth, adminUsersRouter);
   app.use(
     "/api/admin/cafeteria-products",
-    adminAuth,
+    adminOrGameMasterAuth,
     adminCafeteriaProductsRouter
   );
 

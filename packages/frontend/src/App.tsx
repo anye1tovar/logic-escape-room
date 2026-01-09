@@ -25,6 +25,7 @@ import AdminRooms from "./pages/Admin/Rooms/AdminRooms";
 import AdminSettings from "./pages/Admin/Settings/AdminSettings";
 import AdminReservations from "./pages/Admin/Reservations/AdminReservations";
 import AdminCafeteriaProducts from "./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts";
+import AdminUsers from "./pages/Admin/Users/AdminUsers";
 import theme from "./theme";
 
 const jugadoresImg = "/landing/jugadores.png";
@@ -72,10 +73,11 @@ function App() {
             <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
             <Route path="festivos" element={<AdminHolidays />} />
             <Route path="horarios" element={<AdminOpeningHours />} />
-            <Route path="salas" element={<AdminRooms />} />
-            <Route path="configuraciones" element={<AdminSettings />} />
-          </Route>
-        </Routes>
+          <Route path="salas" element={<AdminRooms />} />
+          <Route path="configuraciones" element={<AdminSettings />} />
+          <Route path="usuarios" element={<AdminUsers />} />
+        </Route>
+      </Routes>
       </BrowserRouter>
     </ThemeProvider>
   );

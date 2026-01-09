@@ -41,7 +41,6 @@ export default function AdminLogin() {
               <p className="admin-login__subtitle">
                 {t("admin.login.subtitle")}
               </p>
-              <p className="admin-login__meta">{t("admin.login.meta")}</p>
             </div>
           </header>
 
@@ -72,7 +71,10 @@ export default function AdminLogin() {
                     password: normalizedPass,
                   });
                   localStorage.setItem("adminToken", result.token);
-                  localStorage.setItem("adminUser", JSON.stringify(result.user));
+                  localStorage.setItem(
+                    "adminUser",
+                    JSON.stringify(result.user)
+                  );
                   setLoginState({
                     type: "success",
                     message: t("admin.login.success"),
@@ -91,9 +93,9 @@ export default function AdminLogin() {
                 value={username}
                 onChange={(event) => {
                   setUsername(event.target.value);
-                  if (loginState.type !== "idle") setLoginState({ type: "idle" });
+                  if (loginState.type !== "idle")
+                    setLoginState({ type: "idle" });
                 }}
-                placeholder={t("admin.login.placeholders.username")}
                 autoComplete="username"
                 size="small"
                 fullWidth
@@ -105,7 +107,8 @@ export default function AdminLogin() {
                 value={password}
                 onChange={(event) => {
                   setPassword(event.target.value);
-                  if (loginState.type !== "idle") setLoginState({ type: "idle" });
+                  if (loginState.type !== "idle")
+                    setLoginState({ type: "idle" });
                 }}
                 placeholder={t("admin.login.placeholders.password")}
                 autoComplete="current-password"

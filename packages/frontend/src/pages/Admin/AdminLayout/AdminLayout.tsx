@@ -6,19 +6,50 @@ import MenuIcon from "@mui/icons-material/Menu";
 import "./AdminLayout.scss";
 
 const navItems = [
-  { to: "/admin/dashboard/reservas", label: "Reservas" },
-  { to: "/admin/dashboard/cafeteria", label: "Cafeteria" },
-  { to: "/admin/dashboard/precios", label: "Precios Salas" },
-  { to: "/admin/dashboard/festivos", label: "Festivos" },
-  { to: "/admin/dashboard/horarios", label: "Horarios de apertura" },
-  { to: "/admin/dashboard/salas", label: "Salas" },
-  { to: "/admin/dashboard/configuraciones", label: "Configuraciones" },
+  {
+    to: "/admin/dashboard/reservas",
+    label: "Reservas",
+    roles: ["admin", "game_master"],
+  },
+  {
+    to: "/admin/dashboard/cafeteria",
+    label: "Cafeteria",
+    roles: ["admin", "game_master"],
+  },
+  { to: "/admin/dashboard/precios", label: "Precios Salas", roles: ["admin"] },
+  { to: "/admin/dashboard/festivos", label: "Festivos", roles: ["admin"] },
+  {
+    to: "/admin/dashboard/horarios",
+    label: "Horarios de apertura",
+    roles: ["admin"],
+  },
+  { to: "/admin/dashboard/salas", label: "Salas", roles: ["admin"] },
+  {
+    to: "/admin/dashboard/configuraciones",
+    label: "Configuraciones",
+    roles: ["admin"],
+  },
+  { to: "/admin/dashboard/usuarios", label: "Usuarios", roles: ["admin"] },
 ];
 
+type StoredUser = { role?: string };
+
+function getStoredAdminUser(): StoredUser | null {
+  const raw = localStorage.getItem("adminUser");
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as StoredUser;
+  } catch {
+    return null;
+  }
+}
+
 function SidebarInner({
+  items,
   onNavigate,
   onLogout,
 }: {
+  items: typeof navItems;
   onNavigate?: () => void;
   onLogout: () => void;
 }) {
@@ -26,7 +57,7 @@ function SidebarInner({
     <>
       <div className="admin-layout__brand">Logic Admin</div>
       <nav className="admin-layout__nav">
-        {navItems.map((item) => (
+        {items.map((item) => (
           <NavLink
             key={item.to}
             to={item.to}
@@ -60,11 +91,27 @@ export default function AdminLayout() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const adminUser = useMemo(() => getStoredAdminUser(), []);
+  const role = String(adminUser?.role || "admin").toLowerCase();
+  const allowedNavItems = useMemo(() => {
+    return navItems.filter((item) => item.roles.includes(role));
+  }, [role]);
 
   useEffect(() => {
     const token = localStorage.getItem("adminToken");
-    if (!token) navigate("/admin", { replace: true });
-  }, [navigate]);
+    if (!token || !adminUser) navigate("/admin", { replace: true });
+  }, [adminUser, navigate]);
+
+  useEffect(() => {
+    if (location.pathname === "/admin/dashboard") return;
+    if (allowedNavItems.length === 0) return;
+    const allowed = allowedNavItems.some((item) =>
+      location.pathname.startsWith(item.to)
+    );
+    if (!allowed) {
+      navigate(allowedNavItems[0].to, { replace: true });
+    }
+  }, [allowedNavItems, location.pathname, navigate]);
 
   useEffect(() => {
     setIsNavOpen(false);
@@ -82,7 +129,7 @@ export default function AdminLayout() {
     <div className="admin-layout">
       {!isMobile ? (
         <aside className="admin-layout__sidebar" aria-label="Admin navigation">
-          <SidebarInner onLogout={onLogout} />
+          <SidebarInner items={allowedNavItems} onLogout={onLogout} />
         </aside>
       ) : null}
 
@@ -94,6 +141,7 @@ export default function AdminLayout() {
         >
           <div className="admin-layout__drawer" aria-label="Admin navigation">
             <SidebarInner
+              items={allowedNavItems}
               onNavigate={() => setIsNavOpen(false)}
               onLogout={onLogout}
             />

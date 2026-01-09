@@ -45,7 +45,7 @@ function verifyToken(token, secret) {
   return payload;
 }
 
-function requireAuth(config) {
+function requireAuth(config, options) {
   return (req, res, next) => {
     const authHeader = req.headers.authorization || "";
     const match = String(authHeader).match(/^Bearer\s+(.+)$/i);
@@ -54,10 +54,17 @@ function requireAuth(config) {
     const payload = verifyToken(token, config?.secret);
     if (!payload) return res.status(401).json({ error: "Unauthorized" });
 
+    if (Array.isArray(options?.roles) && options.roles.length > 0) {
+      const role = String(payload.role || "").toLowerCase();
+      const allowed = options.roles.map((r) => String(r).toLowerCase());
+      if (!allowed.includes(role)) {
+        return res.status(403).json({ error: "Forbidden" });
+      }
+    }
+
     req.user = payload;
     next();
   };
 }
 
 module.exports = requireAuth;
-
