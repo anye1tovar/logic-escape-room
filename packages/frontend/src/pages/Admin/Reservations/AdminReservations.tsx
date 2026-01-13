@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -56,6 +57,30 @@ function fullName(r: ReservationRow) {
 
 type RoomRow = { id: number; name: string };
 
+type RoomChipStyle = { backgroundColor: string; color: string };
+
+const COLOMBIA_TIMEZONE = "America/Bogota";
+const COLOMBIA_OFFSET = "-05:00";
+
+const RoomEnum = {
+  Portal: 1,
+  Canibal: 2,
+  Manicomio: 3,
+} as const;
+
+function getRoomChipStyleById(roomId: number): RoomChipStyle {
+  switch (roomId) {
+    case RoomEnum.Canibal:
+      return { backgroundColor: "#f7b2b2", color: "#5c0f0f" };
+    case RoomEnum.Manicomio:
+      return { backgroundColor: "#dac8ff", color: "#3e225c" };
+    case RoomEnum.Portal:
+      return { backgroundColor: "#bfeecb", color: "#124b26" };
+    default:
+      return { backgroundColor: "#e5e7eb", color: "#111827" };
+  }
+}
+
 function parseRowDateTime(date: string, value: string) {
   const raw = String(value || "").trim();
   if (!raw) return null;
@@ -71,11 +96,94 @@ function parseRowDateTime(date: string, value: string) {
   return parsed.isValid() ? parsed : null;
 }
 
-function formatRowDateTime(r: ReservationRow) {
+function normalizeDatePart(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  return raw.includes("T") ? raw.split("T")[0] : raw;
+}
+
+function getColombiaTodayDateString() {
+  const formatter = new Intl.DateTimeFormat("es-CO", {
+    timeZone: COLOMBIA_TIMEZONE,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const parts = formatter.formatToParts(new Date());
+  const year = parts.find((p) => p.type === "year")?.value;
+  const month = parts.find((p) => p.type === "month")?.value;
+  const day = parts.find((p) => p.type === "day")?.value;
+  if (!year || !month || !day) return "";
+  return `${year}-${month}-${day}`;
+}
+
+function daysUntilColombia(date: string) {
+  const target = normalizeDatePart(date);
+  const today = getColombiaTodayDateString();
+  if (!target || !today) return null;
+
+  const [ty, tm, td] = target.split("-").map((part) => Number(part));
+  const [cy, cm, cd] = today.split("-").map((part) => Number(part));
+  if (
+    !Number.isFinite(ty) ||
+    !Number.isFinite(tm) ||
+    !Number.isFinite(td) ||
+    !Number.isFinite(cy) ||
+    !Number.isFinite(cm) ||
+    !Number.isFinite(cd)
+  )
+    return null;
+
+  const targetUtc = Date.UTC(ty, tm - 1, td);
+  const todayUtc = Date.UTC(cy, cm - 1, cd);
+  const diff = Math.round((targetUtc - todayUtc) / 86_400_000);
+  return Number.isFinite(diff) ? diff : null;
+}
+
+function formatDaysUntilColombia(date: string) {
+  const diff = daysUntilColombia(date);
+  if (diff == null) return "";
+  if (diff == 0) return "Hoy";
+  if (diff == 1) return "Mañana";
+  if (diff > 1) return `En ${diff} días`;
+  return `Hace ${Math.abs(diff)} días`;
+}
+
+function formatRowDate(r: ReservationRow) {
   const dt = parseRowDateTime(r.date, r.start_time);
-  if (dt) return dt.format("YYYY-MM-DD HH:mm");
+  if (dt) return dt.format("YYYY-MM-DD");
+  return String(r.date || "").trim();
+}
+
+function formatRowTime(r: ReservationRow) {
+  const dt = parseRowDateTime(r.date, r.start_time);
+  if (dt) return dt.format("HH:mm");
   const time = String(r.start_time || "").trim();
-  return `${String(r.date || "").trim()}${time ? ` ${time}` : ""}`.trim();
+  if (/^\d{2}:\d{2}$/.test(time)) return time;
+  return time;
+}
+
+function formatWeekdayColombia(date: string, value: string) {
+  const datePart = String(date || "").trim();
+  if (!datePart) return "";
+
+  const raw = String(value || "").trim();
+  const timePart = /^\d{2}:\d{2}$/.test(raw) ? `${raw}:00` : "";
+  const iso = raw.includes("T")
+    ? raw
+    : timePart
+    ? `${datePart}T${timePart}${COLOMBIA_OFFSET}`
+    : `${datePart}T12:00:00${COLOMBIA_OFFSET}`;
+
+  const parsed = new Date(iso);
+  if (Number.isNaN(parsed.getTime())) return "";
+
+  const weekday = new Intl.DateTimeFormat("es-CO", {
+    weekday: "long",
+    timeZone: COLOMBIA_TIMEZONE,
+  }).format(parsed);
+
+  return weekday ? `${weekday[0].toUpperCase()}${weekday.slice(1)}` : "";
 }
 
 type ReservationsPageResponse = {
@@ -276,7 +384,8 @@ export default function AdminReservations() {
     }
   }
 
-  const confirmDeleteRow = rows.find((row) => row.id === confirmDeleteId) || null;
+  const confirmDeleteRow =
+    rows.find((row) => row.id === confirmDeleteId) || null;
 
   return (
     <div className="admin-crud">
@@ -351,7 +460,9 @@ export default function AdminReservations() {
                 void load({
                   filters: {
                     dateFrom: filterDateFromString,
-                    ...(filterDateToString ? { dateTo: filterDateToString } : {}),
+                    ...(filterDateToString
+                      ? { dateTo: filterDateToString }
+                      : {}),
                     search: filterSearch.trim(),
                   },
                   page: 1,
@@ -413,12 +524,56 @@ export default function AdminReservations() {
                 <TableRow key={r.id} hover>
                   <TableCell>{r.id}</TableCell>
                   <TableCell>
-                    <Box sx={{ whiteSpace: "nowrap" }}>
-                      {formatRowDateTime(r)}
-                    </Box>
+                    {(() => {
+                      const dateLabel = formatRowDate(r);
+                      const timeLabel = formatRowTime(r);
+                      const weekday = formatWeekdayColombia(
+                        r.date,
+                        r.start_time
+                      );
+                      const relativeLabel = formatDaysUntilColombia(r.date);
+                      return (
+                        <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
+                          {dateLabel ? (
+                            <Chip label={dateLabel} size="small" />
+                          ) : null}
+                          <Stack direction="row" spacing={0.5}>
+                            {weekday ? (
+                              <Chip label={weekday} size="small" />
+                            ) : null}
+                            {timeLabel ? (
+                              <Chip label={timeLabel} size="small" />
+                            ) : null}
+                          </Stack>
+                          {relativeLabel ? (
+                            <Chip
+                              label={relativeLabel}
+                              size="small"
+                              variant="outlined"
+                              color={relativeLabel === "Hoy" ? "warning" : "info"}
+                            />
+                          ) : null}
+                        </Stack>
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
-                    {roomNameById.get(r.room_id) || `Sala #${r.room_id}`}
+                    {(() => {
+                      const roomName =
+                        roomNameById.get(r.room_id) || `Sala #${r.room_id}`;
+                      const chipStyle = getRoomChipStyleById(r.room_id);
+                      return (
+                        <Chip
+                          label={roomName}
+                          size="small"
+                          sx={{
+                            backgroundColor: chipStyle.backgroundColor,
+                            color: chipStyle.color,
+                            fontWeight: 600,
+                          }}
+                        />
+                      );
+                    })()}
                   </TableCell>
                   <TableCell>
                     <Stack spacing={1}>
@@ -543,6 +698,8 @@ export default function AdminReservations() {
                       size="small"
                       placeholder="nota..."
                       fullWidth
+                      multiline
+                      minRows={3}
                     />
                   </TableCell>
                   <TableCell>
