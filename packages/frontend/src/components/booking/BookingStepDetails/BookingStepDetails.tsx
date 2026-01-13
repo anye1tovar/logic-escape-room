@@ -379,6 +379,18 @@ export default function BookingStepDetails({
             sx={fieldSx}
           />
         </Box>
+        <p>
+          {t("booking.details.dataPolicy.prefix")}{" "}
+          <a
+            className="booking-form__link"
+            href="https://www.funcionpublica.gov.co/eva/gestornormativo/norma.php?i=49981"
+            target="_blank"
+            rel="noreferrer"
+          >
+            {t("booking.details.dataPolicy.linkLabel")}
+          </a>{" "}
+          {t("booking.details.dataPolicy.suffix")}
+        </p>
       </div>
 
       <footer className="booking-step__footer booking-step__footer--split">

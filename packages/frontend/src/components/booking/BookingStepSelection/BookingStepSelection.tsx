@@ -7,6 +7,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 import "dayjs/locale/en";
 import "dayjs/locale/es";
+import { Typography } from "@mui/material";
 
 const portalImg = "/rooms/portal.png";
 const canibalImg = "/rooms/canibal.png";
@@ -544,10 +545,8 @@ export default function BookingStepSelection({
                         />
                       </div>
                       <div className="booking-room-card__info">
-                        <div className="booking-room-card__name">
-                          {room.name}
-                        </div>
-                        <div className="booking-room-card__meta">
+                        <Typography variant="h6">{room.name}</Typography>
+                        <Typography variant="caption">
                           {room.durationMinutes}{" "}
                           {t("booking.common.minutesAbbr")} ·{" "}
                           {t("booking.selection.playersRange", {
@@ -555,7 +554,7 @@ export default function BookingStepSelection({
                             max: room.maxPlayers,
                           })}{" "}
                           · {difficultyLabel(room.difficulty, t)}
-                        </div>
+                        </Typography>
                       </div>
                     </button>
 

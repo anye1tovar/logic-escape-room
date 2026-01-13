@@ -18,8 +18,16 @@
     content: "";
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 20% 20%, rgba(239, 187, 61, 0.08), transparent 35%),
-      radial-gradient(circle at 80% 10%, rgba(203, 171, 255, 0.16), transparent 40%);
+    background: radial-gradient(
+        circle at 20% 20%,
+        rgba(239, 187, 61, 0.08),
+        transparent 35%
+      ),
+      radial-gradient(
+        circle at 80% 10%,
+        rgba(203, 171, 255, 0.16),
+        transparent 40%
+      );
     pointer-events: none;
     opacity: 0.9;
   }
@@ -29,7 +37,7 @@
     display: flex;
     gap: 0.25rem;
     color: $secondary-color;
-    font-size: 1.05rem;
+
     letter-spacing: 0.1em;
   }
 
@@ -45,7 +53,7 @@
     position: relative;
     margin: 0;
     font-family: "Indie Flower", "Comic Sans MS", "Segoe UI", cursive;
-    font-size: 1.05rem;
+
     line-height: 1.6;
     color: rgba(255, 255, 255, 0.95);
   }
@@ -111,6 +119,5 @@
   }
 
   .opinion-card__text {
-    font-size: 1rem;
   }
 }

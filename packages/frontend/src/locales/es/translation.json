@@ -217,7 +217,7 @@
     "address": "Cl. 32 #5-72 3 piso, Tunja, Boyacá",
     "phone": "3181278688",
     "email": "escaperoom.logic@gmail.com",
-    "note": "Escríbenos y reserva tu aventura"
+    "note": "Escríbenos si tienes dudas y reserva tu aventura"
   },
   "cafeteria": {
     "eyebrow": "Para compartir",
@@ -355,6 +355,11 @@
       "notes": {
         "title": "Notas",
         "placeholder": "Cumpleaños, accesibilidad, claustrofobia, etc."
+      },
+      "dataPolicy": {
+        "prefix": "Al continuar aceptas el tratamiento de datos bajo la",
+        "linkLabel": "Ley 1581 de 2012",
+        "suffix": "."
       },
       "validation": {
         "fullNameRequired": "El nombre completo es requerido.",

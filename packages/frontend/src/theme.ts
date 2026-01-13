@@ -66,7 +66,7 @@ const theme = createTheme({
     h6: {
       fontFamily: headingFamily,
       fontWeight: 400,
-      fontSize: "1.5rem",
+      fontSize: "1.8rem",
     },
   },
   components: {

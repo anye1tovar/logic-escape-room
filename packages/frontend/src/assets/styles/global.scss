@@ -14,7 +14,13 @@ body {
   -moz-osx-font-smoothing: grayscale;
   color: $text-light;
   background-color: $dark-bg;
-  font-size: 1.05rem;
+}
+
+@media (max-width: $tablet) {
+  body,
+  button {
+    font-size: calc(1.05rem + 2pt);
+  }
 }
 
 h1,

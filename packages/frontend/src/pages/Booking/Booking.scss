@@ -76,7 +76,7 @@
     flex-direction: column;
     gap: $spacing-sm;
     color: $text-light;
-    font-size: 1.05rem;
+
     line-height: 1.7;
   }
 
@@ -578,17 +578,6 @@
     align-content: center;
   }
 
-  .booking-room-card__name {
-    font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
-    font-size: 2rem;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-  }
-
-  .booking-room-card__meta {
-    opacity: 0.92;
-  }
-
   .booking-room-card__slots {
     padding: 0 $spacing-md $spacing-md;
   }
@@ -672,7 +661,7 @@
     border-radius: 12px;
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: $text-light;
-    font-weight: 800;
+    font-weight: 600;
     cursor: pointer;
     background: linear-gradient(135deg, $primary-color, $secondary-color);
     transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
@@ -968,10 +957,6 @@
     .booking-form__section {
       padding: $spacing-sm;
       gap: $spacing-sm;
-    }
-
-    .booking-form__section-title {
-      font-size: 1.4rem;
     }
 
     .booking-payment__list {

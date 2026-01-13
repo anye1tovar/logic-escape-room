@@ -116,8 +116,7 @@
     color: $text-dark;
     background: linear-gradient(135deg, $secondary-color, #f6d56b);
     box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
-    transition: transform 0.2s ease, box-shadow 0.2s ease,
-      filter 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
 
     &:hover {
       transform: translateY(-2px) scale(1.01);
@@ -218,7 +217,6 @@
   }
 
   &__card-text {
-    font-size: 1.05rem;
     line-height: 1.5;
     opacity: 0.9;
   }

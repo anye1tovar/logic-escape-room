@@ -363,11 +363,11 @@
         "hard": "Hard"
       }
     },
-    "details": {
-      "subtitle": "Tell us who's booking and how we can contact you.",
-      "fullName": {
-        "label": "Full name",
-        "placeholder": "Your first and last name"
+      "details": {
+        "subtitle": "Tell us who's booking and how we can contact you.",
+        "fullName": {
+          "label": "Full name",
+          "placeholder": "Your first and last name"
       },
       "phone": {
         "aria": "Contact number",
@@ -381,14 +381,19 @@
         "yes": "Yes",
         "no": "No"
       },
-      "notes": {
-        "title": "Notes",
-        "placeholder": "Birthday, accessibility needs, claustrophobia, etc."
-      },
-      "validation": {
-        "fullNameRequired": "Full name is required.",
-        "dialCodeRequired": "Dial code is required.",
-        "phoneDigitsOnly": "Phone number must contain only digits.",
+        "notes": {
+          "title": "Notes",
+          "placeholder": "Birthday, accessibility needs, claustrophobia, etc."
+        },
+        "dataPolicy": {
+          "prefix": "By continuing you accept the processing of personal data under",
+          "linkLabel": "Law 1581 of 2012",
+          "suffix": "."
+        },
+        "validation": {
+          "fullNameRequired": "Full name is required.",
+          "dialCodeRequired": "Dial code is required.",
+          "phoneDigitsOnly": "Phone number must contain only digits.",
         "phoneRequired": "Phone number is required.",
         "firstTimeRequired": "Select yes or no to continue."
       }
