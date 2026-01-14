@@ -61,7 +61,7 @@ async function listReservationsPage(input) {
   const limitIndex = params.length + 1;
   const offsetIndex = params.length + 2;
   const listSql =
-    `SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations${whereSql}` +
+    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations${whereSql}` +
     ` ORDER BY date ASC, start_time ASC, id ASC LIMIT $${limitIndex} OFFSET $${offsetIndex};`;
 
   const listResult = await db.query(listSql, [...params, safeSize, offset]);
@@ -76,7 +76,7 @@ async function listReservations(filters) {
     dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
   });
   let sql =
-    "SELECT id, room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations";
+    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations";
   if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
   sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 
@@ -91,21 +91,23 @@ async function updateReservation(id, payload) {
          date = $2,
          start_time = $3,
          end_time = $4,
-         consult_code = $5,
-         first_name = $6,
-         last_name = $7,
-         phone = $8,
-         players = $9,
-         notes = $10,
-         total = $11,
-         status = $12,
-         is_first_time = $13
-     WHERE id = $14;`,
+         actual_duration_ms = $5,
+         consult_code = $6,
+         first_name = $7,
+         last_name = $8,
+         phone = $9,
+         players = $10,
+         notes = $11,
+         total = $12,
+         status = $13,
+         is_first_time = $14
+     WHERE id = $15;`,
     [
       payload.roomId,
       payload.date,
       payload.startTime,
       payload.endTime,
+      payload.actualDurationMs,
       payload.consultCode,
       payload.firstName,
       payload.lastName,

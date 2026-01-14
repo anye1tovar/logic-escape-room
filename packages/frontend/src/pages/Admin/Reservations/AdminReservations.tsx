@@ -40,6 +40,7 @@ type ReservationRow = {
   date: string;
   start_time: string;
   end_time: string;
+  actual_duration_ms: number | null;
   consult_code: string | null;
   first_name: string;
   last_name: string;
@@ -186,6 +187,36 @@ function formatWeekdayColombia(date: string, value: string) {
   return weekday ? `${weekday[0].toUpperCase()}${weekday.slice(1)}` : "";
 }
 
+function formatDurationMs(value: number | null) {
+  if (value == null || !Number.isFinite(value)) return "";
+  const totalMs = Math.max(0, Math.trunc(value));
+  const totalSeconds = Math.floor(totalMs / 1000);
+  const minutes = Math.floor(totalSeconds / 60);
+  const seconds = totalSeconds % 60;
+  const centiseconds = Math.floor((totalMs % 1000) / 10);
+  const mm = String(minutes).padStart(2, "0");
+  const ss = String(seconds).padStart(2, "0");
+  const cs = String(centiseconds).padStart(2, "0");
+  return `${mm}:${ss}.${cs}`;
+}
+
+function parseDurationToMs(value: string) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const match = raw.match(/^(\d{1,4}):([0-5]\d)\.(\d{2})$/);
+  if (!match) return null;
+  const minutes = Number(match[1]);
+  const seconds = Number(match[2]);
+  const centiseconds = Number(match[3]);
+  if (
+    !Number.isFinite(minutes) ||
+    !Number.isFinite(seconds) ||
+    !Number.isFinite(centiseconds)
+  )
+    return null;
+  return minutes * 60_000 + seconds * 1000 + centiseconds * 10;
+}
+
 type ReservationsPageResponse = {
   filters: { dateFrom: string; dateTo?: string | null; search: string };
   records: ReservationRow[];
@@ -208,6 +239,12 @@ export default function AdminReservations() {
   const [pageSize, setPageSize] = useState(10);
   const [pageCount, setPageCount] = useState(1);
   const [totalRecords, setTotalRecords] = useState(0);
+  const [durationDrafts, setDurationDrafts] = useState<Record<number, string>>(
+    {}
+  );
+  const [durationErrors, setDurationErrors] = useState<Record<number, string>>(
+    {}
+  );
   const [status, setStatus] = useState<
     | { type: "idle" }
     | { type: "loading" }
@@ -323,6 +360,41 @@ export default function AdminReservations() {
       return;
     }
 
+    const draftValue = durationDrafts[row.id];
+    if (draftValue != null) {
+      const trimmed = draftValue.trim();
+      if (trimmed) {
+        const parsed = parseDurationToMs(trimmed);
+        if (parsed == null) {
+          setDurationErrors((prev) => ({
+            ...prev,
+            [row.id]: "Formato esperado: MM:SS.hh.",
+          }));
+          return;
+        }
+        setDurationErrors((prev) => {
+          if (!prev[row.id]) return prev;
+          const next = { ...prev };
+          delete next[row.id];
+          return next;
+        });
+        row.actual_duration_ms = parsed;
+      } else {
+        setDurationErrors((prev) => {
+          if (!prev[row.id]) return prev;
+          const next = { ...prev };
+          delete next[row.id];
+          return next;
+        });
+        row.actual_duration_ms = null;
+      }
+      setDurationDrafts((prev) => {
+        const next = { ...prev };
+        delete next[row.id];
+        return next;
+      });
+    }
+
     setStatus({ type: "loading" });
     try {
       await adminRequest(`/api/admin/reservations/${row.id}`, {
@@ -332,6 +404,7 @@ export default function AdminReservations() {
           date: row.date,
           startTime: row.start_time,
           endTime: row.end_time,
+          actualDurationMs: row.actual_duration_ms,
           consultCode: row.consult_code,
           firstName: row.first_name,
           lastName: row.last_name,
@@ -516,6 +589,16 @@ export default function AdminReservations() {
                 <TableCell sx={{ minWidth: 140 }}>Total</TableCell>
                 <TableCell sx={{ minWidth: 380 }}>Notas</TableCell>
                 <TableCell sx={{ minWidth: 170 }}>Estado</TableCell>
+                <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
+                  <a
+                    href="https://visualtimer.com/timers/multi-stopwatch/"
+                    target="_blank"
+                    rel="noreferrer"
+                    style={{ color: "#ffffff" }}
+                  >
+                    Tiempo (mm:ss.hh)
+                  </a>
+                </TableCell>
                 <TableCell sx={{ minWidth: 220 }}>Acciones</TableCell>
               </TableRow>
             </TableHead>
@@ -550,7 +633,9 @@ export default function AdminReservations() {
                               label={relativeLabel}
                               size="small"
                               variant="outlined"
-                              color={relativeLabel === "Hoy" ? "warning" : "info"}
+                              color={
+                                relativeLabel === "Hoy" ? "warning" : "info"
+                              }
                             />
                           ) : null}
                         </Stack>
@@ -723,6 +808,80 @@ export default function AdminReservations() {
                       <MenuItem value="CANCELLED">CANCELLED</MenuItem>
                     </Select>
                   </TableCell>
+                  <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
+                    <TextField
+                      value={
+                        durationDrafts[r.id] ??
+                        formatDurationMs(r.actual_duration_ms)
+                      }
+                      onChange={(e) => {
+                        setDurationDrafts((prev) => ({
+                          ...prev,
+                          [r.id]: e.target.value,
+                        }));
+                        setDurationErrors((prev) => {
+                          if (!prev[r.id]) return prev;
+                          const next = { ...prev };
+                          delete next[r.id];
+                          return next;
+                        });
+                      }}
+                      onBlur={(e) => {
+                        const trimmed = e.target.value.trim();
+                        if (!trimmed) {
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, actual_duration_ms: null }
+                                : x
+                            )
+                          );
+                          setDurationDrafts((prev) => {
+                            const next = { ...prev };
+                            delete next[r.id];
+                            return next;
+                          });
+                          setDurationErrors((prev) => {
+                            if (!prev[r.id]) return prev;
+                            const next = { ...prev };
+                            delete next[r.id];
+                            return next;
+                          });
+                          return;
+                        }
+                        const parsed = parseDurationToMs(trimmed);
+                        if (parsed == null) {
+                          setDurationErrors((prev) => ({
+                            ...prev,
+                            [r.id]: "Formato esperado: MM:SS.hh.",
+                          }));
+                          return;
+                        }
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? { ...x, actual_duration_ms: parsed }
+                              : x
+                          )
+                        );
+                        setDurationDrafts((prev) => {
+                          const next = { ...prev };
+                          delete next[r.id];
+                          return next;
+                        });
+                        setDurationErrors((prev) => {
+                          if (!prev[r.id]) return prev;
+                          const next = { ...prev };
+                          delete next[r.id];
+                          return next;
+                        });
+                      }}
+                      size="small"
+                      placeholder="00:00.00"
+                      error={Boolean(durationErrors[r.id])}
+                      helperText={durationErrors[r.id] || undefined}
+                    />
+                  </TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1}>
                       <Button
@@ -747,7 +906,7 @@ export default function AdminReservations() {
               ))}
               {totalRecords === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10}>Sin registros.</TableCell>
+                  <TableCell colSpan={11}>Sin registros.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

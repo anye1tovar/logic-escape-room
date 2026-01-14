@@ -55,6 +55,7 @@ async function initSchema() {
       date TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
+      actual_duration_ms INTEGER,
       consult_code TEXT,
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
@@ -65,6 +66,11 @@ async function initSchema() {
       status TEXT DEFAULT 'PENDING',
       is_first_time BOOLEAN NOT NULL DEFAULT FALSE
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS actual_duration_ms INTEGER;
   `);
 
   await pool.query(`

@@ -12,6 +12,13 @@ function buildAdminReservationsService(consumer) {
     return Math.min(Math.max(base, min), max);
   }
 
+  function normalizeOptionalPositiveInt(value, { min = 0, max = 1_000 } = {}) {
+    if (value == null || value === "") return null;
+    const parsed = normalizeInt(value);
+    if (!Number.isFinite(parsed)) return null;
+    return Math.min(Math.max(parsed, min), max);
+  }
+
   function normalizeText(value, { allowEmpty = true } = {}) {
     if (value == null) return allowEmpty ? "" : null;
     const text = String(value);
@@ -151,6 +158,10 @@ function buildAdminReservationsService(consumer) {
       date: normalizeDate(input?.date),
       startTime: normalizeTime(input?.startTime ?? input?.start_time),
       endTime: normalizeTime(input?.endTime ?? input?.end_time),
+      actualDurationMs: normalizeOptionalPositiveInt(
+        input?.actualDurationMs ?? input?.actual_duration_ms,
+        { min: 0, max: 86_400_000 }
+      ),
       consultCode: input?.consultCode != null ? String(input.consultCode) : null,
       firstName: normalizeText(input?.firstName ?? input?.first_name, { allowEmpty: true }),
       lastName: normalizeText(input?.lastName ?? input?.last_name, { allowEmpty: true }),
