@@ -14,14 +14,15 @@ type OpinionCardProps = {
   index?: number;
 };
 
-const DEFAULT_AVATAR = "/icons/nox-icon.png";
+const DEFAULT_AVATAR = "/icons/nox-icon.webp";
 
 const normalizeAvatar = (value?: string) => {
   const trimmed = (value || "").trim();
   if (!trimmed) return DEFAULT_AVATAR;
   if (trimmed.startsWith("//")) return `https:${trimmed}`;
   if (/^https?:\/\//i.test(trimmed)) return trimmed;
-  if (trimmed.startsWith("/")) return trimmed;
+  if (trimmed.startsWith("/"))
+    return trimmed.replace(/\.(png|jpe?g)$/i, ".webp");
   return DEFAULT_AVATAR;
 };
 
@@ -65,6 +66,7 @@ const OpinionCard = ({ opinion, index = 0 }: OpinionCardProps) => {
             src={avatarSrc}
             alt={`Foto de ${name}`}
             loading="lazy"
+            decoding="async"
             onError={(e) => {
               const target = e.currentTarget as HTMLImageElement;
               if (target.src.endsWith(DEFAULT_AVATAR)) return;

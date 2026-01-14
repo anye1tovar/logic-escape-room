@@ -15,7 +15,7 @@ const routeOptions: RouteOption[] = [
   { label: "Cafeteria", path: "/cafeteria" },
 ];
 
-const logoSrc = "/icons/nox-icon.png";
+const logoSrc = "/icons/nox-icon.webp";
 
 export default function Qr() {
   const containerRef = useRef<HTMLDivElement | null>(null);

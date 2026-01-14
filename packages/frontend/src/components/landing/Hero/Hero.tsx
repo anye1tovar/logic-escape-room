@@ -4,7 +4,7 @@ import "./Hero.scss";
 import { useNavigate } from "react-router-dom";
 
 const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
-const logicLogo = "/img/logic.png";
+const logicLogo = "/img/logic.webp";
 
 const statsValues = [
   { labelKey: "hero.stats.teams", value: "+1564" },
@@ -43,6 +43,8 @@ const Hero = () => {
             src={logicLogo}
             alt="Logic Escape Room"
             className="hero__logo"
+            loading="lazy"
+            decoding="async"
             initial={{ y: 24, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ duration: 1, ease: "easeOut", delay: 0.55 }}

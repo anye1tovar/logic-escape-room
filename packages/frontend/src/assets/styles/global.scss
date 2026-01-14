@@ -42,3 +42,18 @@ h2 {
 #root {
   min-height: 100vh;
 }
+
+.app-loading,
+.section-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 40vh;
+  color: $text-light;
+  font-size: 1rem;
+  letter-spacing: 0.04em;
+}
+
+.section-loading {
+  min-height: 220px;
+}

@@ -5,9 +5,9 @@ import { useTranslation } from "react-i18next";
 import { fetchRooms } from "../../../api/rooms";
 import "./Rooms.scss";
 
-const portalImg = "/rooms/portal.png";
-const canibalImg = "/rooms/canibal.png";
-const manicomioImg = "/rooms/manicomio.png";
+const portalImg = "/rooms/portal.webp";
+const canibalImg = "/rooms/canibal.webp";
+const manicomioImg = "/rooms/manicomio.webp";
 
 type ApiRoom = {
   id?: string | number;
@@ -50,12 +50,15 @@ const fallbackImages: Record<string, string> = {
   manicomio: manicomioImg,
 };
 
+const toWebpIfLocal = (value: string) =>
+  value.replace(/\.(png|jpe?g)$/i, ".webp");
+
 const normalizeCoverImage = (value: string | undefined, slug: string) => {
   if (!value) return fallbackImages[slug];
   if (/^https?:\/\//i.test(value)) return value;
-  if (value.startsWith("/")) return value;
+  if (value.startsWith("/")) return toWebpIfLocal(value);
   const filename = value.split("/").pop();
-  return filename ? `/rooms/${filename}` : fallbackImages[slug];
+  return filename ? toWebpIfLocal(`/rooms/${filename}`) : fallbackImages[slug];
 };
 
 const normalizeName = (value: string) =>
@@ -277,7 +280,12 @@ const Rooms = () => {
           >
             <div className="room-card__poster">
               {room.coverImage ? (
-                <img src={room.coverImage} alt={room.name} />
+                <img
+                  src={room.coverImage}
+                  alt={room.name}
+                  loading="lazy"
+                  decoding="async"
+                />
               ) : (
                 <div className="room-card__placeholder">
                   <span>{room.name}</span>

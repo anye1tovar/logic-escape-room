@@ -15,7 +15,7 @@ type SocialItem = {
   icon?: string;
 };
 
-const logicLogo = "/img/logic.png";
+const logicLogo = "/img/logic.webp";
 
 const Footer = () => {
   const { t } = useTranslation();
@@ -55,6 +55,8 @@ const Footer = () => {
               src={logicLogo}
               alt="Logo Logic Escape Room"
               className="footer__logo"
+              loading="lazy"
+              decoding="async"
             />
             <a
               className="footer__cta"

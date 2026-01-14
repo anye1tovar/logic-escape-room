@@ -31,6 +31,11 @@ function isImageUrl(value: string) {
   );
 }
 
+function toWebpIfLocal(value: string) {
+  if (/^https?:\/\//i.test(value)) return value;
+  return value.replace(/\.(png|jpe?g)$/i, ".webp");
+}
+
 function joinUrl(base: string, path: string) {
   const cleanBase = base.replace(/\/+$/, "");
   const cleanPath = path.replace(/^\/+/, "");
@@ -240,11 +245,14 @@ export default function CafeteriaMenu() {
                           <img
                             src={
                               isImageUrl(item.image)
-                                ? item.image
-                                : joinUrl(imagesBaseUrl, item.image)
+                                ? toWebpIfLocal(item.image)
+                                : toWebpIfLocal(
+                                    joinUrl(imagesBaseUrl, item.image)
+                                  )
                             }
                             alt={item.name}
                             loading="lazy"
+                            decoding="async"
                             onError={(e) => {
                               (
                                 e.currentTarget as HTMLImageElement

@@ -2,7 +2,7 @@ import { Box, Grid, Typography } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import "./About.scss";
 
-const noxImage = "/img/nox-complete.png";
+const noxImage = "/img/nox-complete.webp";
 
 const About = () => {
   const { t } = useTranslation();
@@ -46,6 +46,8 @@ const About = () => {
                 src={noxImage}
                 alt="Nox, mascota de Logic Escape Room"
                 className="about__image"
+                loading="lazy"
+                decoding="async"
               />
             </Box>
           </Grid>

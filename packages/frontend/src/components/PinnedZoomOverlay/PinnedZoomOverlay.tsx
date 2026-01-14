@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useRef } from "react";
+import React, { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { motion, useScroll, useSpring, useTransform } from "framer-motion";
 import "./PinnedZoomOverlay.scss";
 
@@ -14,6 +14,29 @@ export default function PinZoomOverlay({
   // Este spacer controla el zoom. El overlay NO necesita animación: sube por el scroll natural.
   const spacerRef = useRef<HTMLDivElement | null>(null);
   const sectionRef = useRef<HTMLElement | null>(null);
+  const [shouldLoadImage, setShouldLoadImage] = useState(false);
+
+  useEffect(() => {
+    const sectionEl = sectionRef.current;
+    if (!sectionEl) return undefined;
+
+    if (!("IntersectionObserver" in window)) {
+      setShouldLoadImage(true);
+      return undefined;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries[0]?.isIntersecting) return;
+        setShouldLoadImage(true);
+        observer.disconnect();
+      },
+      { rootMargin: "220px 0px" }
+    );
+
+    observer.observe(sectionEl);
+    return () => observer.disconnect();
+  }, []);
 
   useLayoutEffect(() => {
     const sectionEl = sectionRef.current;
@@ -81,7 +104,7 @@ export default function PinZoomOverlay({
           style={{
             scale,
             y,
-            backgroundImage: `url(${imageUrl})`,
+            backgroundImage: shouldLoadImage ? `url(${imageUrl})` : "none",
           }}
           aria-hidden="true"
         />

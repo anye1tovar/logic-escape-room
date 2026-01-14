@@ -15,7 +15,7 @@ const BREB_KEY = "@PLATA3123715177";
 const DEPOSIT_AMOUNT_COP = 50000;
 const WHATSAPP_NUMBER = "3181278688";
 const WHATSAPP_BASE_URL = "https://wa.me/573181278688";
-const brebQrImg = "/img/bre-b-qr.jpg";
+const brebQrImg = "/img/bre-b-qr.webp";
 
 function formatTime(value: string) {
   const match = String(value).match(/T(\d{2}):(\d{2})/);
@@ -210,6 +210,8 @@ export default function BookingStepPayment({
             className="booking-qr-dialog__img"
             src={brebQrImg}
             alt={t("booking.payment.qrDialog.imageAlt")}
+            loading="lazy"
+            decoding="async"
           />
           <p className="booking-form__hint booking-qr-dialog__hint">
             {t("booking.payment.qrDialog.fallbackKey", { key: BREB_KEY })}

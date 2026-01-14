@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Header.scss";
 
-const logicLogo = "/img/logic.png";
+const logicLogo = "/img/logic.webp";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -104,6 +104,8 @@ const Header = () => {
               src={logicLogo}
               alt="Logic Escape Room"
               className="header__logo-image"
+              loading="lazy"
+              decoding="async"
             />
           </a>
         </motion.div>

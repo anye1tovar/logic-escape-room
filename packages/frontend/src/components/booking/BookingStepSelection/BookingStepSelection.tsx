@@ -9,9 +9,9 @@ import "dayjs/locale/en";
 import "dayjs/locale/es";
 import { Typography } from "@mui/material";
 
-const portalImg = "/rooms/portal.png";
-const canibalImg = "/rooms/canibal.png";
-const manicomioImg = "/rooms/manicomio.png";
+const portalImg = "/rooms/portal.webp";
+const canibalImg = "/rooms/canibal.webp";
+const manicomioImg = "/rooms/manicomio.webp";
 
 type AvailabilitySlot = {
   start: string;
@@ -542,6 +542,7 @@ export default function BookingStepSelection({
                           src={roomImage(room.roomId)}
                           alt={room.name}
                           loading="lazy"
+                          decoding="async"
                         />
                       </div>
                       <div className="booking-room-card__info">
