@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { Fragment, useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
@@ -35,7 +35,8 @@ import { useTranslation } from "react-i18next";
 import "dayjs/locale/en";
 import "dayjs/locale/es";
 import "../adminCrud.scss";
-import EditIcon from "@mui/icons-material/Edit";
+import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 
 type ReservationRow = {
   id: number;
@@ -134,29 +135,6 @@ function formatDaysUntilColombia(date: string) {
   return `Hace ${Math.abs(diff)} días`;
 }
 
-function formatRowDate(r: ReservationRow) {
-  const dt = parseRowDateTime(r.date, r.start_time);
-  if (dt) return dt.format("YYYY-MM-DD");
-  return String(r.date || "").trim();
-}
-
-function formatRowTime(r: ReservationRow) {
-  const dt = parseRowDateTime(r.date, r.start_time);
-  if (dt) return dt.format("HH:mm");
-  const time = String(r.start_time || "").trim();
-  if (/^\d{2}:\d{2}$/.test(time)) return time;
-  return time;
-}
-
-function getDurationMinutesFromRow(r: ReservationRow) {
-  const start = parseRowDateTime(r.date, r.start_time);
-  const end = parseRowDateTime(r.date, r.end_time);
-  if (!start || !end) return 90;
-  const diff = end.diff(start, "minute");
-  if (!Number.isFinite(diff) || diff <= 0 || diff > 24 * 60) return 90;
-  return diff;
-}
-
 function formatWeekdayColombia(date: string, value: string) {
   const datePart = String(date || "").trim();
   if (!datePart) return "";
@@ -238,9 +216,6 @@ export default function AdminReservations() {
   const [durationErrors, setDurationErrors] = useState<Record<number, string>>(
     {}
   );
-  const [dateEditRow, setDateEditRow] = useState<ReservationRow | null>(null);
-  const [dateEditValue, setDateEditValue] = useState<Dayjs | null>(null);
-  const [dateEditError, setDateEditError] = useState<string | null>(null);
   const [status, setStatus] = useState<
     | { type: "idle" }
     | { type: "loading" }
@@ -248,6 +223,10 @@ export default function AdminReservations() {
     | { type: "success"; message: string }
   >({ type: "loading" });
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
+  const [rowError, setRowError] = useState<{
+    id: number;
+    message: string;
+  } | null>(null);
 
   const pickerLocale = useMemo(() => {
     const lang = i18n.language || "es";
@@ -319,6 +298,18 @@ export default function AdminReservations() {
     }
   }
 
+  async function reloadCurrentPage() {
+    await load({
+      filters: {
+        dateFrom: filterDateFromString,
+        ...(filterDateToString ? { dateTo: filterDateToString } : {}),
+        search: filterSearch.trim(),
+      },
+      page,
+      pageSize,
+    });
+  }
+
   async function loadRooms() {
     try {
       const data = await adminRequest<Array<{ id: number; name: string }>>(
@@ -339,17 +330,30 @@ export default function AdminReservations() {
     void loadRooms();
   }, []);
 
+  useEffect(() => {
+    if (!rowError) return;
+    const timer = setTimeout(() => setRowError(null), 5000);
+    return () => clearTimeout(timer);
+  }, [rowError]);
+
   async function save(row: ReservationRow) {
     if (!Number.isFinite(Number(row.room_id)) || Number(row.room_id) <= 0) {
       setStatus({ type: "error", message: "Sala (roomId) es requerida." });
-      return;
+      setRowError({ id: row.id, message: "Sala (roomId) es requerida." });
+      await reloadCurrentPage();
+      return { ok: false, message: "Sala (roomId) es requerida." };
     }
     if (!Number.isFinite(Number(row.players)) || Number(row.players) <= 0) {
       setStatus({
         type: "error",
-        message: "Jugadores debe ser un número válido.",
+        message: "Jugadores debe ser un numero valido.",
       });
-      return;
+      setRowError({
+        id: row.id,
+        message: "Jugadores debe ser un numero valido.",
+      });
+      await reloadCurrentPage();
+      return { ok: false, message: "Jugadores debe ser un numero valido." };
     }
 
     const draftValue = durationDrafts[row.id];
@@ -362,7 +366,9 @@ export default function AdminReservations() {
             ...prev,
             [row.id]: "Formato esperado: MM:SS.hh.",
           }));
-          return;
+          setRowError({ id: row.id, message: "Formato esperado: MM:SS.hh." });
+          await reloadCurrentPage();
+          return { ok: false, message: "Formato esperado: MM:SS.hh." };
         }
         setDurationErrors((prev) => {
           if (!prev[row.id]) return prev;
@@ -421,12 +427,18 @@ export default function AdminReservations() {
         page,
         pageSize,
       });
+      if (rowError?.id === row.id) setRowError(null);
+      return { ok: true };
     } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo guardar la reserva.";
       setStatus({
         type: "error",
-        message:
-          err instanceof Error ? err.message : "No se pudo guardar la reserva.",
+        message,
       });
+      setRowError({ id: row.id, message });
+      await reloadCurrentPage();
+      return { ok: false, message };
     }
   }
 
@@ -451,7 +463,13 @@ export default function AdminReservations() {
 
   const confirmDeleteRow =
     rows.find((row) => row.id === confirmDeleteId) || null;
-  const isDateDialogOpen = Boolean(dateEditRow);
+
+  const actionsCellSx = {
+    position: "sticky" as const,
+    right: 0,
+    backgroundColor: "rgba(17,24,39,0.98)",
+    zIndex: 1,
+  };
 
   return (
     <div className="admin-crud">
@@ -559,9 +577,6 @@ export default function AdminReservations() {
             </Button>
           </Stack>
 
-          {status.type === "error" ? (
-            <Alert severity="error">{status.message}</Alert>
-          ) : null}
           {status.type === "success" ? (
             <Alert severity="success">{status.message}</Alert>
           ) : null}
@@ -592,259 +607,311 @@ export default function AdminReservations() {
                     Tiempo (mm:ss.hh)
                   </a>
                 </TableCell>
-                <TableCell sx={{ minWidth: 220 }}>Acciones</TableCell>
+                <TableCell sx={{ minWidth: 120, ...actionsCellSx }}>
+                  Acciones
+                </TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {rows.map((r) => (
-                <TableRow key={r.id} hover>
-                  <TableCell>{r.id}</TableCell>
-                  <TableCell>
-                    {(() => {
-                      const dateLabel = formatRowDate(r);
-                      const timeLabel = formatRowTime(r);
-                      const weekday = formatWeekdayColombia(
-                        r.date,
-                        r.start_time
-                      );
-                      const relativeLabel = formatDaysUntilColombia(r.date);
-                      return (
-                        <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
-                          <Stack direction="row" spacing={1} alignItems="center">
-                            {dateLabel ? (
-                              <Chip label={dateLabel} size="small" />
-                            ) : null}
-                            <IconButton
-                              size="small"
-                              onClick={() => {
-                                setDateEditRow(r);
-                                setDateEditValue(
-                                  parseRowDateTime(r.date, r.start_time)
-                                );
-                                setDateEditError(null);
-                              }}
-                              aria-label="Editar fecha y hora"
+                <Fragment key={r.id}>
+                  <TableRow
+                    hover
+                    sx={
+                      rowError?.id === r.id
+                        ? { backgroundColor: "rgba(239, 68, 68, 0.15)" }
+                        : undefined
+                    }
+                  >
+                    <TableCell>{r.id}</TableCell>
+                    <TableCell>
+                      {(() => {
+                        const weekday = formatWeekdayColombia(
+                          r.date,
+                          r.start_time
+                        );
+                        const relativeLabel = formatDaysUntilColombia(r.date);
+                        return (
+                          <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
+                            <LocalizationProvider
+                              dateAdapter={AdapterDayjs}
+                              adapterLocale={pickerLocale}
+                              localeText={pickerLocaleText}
                             >
-                              <EditIcon fontSize="small" />
-                            </IconButton>
+                              <DateTimePicker
+                                value={parseRowDateTime(r.date, r.start_time)}
+                                onChange={(value) => {
+                                  if (!value || !value.isValid()) return;
+                                  const nextDate = value.format("YYYY-MM-DD");
+                                  const nextTime = value.format("HH:mm");
+                                  setRows((prev) =>
+                                    prev.map((x) =>
+                                      x.id === r.id
+                                        ? {
+                                            ...x,
+                                            date: nextDate,
+                                            start_time: nextTime,
+                                            end_time: "",
+                                          }
+                                        : x
+                                    )
+                                  );
+                                }}
+                                format="YYYY-MM-DD HH:mm"
+                                slotProps={{
+                                  textField: {
+                                    size: "small",
+                                    fullWidth: true,
+                                    placeholder: "2026-01-05 19:00",
+                                  },
+                                }}
+                              />
+                            </LocalizationProvider>
+                            <Stack flexDirection={"row"} gap={1}>
+                              {weekday ? (
+                                <Chip label={weekday} size="small" />
+                              ) : null}
+                              {relativeLabel ? (
+                                <Chip
+                                  label={relativeLabel}
+                                  size="small"
+                                  variant="outlined"
+                                  color={
+                                    relativeLabel === "Hoy" ? "warning" : "info"
+                                  }
+                                />
+                              ) : null}
+                            </Stack>
                           </Stack>
-                          <Stack direction="row" spacing={0.5}>
-                            {weekday ? (
-                              <Chip label={weekday} size="small" />
-                            ) : null}
-                            {timeLabel ? (
-                              <Chip label={timeLabel} size="small" />
-                            ) : null}
-                          </Stack>
-                          {relativeLabel ? (
-                            <Chip
-                              label={relativeLabel}
-                              size="small"
-                              variant="outlined"
-                              color={
-                                relativeLabel === "Hoy" ? "warning" : "info"
-                              }
-                            />
-                          ) : null}
-                        </Stack>
-                      );
-                    })()}
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={r.room_id}
-                      onChange={(e) =>
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? { ...x, room_id: Number(e.target.value) }
-                              : x
-                          )
-                        )
-                      }
-                      size="small"
-                      fullWidth
-                    >
-                      {rooms.map((room) => (
-                        <MenuItem key={room.id} value={room.id}>
-                          {room.name || `Room #${room.id}`}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </TableCell>
-                  <TableCell>
-                    <Stack spacing={1}>
-                      <TextField
-                        value={r.first_name}
+                        );
+                      })()}
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={r.room_id}
                         onChange={(e) =>
                           setRows((prev) =>
                             prev.map((x) =>
                               x.id === r.id
-                                ? { ...x, first_name: e.target.value }
+                                ? { ...x, room_id: Number(e.target.value) }
                                 : x
                             )
                           )
                         }
                         size="small"
-                        placeholder="Nombre"
-                      />
+                        fullWidth
+                      >
+                        {rooms.map((room) => (
+                          <MenuItem key={room.id} value={room.id}>
+                            {room.name || `Room #${room.id}`}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </TableCell>
+                    <TableCell>
+                      <Stack spacing={1}>
+                        <TextField
+                          value={r.first_name}
+                          onChange={(e) =>
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, first_name: e.target.value }
+                                  : x
+                              )
+                            )
+                          }
+                          size="small"
+                          placeholder="Nombre"
+                        />
+                        <TextField
+                          value={r.last_name}
+                          onChange={(e) =>
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, last_name: e.target.value }
+                                  : x
+                              )
+                            )
+                          }
+                          size="small"
+                          placeholder="Apellido"
+                        />
+                        {r.consult_code ? (
+                          <Box sx={{ opacity: 0.75, fontSize: "0.95rem" }}>
+                            {r.consult_code}
+                          </Box>
+                        ) : null}
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
+                      <Stack spacing={1}>
+                        <TextField
+                          value={r.phone ?? ""}
+                          onChange={(e) =>
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, phone: e.target.value || null }
+                                  : x
+                              )
+                            )
+                          }
+                          size="small"
+                          placeholder="teléfono"
+                        />
+                      </Stack>
+                    </TableCell>
+                    <TableCell>
                       <TextField
-                        value={r.last_name}
+                        value={String(r.players)}
                         onChange={(e) =>
                           setRows((prev) =>
                             prev.map((x) =>
                               x.id === r.id
-                                ? { ...x, last_name: e.target.value }
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        placeholder="Apellido"
-                      />
-                      {r.consult_code ? (
-                        <Box sx={{ opacity: 0.75, fontSize: "0.95rem" }}>
-                          {r.consult_code}
-                        </Box>
-                      ) : null}
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <Stack spacing={1}>
-                      <TextField
-                        value={r.phone ?? ""}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? { ...x, phone: e.target.value || null }
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        placeholder="teléfono"
-                      />
-                    </Stack>
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={String(r.players)}
-                      onChange={(e) =>
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? (() => {
-                                  const raw = e.target.value;
-                                  const trimmed = raw.trim();
-                                  if (!trimmed) return x;
-                                  const parsed = Number(trimmed);
-                                  if (!Number.isFinite(parsed)) return x;
-                                  return { ...x, players: Math.trunc(parsed) };
-                                })()
-                              : x
-                          )
-                        )
-                      }
-                      size="small"
-                      type="number"
-                      inputProps={{ min: 1, step: 1, inputMode: "numeric" }}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={r.total == null ? "" : String(r.total)}
-                      onChange={(e) =>
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? {
-                                  ...x,
-                                  total: (() => {
+                                ? (() => {
                                     const raw = e.target.value;
                                     const trimmed = raw.trim();
-                                    if (!trimmed) return null;
+                                    if (!trimmed) return x;
                                     const parsed = Number(trimmed);
-                                    if (!Number.isFinite(parsed))
-                                      return x.total;
-                                    return Math.trunc(parsed);
-                                  })(),
-                                }
-                              : x
+                                    if (!Number.isFinite(parsed)) return x;
+                                    return {
+                                      ...x,
+                                      players: Math.trunc(parsed),
+                                    };
+                                  })()
+                                : x
+                            )
                           )
-                        )
-                      }
-                      size="small"
-                      type="number"
-                      inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
-                      placeholder="COP"
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <TextField
-                      value={r.notes ?? ""}
-                      onChange={(e) =>
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? { ...x, notes: e.target.value || null }
-                              : x
-                          )
-                        )
-                      }
-                      size="small"
-                      placeholder="nota..."
-                      fullWidth
-                      multiline
-                      minRows={3}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Select
-                      value={r.status}
-                      onChange={(e) =>
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? { ...x, status: String(e.target.value) }
-                              : x
-                          )
-                        )
-                      }
-                      size="small"
-                      fullWidth
-                    >
-                      <MenuItem value="PENDING">PENDING</MenuItem>
-                      <MenuItem value="CONFIRMED">CONFIRMED</MenuItem>
-                      <MenuItem value="COMPLETED">COMPLETED</MenuItem>
-                      <MenuItem value="CANCELLED">CANCELLED</MenuItem>
-                    </Select>
-                  </TableCell>
-                  <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
-                    <TextField
-                      value={
-                        durationDrafts[r.id] ??
-                        formatDurationMs(r.actual_duration_ms)
-                      }
-                      onChange={(e) => {
-                        setDurationDrafts((prev) => ({
-                          ...prev,
-                          [r.id]: e.target.value,
-                        }));
-                        setDurationErrors((prev) => {
-                          if (!prev[r.id]) return prev;
-                          const next = { ...prev };
-                          delete next[r.id];
-                          return next;
-                        });
-                      }}
-                      onBlur={(e) => {
-                        const trimmed = e.target.value.trim();
-                        if (!trimmed) {
+                        }
+                        size="small"
+                        type="number"
+                        inputProps={{ min: 1, step: 1, inputMode: "numeric" }}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={r.total == null ? "" : String(r.total)}
+                        onChange={(e) =>
                           setRows((prev) =>
                             prev.map((x) =>
                               x.id === r.id
-                                ? { ...x, actual_duration_ms: null }
+                                ? {
+                                    ...x,
+                                    total: (() => {
+                                      const raw = e.target.value;
+                                      const trimmed = raw.trim();
+                                      if (!trimmed) return null;
+                                      const parsed = Number(trimmed);
+                                      if (!Number.isFinite(parsed))
+                                        return x.total;
+                                      return Math.trunc(parsed);
+                                    })(),
+                                  }
+                                : x
+                            )
+                          )
+                        }
+                        size="small"
+                        type="number"
+                        inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
+                        placeholder="COP"
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <TextField
+                        value={r.notes ?? ""}
+                        onChange={(e) =>
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, notes: e.target.value || null }
+                                : x
+                            )
+                          )
+                        }
+                        size="small"
+                        placeholder="nota..."
+                        fullWidth
+                        multiline
+                        minRows={3}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      <Select
+                        value={r.status}
+                        onChange={(e) =>
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, status: String(e.target.value) }
+                                : x
+                            )
+                          )
+                        }
+                        size="small"
+                        fullWidth
+                      >
+                        <MenuItem value="PENDING">PENDING</MenuItem>
+                        <MenuItem value="CONFIRMED">CONFIRMED</MenuItem>
+                        <MenuItem value="COMPLETED">COMPLETED</MenuItem>
+                        <MenuItem value="CANCELLED">CANCELLED</MenuItem>
+                      </Select>
+                    </TableCell>
+                    <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
+                      <TextField
+                        value={
+                          durationDrafts[r.id] ??
+                          formatDurationMs(r.actual_duration_ms)
+                        }
+                        onChange={(e) => {
+                          setDurationDrafts((prev) => ({
+                            ...prev,
+                            [r.id]: e.target.value,
+                          }));
+                          setDurationErrors((prev) => {
+                            if (!prev[r.id]) return prev;
+                            const next = { ...prev };
+                            delete next[r.id];
+                            return next;
+                          });
+                        }}
+                        onBlur={(e) => {
+                          const trimmed = e.target.value.trim();
+                          if (!trimmed) {
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, actual_duration_ms: null }
+                                  : x
+                              )
+                            );
+                            setDurationDrafts((prev) => {
+                              const next = { ...prev };
+                              delete next[r.id];
+                              return next;
+                            });
+                            setDurationErrors((prev) => {
+                              if (!prev[r.id]) return prev;
+                              const next = { ...prev };
+                              delete next[r.id];
+                              return next;
+                            });
+                            return;
+                          }
+                          const parsed = parseDurationToMs(trimmed);
+                          if (parsed == null) {
+                            setDurationErrors((prev) => ({
+                              ...prev,
+                              [r.id]: "Formato esperado: MM:SS.hh.",
+                            }));
+                            return;
+                          }
+                          setRows((prev) =>
+                            prev.map((x) =>
+                              x.id === r.id
+                                ? { ...x, actual_duration_ms: parsed }
                                 : x
                             )
                           );
@@ -859,62 +926,64 @@ export default function AdminReservations() {
                             delete next[r.id];
                             return next;
                           });
-                          return;
-                        }
-                        const parsed = parseDurationToMs(trimmed);
-                        if (parsed == null) {
-                          setDurationErrors((prev) => ({
-                            ...prev,
-                            [r.id]: "Formato esperado: MM:SS.hh.",
-                          }));
-                          return;
-                        }
-                        setRows((prev) =>
-                          prev.map((x) =>
-                            x.id === r.id
-                              ? { ...x, actual_duration_ms: parsed }
-                              : x
-                          )
-                        );
-                        setDurationDrafts((prev) => {
-                          const next = { ...prev };
-                          delete next[r.id];
-                          return next;
-                        });
-                        setDurationErrors((prev) => {
-                          if (!prev[r.id]) return prev;
-                          const next = { ...prev };
-                          delete next[r.id];
-                          return next;
-                        });
+                        }}
+                        size="small"
+                        placeholder="00:00.00"
+                        error={Boolean(durationErrors[r.id])}
+                        helperText={durationErrors[r.id] || undefined}
+                      />
+                    </TableCell>
+                    <TableCell
+                      sx={{
+                        ...actionsCellSx,
+                        ...(rowError?.id === r.id
+                          ? { backgroundColor: "rgba(127, 29, 29, 0.4)" }
+                          : {}),
                       }}
-                      size="small"
-                      placeholder="00:00.00"
-                      error={Boolean(durationErrors[r.id])}
-                      helperText={durationErrors[r.id] || undefined}
-                    />
-                  </TableCell>
-                  <TableCell>
-                    <Stack direction="row" spacing={1}>
-                      <Button
-                        variant="contained"
-                        onClick={() => void save(r)}
-                        disabled={status.type === "loading"}
+                    >
+                      <Stack direction="row" spacing={1}>
+                        <IconButton
+                          onClick={() => void save(r)}
+                          disabled={status.type === "loading"}
+                          aria-label="Guardar"
+                          title="Guardar"
+                          color="primary"
+                        >
+                          <SaveOutlinedIcon />
+                        </IconButton>
+                        <IconButton
+                          onClick={() => setConfirmDeleteId(r.id)}
+                          disabled={status.type === "loading"}
+                          aria-label="Eliminar"
+                          title={fullName(r)}
+                          color="error"
+                        >
+                          <DeleteOutlineIcon />
+                        </IconButton>
+                      </Stack>
+                    </TableCell>
+                  </TableRow>
+                  {rowError?.id === r.id ? (
+                    <TableRow>
+                      <TableCell
+                        colSpan={11}
+                        sx={{ backgroundColor: "rgba(239, 68, 68, 0.12)" }}
                       >
-                        Guardar
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        color="error"
-                        onClick={() => setConfirmDeleteId(r.id)}
-                        disabled={status.type === "loading"}
-                        title={fullName(r)}
-                      >
-                        Eliminar
-                      </Button>
-                    </Stack>
-                  </TableCell>
-                </TableRow>
+                        <Typography
+                          variant="body2"
+                          sx={{
+                            color: "#b91c1c",
+                            whiteSpace: "normal",
+                            wordBreak: "break-word",
+                            fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                          }}
+                        >
+                          {rowError.message}
+                        </Typography>
+                      </TableCell>
+                    </TableRow>
+                  ) : null}
+                </Fragment>
               ))}
               {totalRecords === 0 ? (
                 <TableRow>
@@ -1026,89 +1095,6 @@ export default function AdminReservations() {
             disabled={status.type === "loading"}
           >
             Eliminar
-          </Button>
-        </DialogActions>
-      </Dialog>
-      <Dialog
-        open={isDateDialogOpen}
-        onClose={() => {
-          setDateEditRow(null);
-          setDateEditValue(null);
-          setDateEditError(null);
-        }}
-        aria-labelledby="edit-reservation-datetime-title"
-        fullWidth
-        maxWidth="xs"
-      >
-        <DialogTitle id="edit-reservation-datetime-title">
-          Editar fecha y hora
-        </DialogTitle>
-        <DialogContent>
-          <LocalizationProvider
-            dateAdapter={AdapterDayjs}
-            adapterLocale={pickerLocale}
-            localeText={pickerLocaleText}
-          >
-            <DateTimePicker
-              value={dateEditValue}
-              onChange={(value) => {
-                setDateEditValue(value);
-                if (dateEditError) setDateEditError(null);
-              }}
-              format="YYYY-MM-DD HH:mm"
-              slotProps={{
-                textField: {
-                  size: "small",
-                  fullWidth: true,
-                  placeholder: "2026-01-05 19:00",
-                  error: Boolean(dateEditError),
-                  helperText: dateEditError || undefined,
-                },
-              }}
-            />
-          </LocalizationProvider>
-        </DialogContent>
-        <DialogActions>
-          <Button
-            onClick={() => {
-              setDateEditRow(null);
-              setDateEditValue(null);
-              setDateEditError(null);
-            }}
-          >
-            Cancelar
-          </Button>
-          <Button
-            variant="contained"
-            onClick={async () => {
-              if (!dateEditRow) return;
-              if (!dateEditValue || !dateEditValue.isValid()) {
-                setDateEditError("Selecciona una fecha y hora válidas.");
-                return;
-              }
-              const durationMinutes = getDurationMinutesFromRow(dateEditRow);
-              const nextDate = dateEditValue.format("YYYY-MM-DD");
-              const nextStart = dateEditValue.format("HH:mm");
-              const nextEnd = dateEditValue
-                .add(durationMinutes, "minute")
-                .format("HH:mm");
-              const updated = {
-                ...dateEditRow,
-                date: nextDate,
-                start_time: nextStart,
-                end_time: nextEnd,
-              };
-              setRows((prev) =>
-                prev.map((x) => (x.id === updated.id ? updated : x))
-              );
-              setDateEditRow(null);
-              setDateEditValue(null);
-              setDateEditError(null);
-              await save(updated);
-            }}
-            disabled={status.type === "loading"}
-          >
-            Guardar
           </Button>
         </DialogActions>
       </Dialog>

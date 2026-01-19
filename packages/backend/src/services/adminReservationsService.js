@@ -1,5 +1,8 @@
 function buildAdminReservationsService(consumer, deps = {}) {
   const bookingService = deps.bookingService;
+  const roomsService = deps.roomsService;
+  const TIMEZONE_OFFSET_MINUTES = -5 * 60;
+  const DEFAULT_SLOT_DURATION_MINUTES = 90;
 
   function normalizeInt(value) {
     if (value == null || value === "") return null;
@@ -77,6 +80,22 @@ function buildAdminReservationsService(consumer, deps = {}) {
     if (raw.includes("T")) return raw;
     if (/^\d{2}:\d{2}$/.test(raw)) return `${dateString}T${raw}:00-05:00`;
     return null;
+  }
+
+  function formatTimeFromMsWithOffset(ms, offsetMinutes) {
+    const shifted = new Date(ms + offsetMinutes * 60_000);
+    const hh = String(shifted.getUTCHours()).padStart(2, "0");
+    const mm = String(shifted.getUTCMinutes()).padStart(2, "0");
+    return `${hh}:${mm}`;
+  }
+
+  async function getRoomDurationMinutes(roomId) {
+    if (!roomsService?.getRoom) return DEFAULT_SLOT_DURATION_MINUTES;
+    const room = await roomsService.getRoom(roomId);
+    const duration = Number(room?.duration_minutes ?? room?.durationMinutes);
+    if (!Number.isFinite(duration) || duration <= 0)
+      return DEFAULT_SLOT_DURATION_MINUTES;
+    return duration;
   }
 
   function isSameSlot(date, startTime, compareDate, compareTime) {
@@ -211,10 +230,24 @@ function buildAdminReservationsService(consumer, deps = {}) {
       err.status = 400;
       throw err;
     }
-    if (!payload.startTime || !payload.endTime) {
-      const err = new Error("startTime and endTime are required");
+    if (!payload.startTime) {
+      const err = new Error("startTime is required");
       err.status = 400;
       throw err;
+    }
+    if (!payload.endTime) {
+      const startIso = normalizeBookingStartToIso(payload.date, payload.startTime);
+      if (!startIso) {
+        const err = new Error("Invalid time format.");
+        err.status = 400;
+        throw err;
+      }
+      const durationMinutes = await getRoomDurationMinutes(payload.roomId);
+      const endMs = Date.parse(startIso) + durationMinutes * 60_000;
+      payload.endTime = formatTimeFromMsWithOffset(
+        endMs,
+        TIMEZONE_OFFSET_MINUTES
+      );
     }
     if (!payload.players || payload.players <= 0) {
       const err = new Error("players must be a positive number");

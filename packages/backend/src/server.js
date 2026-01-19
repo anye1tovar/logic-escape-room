@@ -184,7 +184,7 @@ async function start() {
   const adminReservationsConsumer = await initAdminReservationsConsumer();
   const adminReservationsService = buildAdminReservationsService(
     adminReservationsConsumer,
-    { bookingService }
+    { bookingService, roomsService }
   );
   const adminReservationsController = buildAdminReservationsController(
     adminReservationsService
