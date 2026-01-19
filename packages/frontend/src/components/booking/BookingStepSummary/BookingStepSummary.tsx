@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import dayjs from "dayjs";
 import { ClickAwayListener, IconButton, Tooltip } from "@mui/material";
 import { useTranslation } from "react-i18next";
 import { createBooking, fetchBookingQuote } from "../../../api/bookings";
@@ -59,6 +60,21 @@ export default function BookingStepSummary({
   const [quoteError, setQuoteError] = useState<string | null>(null);
   const [isDurationTooltipOpen, setIsDurationTooltipOpen] = useState(false);
   const [isDepositTooltipOpen, setIsDepositTooltipOpen] = useState(false);
+  const hasAdminToken = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(window.localStorage.getItem("adminToken"));
+  }, []);
+  const isWalkIn = useMemo(() => {
+    if (!hasAdminToken || !selection) return false;
+    if (selection.slotStart) {
+      const parsed = dayjs(selection.slotStart);
+      if (parsed.isValid()) return parsed.isBefore(dayjs());
+    }
+    if (selection.date) {
+      return dayjs(selection.date).isBefore(dayjs(), "day");
+    }
+    return false;
+  }, [hasAdminToken, selection]);
 
   const canReserve = Boolean(selection) && Boolean(details) && !isSubmitting;
 
@@ -254,6 +270,7 @@ export default function BookingStepSummary({
                 notes: details.notes,
                 total: quoteTotal,
                 isFirstTime: details.isFirstTime === true,
+                ...(isWalkIn ? { reservationSource: "walk_in" } : {}),
               })) as {
                 consultCode?: string;
                 reservationCode?: string;

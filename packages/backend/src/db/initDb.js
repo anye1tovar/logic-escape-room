@@ -64,13 +64,44 @@ async function initSchema() {
       notes TEXT,
       total INTEGER,
       status TEXT DEFAULT 'PENDING',
-      is_first_time BOOLEAN NOT NULL DEFAULT FALSE
+      is_first_time BOOLEAN NOT NULL DEFAULT FALSE,
+      reservation_source TEXT NOT NULL DEFAULT 'web',
+      reprogrammed BOOLEAN NOT NULL DEFAULT FALSE
     );
   `);
 
   await pool.query(`
     ALTER TABLE reservations
     ADD COLUMN IF NOT EXISTS actual_duration_ms INTEGER;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS reservation_source TEXT NOT NULL DEFAULT 'web';
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS reprogrammed BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS reservation_changes (
+      id SERIAL PRIMARY KEY,
+      reservation_id INTEGER NOT NULL,
+      before_date TEXT,
+      before_start_time TEXT,
+      before_end_time TEXT,
+      before_room_id INTEGER,
+      after_date TEXT,
+      after_start_time TEXT,
+      after_end_time TEXT,
+      after_room_id INTEGER,
+      changed_by INTEGER,
+      changed_by_role TEXT,
+      change_reason TEXT,
+      created_at BIGINT NOT NULL
+    );
   `);
 
   await pool.query(`

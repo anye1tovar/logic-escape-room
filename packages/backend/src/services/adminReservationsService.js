@@ -1,4 +1,6 @@
-function buildAdminReservationsService(consumer) {
+function buildAdminReservationsService(consumer, deps = {}) {
+  const bookingService = deps.bookingService;
+
   function normalizeInt(value) {
     if (value == null || value === "") return null;
     const num = Number(value);
@@ -66,6 +68,22 @@ function buildAdminReservationsService(consumer) {
       throw err;
     }
     return raw;
+  }
+
+  function normalizeBookingStartToIso(dateString, value) {
+    if (!value) return null;
+    const raw = String(value).trim();
+    if (!raw) return null;
+    if (raw.includes("T")) return raw;
+    if (/^\d{2}:\d{2}$/.test(raw)) return `${dateString}T${raw}:00-05:00`;
+    return null;
+  }
+
+  function isSameSlot(date, startTime, compareDate, compareTime) {
+    const left = normalizeBookingStartToIso(date, startTime);
+    const right = normalizeBookingStartToIso(compareDate, compareTime);
+    if (!left || !right) return false;
+    return left === right;
   }
 
   async function listReservationsPage(input) {
@@ -145,11 +163,18 @@ function buildAdminReservationsService(consumer) {
     };
   }
 
-  async function updateReservation(id, input) {
+  async function updateReservation(id, input, context = {}) {
     const reservationId = normalizeInt(id);
     if (!reservationId) {
       const err = new Error("id is required");
       err.status = 400;
+      throw err;
+    }
+
+    const existing = await consumer.getReservationById?.(reservationId);
+    if (!existing) {
+      const err = new Error("Not found");
+      err.status = 404;
       throw err;
     }
 
@@ -174,6 +199,11 @@ function buildAdminReservationsService(consumer) {
         input?.isFirstTime === 1 ||
         input?.isFirstTime === true ||
         input?.isFirstTime === "1",
+      reservationSource:
+        existing.reservation_source ?? existing.reservationSource ?? "web",
+      reprogrammed: Boolean(
+        existing.reprogrammed ?? existing.is_reprogrammed ?? false
+      ),
     };
 
     if (!payload.roomId) {
@@ -192,11 +222,83 @@ function buildAdminReservationsService(consumer) {
       throw err;
     }
 
+    const hasReprogramChanges =
+      Number(existing.room_id) !== Number(payload.roomId) ||
+      String(existing.date) !== String(payload.date) ||
+      !isSameSlot(existing.date, existing.start_time, payload.date, payload.startTime) ||
+      !isSameSlot(existing.date, existing.end_time, payload.date, payload.endTime);
+
+    if (hasReprogramChanges && bookingService?.getAvailabilityByDate) {
+      const today = todayLocalDate();
+      if (payload.date >= today) {
+        const normalizedStart = normalizeBookingStartToIso(
+          payload.date,
+          payload.startTime
+        );
+        if (!normalizedStart) {
+          const err = new Error("Invalid time format.");
+          err.status = 400;
+          throw err;
+        }
+
+        const availability = await bookingService.getAvailabilityByDate(
+          payload.date,
+          {
+            allowPast: true,
+            ignoreMinAdvance: true,
+            ignoreReservationId: reservationId,
+            useDbRoomId: true,
+          }
+        );
+
+        const room = (availability?.rooms || []).find(
+          (r) => String(r.roomId) === String(payload.roomId)
+        );
+        const slot =
+          room?.slots?.find((s) => s.start === normalizedStart) || null;
+        if (!room || !slot) {
+          const err = new Error(
+            "Este horario no existe para la fecha seleccionada."
+          );
+          err.status = 400;
+          throw err;
+        }
+        if (!slot.available) {
+          const err = new Error("Este horario ya no está disponible.");
+          err.status = 409;
+          throw err;
+        }
+      }
+    }
+
+    if (hasReprogramChanges) {
+      payload.reprogrammed = true;
+    }
+
     const res = await consumer.updateReservation(reservationId, payload);
     if (!res?.changes) {
       const err = new Error("Not found");
       err.status = 404;
       throw err;
+    }
+
+    if (hasReprogramChanges && consumer.createReservationChange) {
+      const user = context?.user ?? null;
+      await consumer.createReservationChange({
+        reservationId,
+        beforeDate: existing.date ?? null,
+        beforeStartTime: existing.start_time ?? null,
+        beforeEndTime: existing.end_time ?? null,
+        beforeRoomId: existing.room_id ?? null,
+        afterDate: payload.date ?? null,
+        afterStartTime: payload.startTime ?? null,
+        afterEndTime: payload.endTime ?? null,
+        afterRoomId: payload.roomId ?? null,
+        changedBy: user?.id ?? null,
+        changedByRole: user?.role ?? null,
+        changeReason: input?.changeReason ?? input?.change_reason ?? null,
+        createdAt: Date.now(),
+      });
     }
 
     return { ok: true };

@@ -126,7 +126,10 @@ async function start() {
     colombianHolidaysConsumer,
     ratesService,
   });
-  const bookingController = buildBookingController(bookingService);
+  const bookingController = buildBookingController(bookingService, {
+    auth: config.auth,
+    verifyToken: requireAuth.verifyToken,
+  });
   const bookingsRouter = createBookingsRouter(bookingController);
 
   const usersConsumer = await initUsersConsumer();
@@ -180,7 +183,8 @@ async function start() {
 
   const adminReservationsConsumer = await initAdminReservationsConsumer();
   const adminReservationsService = buildAdminReservationsService(
-    adminReservationsConsumer
+    adminReservationsConsumer,
+    { bookingService }
   );
   const adminReservationsController = buildAdminReservationsController(
     adminReservationsService

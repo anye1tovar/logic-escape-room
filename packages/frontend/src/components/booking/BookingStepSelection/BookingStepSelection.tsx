@@ -167,6 +167,11 @@ export default function BookingStepSelection({
     return base.components.MuiLocalizationProvider.defaultProps.localeText;
   }, [pickerLocale]);
 
+  const hasAdminToken = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    return Boolean(window.localStorage.getItem("adminToken"));
+  }, []);
+
   const today = useMemo(() => dayjs().startOf("day"), []);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(
@@ -242,11 +247,17 @@ export default function BookingStepSelection({
         setPeopleCount(null);
 
         const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+        const allowPastParam = hasAdminToken ? "&allowPast=1" : "";
+        const headers: HeadersInit = {};
+        const token = hasAdminToken
+          ? window.localStorage.getItem("adminToken")
+          : null;
+        if (token) headers.Authorization = `Bearer ${token}`;
         const res = await fetch(
           `${apiBase}/api/bookings/availability?date=${encodeURIComponent(
             date
-          )}`,
-          { signal: controller.signal }
+          )}${allowPastParam}`,
+          { signal: controller.signal, headers }
         );
         if (!res.ok) {
           const body = (await res.json().catch(() => null)) as {
@@ -266,7 +277,7 @@ export default function BookingStepSelection({
     })();
 
     return () => controller.abort();
-  }, [selectedDate]);
+  }, [selectedDate, hasAdminToken]);
 
   const handleSelectRoom = (room: AvailabilityRoom) => {
     setSelectedRoomId(room.roomId);
@@ -349,7 +360,7 @@ export default function BookingStepSelection({
               <DatePicker
                 value={selectedDate}
                 onChange={(value) => setSelectedDate(value)}
-                minDate={today}
+                minDate={hasAdminToken ? undefined : today}
                 slotProps={{
                   popper: {
                     sx: {

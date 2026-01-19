@@ -68,3 +68,4 @@ function requireAuth(config, options) {
 }
 
 module.exports = requireAuth;
+module.exports.verifyToken = verifyToken;

@@ -290,7 +290,15 @@ function buildBookingService(consumer, deps = {}) {
     return hours * 60 + minutes;
   }
 
-  async function createBooking(data) {
+  function normalizeReservationSource(value) {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return "web";
+    if (raw === "walk_in" || raw === "walk-in" || raw === "walkin")
+      return "walk_in";
+    return "web";
+  }
+
+  async function createBooking(data, options = {}) {
     const {
       firstName,
       lastName,
@@ -304,6 +312,24 @@ function buildBookingService(consumer, deps = {}) {
       notes,
       isFirstTime,
     } = data;
+    const reservationSource = normalizeReservationSource(
+      data?.reservationSource ?? data?.reservation_source
+    );
+    const isWalkIn = reservationSource === "walk_in";
+    const user = options?.user ?? null;
+    if (isWalkIn && !user) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      throw err;
+    }
+    if (isWalkIn && user) {
+      const role = String(user.role || "").toLowerCase();
+      if (!["admin", "game_master"].includes(role)) {
+        const err = new Error("Forbidden");
+        err.status = 403;
+        throw err;
+      }
+    }
     if (!date || !roomId || !time) {
       const err = new Error("Missing required fields: date, roomId, time");
       err.status = 400;
@@ -316,7 +342,7 @@ function buildBookingService(consumer, deps = {}) {
       err.status = 400;
       throw err;
     }
-    if (requestedDate < bogotaTodayDateString()) {
+    if (!isWalkIn && requestedDate < bogotaTodayDateString()) {
       const err = new Error("Date cannot be in the past");
       err.status = 400;
       throw err;
@@ -337,7 +363,10 @@ function buildBookingService(consumer, deps = {}) {
       );
 
     // Validate availability again on reservation create.
-    const availability = await getAvailabilityByDate(requestedDate);
+    const availability = await getAvailabilityByDate(requestedDate, {
+      allowPast: isWalkIn,
+      ignoreMinAdvance: isWalkIn,
+    });
     const room = (availability?.rooms || []).find((r) => r.roomId === roomId);
     const slot = room?.slots?.find((s) => s.start === startIso) || null;
     if (!room || !slot) {
@@ -435,6 +464,7 @@ function buildBookingService(consumer, deps = {}) {
       sendReceipt: data.sendReceipt,
       consultCode: computedConsultCode,
       isFirstTime: Boolean(isFirstTime),
+      reservationSource,
     });
     return { ...booking, reservationCode: booking.consultCode };
   }
@@ -525,14 +555,22 @@ function buildBookingService(consumer, deps = {}) {
     };
   }
 
-  async function getAvailabilityByDate(date) {
+  async function getAvailabilityByDate(date, options = {}) {
     const requestedDate = parseDateParam(date);
     if (!requestedDate) {
       const err = new Error("Missing required query param: date");
       err.status = 400;
       throw err;
     }
-    if (requestedDate < bogotaTodayDateString()) {
+    const allowPast = Boolean(options.allowPast);
+    const ignoreMinAdvance = Boolean(options.ignoreMinAdvance);
+    const ignoreReservationId =
+      options.ignoreReservationId != null
+        ? String(options.ignoreReservationId)
+        : null;
+    const useDbRoomId = Boolean(options.useDbRoomId);
+
+    if (!allowPast && requestedDate < bogotaTodayDateString()) {
       const err = new Error("Date cannot be in the past");
       err.status = 400;
       throw err;
@@ -566,15 +604,22 @@ function buildBookingService(consumer, deps = {}) {
       activeRooms.filter((r) => r && r.id != null).map((r) => [String(r.id), r])
     );
 
-    const publicIdByDbId = new Map(
+    const roomKeyByDbId = new Map(
       Array.from(roomsByDbId.entries()).map(([id, room]) => [
         id,
-        derivePublicRoomId(room),
+        useDbRoomId ? String(room.id) : derivePublicRoomId(room),
       ])
     );
 
     const bookedByRoom = new Map();
     for (const booking of list || []) {
+      if (
+        ignoreReservationId &&
+        booking?.id != null &&
+        String(booking.id) === ignoreReservationId
+      ) {
+        continue;
+      }
       const bookingDate = booking.date ?? booking.booking_date ?? null;
       if (bookingDate && String(bookingDate) !== requestedDate) continue;
 
@@ -582,7 +627,7 @@ function buildBookingService(consumer, deps = {}) {
         booking.room_id ?? booking.roomId ?? ""
       }`.trim();
       const bookingRoomId =
-        publicIdByDbId.get(bookingRoomRaw) || bookingRoomRaw;
+        roomKeyByDbId.get(bookingRoomRaw) || bookingRoomRaw;
       const startRaw =
         booking.start_time ?? booking.time ?? booking.startTime ?? null;
       const startIso = normalizeBookingStartToIso(requestedDate, startRaw);
@@ -629,11 +674,14 @@ function buildBookingService(consumer, deps = {}) {
     );
 
     const rooms = activeRooms.map((roomRow) => {
-      const publicRoomId = derivePublicRoomId(roomRow);
-      const booked = bookedByRoom.get(publicRoomId) ?? new Set();
+      const roomKey = useDbRoomId
+        ? String(roomRow.id)
+        : derivePublicRoomId(roomRow);
+      const booked = bookedByRoom.get(roomKey) ?? new Set();
       const slots = slotStarts.map((start) => {
         const startMs = Date.parse(start);
-        const tooLate = startMs < nowMs + minAdvanceMs;
+        const tooLate =
+          !ignoreMinAdvance && startMs < nowMs + minAdvanceMs;
         const isBooked = booked.has(start);
 
         if (tooLate) return { start, available: false, reason: "too_late" };
@@ -642,7 +690,7 @@ function buildBookingService(consumer, deps = {}) {
       });
 
       return {
-        roomId: publicRoomId,
+        roomId: useDbRoomId ? Number(roomRow.id) : roomKey,
         name: roomRow.name,
         minPlayers: roomRow.min_players ?? roomRow.minPlayers ?? null,
         maxPlayers: roomRow.max_players ?? roomRow.maxPlayers ?? null,

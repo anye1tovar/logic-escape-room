@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  IconButton,
   Pagination,
   Paper,
   Select,
@@ -25,6 +26,7 @@ import {
   Typography,
 } from "@mui/material";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { enUS, esES } from "@mui/x-date-pickers/locales";
@@ -33,6 +35,7 @@ import { useTranslation } from "react-i18next";
 import "dayjs/locale/en";
 import "dayjs/locale/es";
 import "../adminCrud.scss";
+import EditIcon from "@mui/icons-material/Edit";
 
 type ReservationRow = {
   id: number;
@@ -50,6 +53,8 @@ type ReservationRow = {
   total: number | null;
   status: string;
   is_first_time: number;
+  reservation_source?: string | null;
+  reprogrammed?: number | boolean | null;
 };
 
 function fullName(r: ReservationRow) {
@@ -58,29 +63,8 @@ function fullName(r: ReservationRow) {
 
 type RoomRow = { id: number; name: string };
 
-type RoomChipStyle = { backgroundColor: string; color: string };
-
 const COLOMBIA_TIMEZONE = "America/Bogota";
 const COLOMBIA_OFFSET = "-05:00";
-
-const RoomEnum = {
-  Portal: 1,
-  Canibal: 2,
-  Manicomio: 3,
-} as const;
-
-function getRoomChipStyleById(roomId: number): RoomChipStyle {
-  switch (roomId) {
-    case RoomEnum.Canibal:
-      return { backgroundColor: "#f7b2b2", color: "#5c0f0f" };
-    case RoomEnum.Manicomio:
-      return { backgroundColor: "#dac8ff", color: "#3e225c" };
-    case RoomEnum.Portal:
-      return { backgroundColor: "#bfeecb", color: "#124b26" };
-    default:
-      return { backgroundColor: "#e5e7eb", color: "#111827" };
-  }
-}
 
 function parseRowDateTime(date: string, value: string) {
   const raw = String(value || "").trim();
@@ -164,6 +148,15 @@ function formatRowTime(r: ReservationRow) {
   return time;
 }
 
+function getDurationMinutesFromRow(r: ReservationRow) {
+  const start = parseRowDateTime(r.date, r.start_time);
+  const end = parseRowDateTime(r.date, r.end_time);
+  if (!start || !end) return 90;
+  const diff = end.diff(start, "minute");
+  if (!Number.isFinite(diff) || diff <= 0 || diff > 24 * 60) return 90;
+  return diff;
+}
+
 function formatWeekdayColombia(date: string, value: string) {
   const datePart = String(date || "").trim();
   if (!datePart) return "";
@@ -245,6 +238,9 @@ export default function AdminReservations() {
   const [durationErrors, setDurationErrors] = useState<Record<number, string>>(
     {}
   );
+  const [dateEditRow, setDateEditRow] = useState<ReservationRow | null>(null);
+  const [dateEditValue, setDateEditValue] = useState<Dayjs | null>(null);
+  const [dateEditError, setDateEditError] = useState<string | null>(null);
   const [status, setStatus] = useState<
     | { type: "idle" }
     | { type: "loading" }
@@ -274,10 +270,6 @@ export default function AdminReservations() {
       return filterDateTo.format("YYYY-MM-DD");
     return null;
   }, [filterDateTo]);
-
-  const roomNameById = useMemo(() => {
-    return new Map(rooms.map((r) => [r.id, r.name]));
-  }, [rooms]);
 
   async function load(input?: {
     filters?: { dateFrom?: string; dateTo?: string; search?: string };
@@ -459,6 +451,7 @@ export default function AdminReservations() {
 
   const confirmDeleteRow =
     rows.find((row) => row.id === confirmDeleteId) || null;
+  const isDateDialogOpen = Boolean(dateEditRow);
 
   return (
     <div className="admin-crud">
@@ -616,10 +609,25 @@ export default function AdminReservations() {
                       );
                       const relativeLabel = formatDaysUntilColombia(r.date);
                       return (
-                        <Stack spacing={0.5} sx={{ alignItems: "flex-start" }}>
-                          {dateLabel ? (
-                            <Chip label={dateLabel} size="small" />
-                          ) : null}
+                        <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            {dateLabel ? (
+                              <Chip label={dateLabel} size="small" />
+                            ) : null}
+                            <IconButton
+                              size="small"
+                              onClick={() => {
+                                setDateEditRow(r);
+                                setDateEditValue(
+                                  parseRowDateTime(r.date, r.start_time)
+                                );
+                                setDateEditError(null);
+                              }}
+                              aria-label="Editar fecha y hora"
+                            >
+                              <EditIcon fontSize="small" />
+                            </IconButton>
+                          </Stack>
                           <Stack direction="row" spacing={0.5}>
                             {weekday ? (
                               <Chip label={weekday} size="small" />
@@ -643,22 +651,26 @@ export default function AdminReservations() {
                     })()}
                   </TableCell>
                   <TableCell>
-                    {(() => {
-                      const roomName =
-                        roomNameById.get(r.room_id) || `Sala #${r.room_id}`;
-                      const chipStyle = getRoomChipStyleById(r.room_id);
-                      return (
-                        <Chip
-                          label={roomName}
-                          size="small"
-                          sx={{
-                            backgroundColor: chipStyle.backgroundColor,
-                            color: chipStyle.color,
-                            fontWeight: 600,
-                          }}
-                        />
-                      );
-                    })()}
+                    <Select
+                      value={r.room_id}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? { ...x, room_id: Number(e.target.value) }
+                              : x
+                          )
+                        )
+                      }
+                      size="small"
+                      fullWidth
+                    >
+                      {rooms.map((room) => (
+                        <MenuItem key={room.id} value={room.id}>
+                          {room.name || `Room #${room.id}`}
+                        </MenuItem>
+                      ))}
+                    </Select>
                   </TableCell>
                   <TableCell>
                     <Stack spacing={1}>
@@ -1014,6 +1026,89 @@ export default function AdminReservations() {
             disabled={status.type === "loading"}
           >
             Eliminar
+          </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={isDateDialogOpen}
+        onClose={() => {
+          setDateEditRow(null);
+          setDateEditValue(null);
+          setDateEditError(null);
+        }}
+        aria-labelledby="edit-reservation-datetime-title"
+        fullWidth
+        maxWidth="xs"
+      >
+        <DialogTitle id="edit-reservation-datetime-title">
+          Editar fecha y hora
+        </DialogTitle>
+        <DialogContent>
+          <LocalizationProvider
+            dateAdapter={AdapterDayjs}
+            adapterLocale={pickerLocale}
+            localeText={pickerLocaleText}
+          >
+            <DateTimePicker
+              value={dateEditValue}
+              onChange={(value) => {
+                setDateEditValue(value);
+                if (dateEditError) setDateEditError(null);
+              }}
+              format="YYYY-MM-DD HH:mm"
+              slotProps={{
+                textField: {
+                  size: "small",
+                  fullWidth: true,
+                  placeholder: "2026-01-05 19:00",
+                  error: Boolean(dateEditError),
+                  helperText: dateEditError || undefined,
+                },
+              }}
+            />
+          </LocalizationProvider>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() => {
+              setDateEditRow(null);
+              setDateEditValue(null);
+              setDateEditError(null);
+            }}
+          >
+            Cancelar
+          </Button>
+          <Button
+            variant="contained"
+            onClick={async () => {
+              if (!dateEditRow) return;
+              if (!dateEditValue || !dateEditValue.isValid()) {
+                setDateEditError("Selecciona una fecha y hora válidas.");
+                return;
+              }
+              const durationMinutes = getDurationMinutesFromRow(dateEditRow);
+              const nextDate = dateEditValue.format("YYYY-MM-DD");
+              const nextStart = dateEditValue.format("HH:mm");
+              const nextEnd = dateEditValue
+                .add(durationMinutes, "minute")
+                .format("HH:mm");
+              const updated = {
+                ...dateEditRow,
+                date: nextDate,
+                start_time: nextStart,
+                end_time: nextEnd,
+              };
+              setRows((prev) =>
+                prev.map((x) => (x.id === updated.id ? updated : x))
+              );
+              setDateEditRow(null);
+              setDateEditValue(null);
+              setDateEditError(null);
+              await save(updated);
+            }}
+            disabled={status.type === "loading"}
+          >
+            Guardar
           </Button>
         </DialogActions>
       </Dialog>

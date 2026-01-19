@@ -1,11 +1,21 @@
 type ApiError = Error & { status?: number };
 
+function getAdminToken() {
+  if (typeof window === "undefined") return null;
+  return window.localStorage.getItem("adminToken");
+}
+
 export async function createBooking(payload: Record<string, unknown>) {
+  const token = getAdminToken();
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+  if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(
     `${import.meta.env.VITE_API_BASE_URL || ""}/api/bookings`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers,
       body: JSON.stringify(payload),
     }
   );

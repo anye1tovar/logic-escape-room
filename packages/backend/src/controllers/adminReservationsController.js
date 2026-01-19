@@ -23,7 +23,9 @@ function buildAdminReservationsController(service) {
 
   async function updateReservation(req, res) {
     try {
-      const result = await service.updateReservation(req.params.id, req.body);
+      const result = await service.updateReservation(req.params.id, req.body, {
+        user: req.user,
+      });
       res.json(result);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });

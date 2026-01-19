@@ -61,7 +61,7 @@ async function listReservationsPage(input) {
   const limitIndex = params.length + 1;
   const offsetIndex = params.length + 2;
   const listSql =
-    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations${whereSql}` +
+    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations${whereSql}` +
     ` ORDER BY date ASC, start_time ASC, id ASC LIMIT $${limitIndex} OFFSET $${offsetIndex};`;
 
   const listResult = await db.query(listSql, [...params, safeSize, offset]);
@@ -76,7 +76,7 @@ async function listReservations(filters) {
     dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
   });
   let sql =
-    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time FROM reservations";
+    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations";
   if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
   sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 
@@ -100,8 +100,10 @@ async function updateReservation(id, payload) {
          notes = $11,
          total = $12,
          status = $13,
-         is_first_time = $14
-     WHERE id = $15;`,
+         is_first_time = $14,
+         reservation_source = $15,
+         reprogrammed = $16
+     WHERE id = $17;`,
     [
       payload.roomId,
       payload.date,
@@ -117,10 +119,45 @@ async function updateReservation(id, payload) {
       payload.total,
       payload.status,
       payload.isFirstTime,
+      payload.reservationSource,
+      payload.reprogrammed,
       id,
     ]
   );
   return { changes: result.rowCount };
+}
+
+async function getReservationById(id) {
+  const result = await db.query(
+    "SELECT * FROM reservations WHERE id = $1;",
+    [id]
+  );
+  return result.rows[0] || null;
+}
+
+async function createReservationChange(payload) {
+  const result = await db.query(
+    `INSERT INTO reservation_changes
+      (reservation_id, before_date, before_start_time, before_end_time, before_room_id, after_date, after_start_time, after_end_time, after_room_id, changed_by, changed_by_role, change_reason, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+     RETURNING id;`,
+    [
+      payload.reservationId,
+      payload.beforeDate,
+      payload.beforeStartTime,
+      payload.beforeEndTime,
+      payload.beforeRoomId,
+      payload.afterDate,
+      payload.afterStartTime,
+      payload.afterEndTime,
+      payload.afterRoomId,
+      payload.changedBy,
+      payload.changedByRole,
+      payload.changeReason,
+      payload.createdAt,
+    ]
+  );
+  return { id: result.rows[0]?.id ?? null };
 }
 
 async function deleteReservation(id) {
@@ -132,5 +169,12 @@ async function deleteReservation(id) {
 }
 
 module.exports = async function initConsumer() {
-  return { listReservations, listReservationsPage, updateReservation, deleteReservation };
+  return {
+    listReservations,
+    listReservationsPage,
+    updateReservation,
+    deleteReservation,
+    getReservationById,
+    createReservationChange,
+  };
 };

@@ -1,8 +1,21 @@
-function buildBookingController(service) {
+function buildBookingController(service, deps = {}) {
+  const authConfig = deps.auth;
+  const verifyToken = deps.verifyToken;
+
+  function getUserFromRequest(req) {
+    if (!verifyToken || !authConfig?.secret) return null;
+    const authHeader = req.headers.authorization || "";
+    const match = String(authHeader).match(/^Bearer\s+(.+)$/i);
+    const token = match?.[1] || "";
+    if (!token) return null;
+    return verifyToken(token, authConfig.secret);
+  }
+
   async function createBooking(req, res) {
     try {
       const payload = req.body;
-      const booking = await service.createBooking(payload);
+      const user = getUserFromRequest(req);
+      const booking = await service.createBooking(payload, { user });
       res.status(201).json(booking);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });
@@ -21,7 +34,17 @@ function buildBookingController(service) {
   async function getAvailability(req, res) {
     try {
       const { date } = req.query;
-      const availability = await service.getAvailabilityByDate(date);
+      const allowPastRaw = req.query?.allowPast;
+      const allowPast =
+        allowPastRaw === "1" ||
+        allowPastRaw === "true" ||
+        allowPastRaw === 1 ||
+        allowPastRaw === true;
+      const user = allowPast ? getUserFromRequest(req) : null;
+      const availability = await service.getAvailabilityByDate(date, {
+        allowPast: Boolean(user) && allowPast,
+        ignoreMinAdvance: Boolean(user) && allowPast,
+      });
       res.json(availability);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });
