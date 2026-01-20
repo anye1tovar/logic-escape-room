@@ -86,6 +86,16 @@ async function initSchema() {
   `);
 
   await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS timer_start_ms BIGINT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS timer_end_ms BIGINT;
+  `);
+
+  await pool.query(`
     CREATE UNIQUE INDEX IF NOT EXISTS reservations_consult_code_unique
     ON reservations (consult_code)
     WHERE consult_code IS NOT NULL;

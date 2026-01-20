@@ -61,7 +61,7 @@ async function listReservationsPage(input) {
   const limitIndex = params.length + 1;
   const offsetIndex = params.length + 2;
   const listSql =
-    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations${whereSql}` +
+    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations${whereSql}` +
     ` ORDER BY date ASC, start_time ASC, id ASC LIMIT $${limitIndex} OFFSET $${offsetIndex};`;
 
   const listResult = await db.query(listSql, [...params, safeSize, offset]);
@@ -76,7 +76,7 @@ async function listReservations(filters) {
     dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
   });
   let sql =
-    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations";
+    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations";
   if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
   sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 
@@ -92,24 +92,28 @@ async function updateReservation(id, payload) {
          start_time = $3,
          end_time = $4,
          actual_duration_ms = $5,
-         consult_code = $6,
-         first_name = $7,
-         last_name = $8,
-         phone = $9,
-         players = $10,
-         notes = $11,
-         total = $12,
-         status = $13,
-         is_first_time = $14,
-         reservation_source = $15,
-         reprogrammed = $16
-     WHERE id = $17;`,
+         timer_start_ms = $6,
+         timer_end_ms = $7,
+         consult_code = $8,
+         first_name = $9,
+         last_name = $10,
+         phone = $11,
+         players = $12,
+         notes = $13,
+         total = $14,
+         status = $15,
+         is_first_time = $16,
+         reservation_source = $17,
+         reprogrammed = $18
+     WHERE id = $19;`,
     [
       payload.roomId,
       payload.date,
       payload.startTime,
       payload.endTime,
       payload.actualDurationMs,
+      payload.timerStartMs,
+      payload.timerEndMs,
       payload.consultCode,
       payload.firstName,
       payload.lastName,
@@ -168,6 +172,29 @@ async function deleteReservation(id) {
   return { changes: result.rowCount };
 }
 
+async function setReservationTimerStart(id, startMs) {
+  const result = await db.query(
+    `UPDATE reservations
+     SET timer_start_ms = $1,
+         timer_end_ms = NULL,
+         actual_duration_ms = NULL
+     WHERE id = $2;`,
+    [startMs, id]
+  );
+  return { changes: result.rowCount };
+}
+
+async function setReservationTimerEnd(id, endMs, durationMs) {
+  const result = await db.query(
+    `UPDATE reservations
+     SET timer_end_ms = $1,
+         actual_duration_ms = $2
+     WHERE id = $3;`,
+    [endMs, durationMs, id]
+  );
+  return { changes: result.rowCount };
+}
+
 module.exports = async function initConsumer() {
   return {
     listReservations,
@@ -176,5 +203,7 @@ module.exports = async function initConsumer() {
     deleteReservation,
     getReservationById,
     createReservationChange,
+    setReservationTimerStart,
+    setReservationTimerEnd,
   };
 };

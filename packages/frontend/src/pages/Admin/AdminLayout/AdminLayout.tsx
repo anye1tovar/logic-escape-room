@@ -12,6 +12,11 @@ const navItems = [
     roles: ["admin", "game_master"],
   },
   {
+    to: "/admin/dashboard/cronometraje",
+    label: "Cronometraje",
+    roles: ["admin", "game_master"],
+  },
+  {
     to: "/admin/dashboard/cafeteria",
     label: "Cafeteria",
     roles: ["admin", "game_master"],

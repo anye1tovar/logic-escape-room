@@ -35,6 +35,7 @@ const AdminSettings = lazy(() => import("./pages/Admin/Settings/AdminSettings"))
 const AdminReservations = lazy(
   () => import("./pages/Admin/Reservations/AdminReservations")
 );
+const AdminTiming = lazy(() => import("./pages/Admin/Timing/AdminTiming"));
 const AdminCafeteriaProducts = lazy(
   () => import("./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts")
 );
@@ -106,6 +107,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminLayout />}>
               <Route index element={<AdminReservations />} />
               <Route path="reservas" element={<AdminReservations />} />
+              <Route path="cronometraje" element={<AdminTiming />} />
               <Route path="precios" element={<AdminRates />} />
               <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
               <Route path="festivos" element={<AdminHolidays />} />

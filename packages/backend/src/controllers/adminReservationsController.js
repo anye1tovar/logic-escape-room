@@ -41,7 +41,31 @@ function buildAdminReservationsController(service) {
     }
   }
 
-  return { listReservations, updateReservation, deleteReservation };
+  async function startTimer(req, res) {
+    try {
+      const result = await service.startTimer(req.params.id, req.body);
+      res.json(result);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function saveTimer(req, res) {
+    try {
+      const result = await service.saveTimer(req.params.id, req.body);
+      res.json(result);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  return {
+    listReservations,
+    updateReservation,
+    deleteReservation,
+    startTimer,
+    saveTimer,
+  };
 }
 
 module.exports = buildAdminReservationsController;

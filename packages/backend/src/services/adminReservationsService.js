@@ -24,6 +24,22 @@ function buildAdminReservationsService(consumer, deps = {}) {
     return Math.min(Math.max(parsed, min), max);
   }
 
+  function normalizeTimestampMs(value, { allowNull = false } = {}) {
+    if (value == null || value === "") {
+      if (allowNull) return null;
+      const err = new Error("timestamp is required");
+      err.status = 400;
+      throw err;
+    }
+    const parsed = Number(value);
+    if (!Number.isFinite(parsed) || parsed < 0) {
+      const err = new Error("timestamp must be a positive number");
+      err.status = 400;
+      throw err;
+    }
+    return Math.trunc(parsed);
+  }
+
   function normalizeText(value, { allowEmpty = true } = {}) {
     if (value == null) return allowEmpty ? "" : null;
     const text = String(value);
@@ -206,6 +222,14 @@ function buildAdminReservationsService(consumer, deps = {}) {
         input?.actualDurationMs ?? input?.actual_duration_ms,
         { min: 0, max: 86_400_000 }
       ),
+      timerStartMs: normalizeOptionalPositiveInt(
+        existing?.timer_start_ms ?? existing?.timerStartMs,
+        { min: 0, max: 86_400_000 * 365 }
+      ),
+      timerEndMs: normalizeOptionalPositiveInt(
+        existing?.timer_end_ms ?? existing?.timerEndMs,
+        { min: 0, max: 86_400_000 * 365 }
+      ),
       consultCode: input?.consultCode != null ? String(input.consultCode) : null,
       firstName: normalizeText(input?.firstName ?? input?.first_name, { allowEmpty: true }),
       lastName: normalizeText(input?.lastName ?? input?.last_name, { allowEmpty: true }),
@@ -253,6 +277,12 @@ function buildAdminReservationsService(consumer, deps = {}) {
       const err = new Error("players must be a positive number");
       err.status = 400;
       throw err;
+    }
+
+    if (payload.actualDurationMs == null) {
+      payload.timerEndMs = null;
+    } else if (payload.timerStartMs != null) {
+      payload.timerEndMs = payload.timerStartMs + payload.actualDurationMs;
     }
 
     const hasReprogramChanges =
@@ -354,7 +384,80 @@ function buildAdminReservationsService(consumer, deps = {}) {
     return { ok: true };
   }
 
-  return { listReservationsPage, updateReservation, deleteReservation };
+  async function startTimer(id, input) {
+    const reservationId = normalizeInt(id);
+    if (!reservationId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const existing = await consumer.getReservationById?.(reservationId);
+    if (!existing) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+
+    const startMs = normalizeTimestampMs(
+      input?.startMs ?? input?.start_ms ?? Date.now()
+    );
+    const result = await consumer.setReservationTimerStart(
+      reservationId,
+      startMs
+    );
+    if (!result?.changes) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return { ok: true, timer_start_ms: startMs };
+  }
+
+  async function saveTimer(id, input) {
+    const reservationId = normalizeInt(id);
+    if (!reservationId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const existing = await consumer.getReservationById?.(reservationId);
+    if (!existing) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    if (existing?.timer_start_ms == null) {
+      const err = new Error("Timer has not started");
+      err.status = 409;
+      throw err;
+    }
+
+    const endMs = normalizeTimestampMs(
+      input?.endMs ?? input?.end_ms ?? Date.now()
+    );
+    const startMs = normalizeTimestampMs(existing?.timer_start_ms);
+    const durationMs = Math.max(0, endMs - startMs);
+
+    const result = await consumer.setReservationTimerEnd(
+      reservationId,
+      endMs,
+      durationMs
+    );
+    if (!result?.changes) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return { ok: true, timer_end_ms: endMs, actual_duration_ms: durationMs };
+  }
+
+  return {
+    listReservationsPage,
+    updateReservation,
+    deleteReservation,
+    startTimer,
+    saveTimer,
+  };
 }
 
 module.exports = buildAdminReservationsService;

@@ -66,6 +66,31 @@ type RoomRow = { id: number; name: string };
 
 const COLOMBIA_TIMEZONE = "America/Bogota";
 const COLOMBIA_OFFSET = "-05:00";
+function getRoomSelectStyles(roomId: number) {
+  if (roomId === 1)
+    return {
+      backgroundColor: "#bbf7d0",
+      color: "#14532d",
+      borderColor: "#86efac",
+    };
+  if (roomId === 2)
+    return {
+      backgroundColor: "#fecaca",
+      color: "#7f1d1d",
+      borderColor: "#fca5a5",
+    };
+  if (roomId === 3)
+    return {
+      backgroundColor: "#e9d5ff",
+      color: "#4c1d95",
+      borderColor: "#d8b4fe",
+    };
+  return {
+    backgroundColor: "rgba(148, 163, 184, 0.2)",
+    color: "#e2e8f0",
+    borderColor: "rgba(148, 163, 184, 0.45)",
+  };
+}
 
 function parseRowDateTime(date: string, value: string) {
   const raw = String(value || "").trim();
@@ -589,7 +614,7 @@ export default function AdminReservations() {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ minWidth: 40 }}>#</TableCell>
-                <TableCell sx={{ minWidth: 100 }}>Fecha y Hora</TableCell>
+                <TableCell sx={{ minWidth: 85 }}>Fecha y Hora</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Sala</TableCell>
                 <TableCell sx={{ minWidth: 200 }}>Cliente</TableCell>
                 <TableCell sx={{ minWidth: 250 }}>Teléfono</TableCell>
@@ -598,292 +623,337 @@ export default function AdminReservations() {
                 <TableCell sx={{ minWidth: 380 }}>Notas</TableCell>
                 <TableCell sx={{ minWidth: 170 }}>Estado</TableCell>
                 <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
-                  <a
-                    href="https://visualtimer.com/timers/multi-stopwatch/"
-                    target="_blank"
-                    rel="noreferrer"
-                    style={{ color: "#ffffff" }}
-                  >
-                    Tiempo (mm:ss.hh)
-                  </a>
+                  Tiempo (mm:ss.hh)
                 </TableCell>
-                <TableCell sx={{ minWidth: 120, ...actionsCellSx }}>
-                  Acciones
-                </TableCell>
+                <TableCell sx={{ ...actionsCellSx }} aria-label="Acciones" />
               </TableRow>
             </TableHead>
             <TableBody>
-              {rows.map((r) => (
-                <Fragment key={r.id}>
-                  <TableRow
-                    hover
-                    sx={
-                      rowError?.id === r.id
-                        ? { backgroundColor: "rgba(239, 68, 68, 0.15)" }
-                        : undefined
-                    }
-                  >
-                    <TableCell>{r.id}</TableCell>
-                    <TableCell>
-                      {(() => {
-                        const weekday = formatWeekdayColombia(
-                          r.date,
-                          r.start_time
-                        );
-                        const relativeLabel = formatDaysUntilColombia(r.date);
-                        return (
-                          <Stack spacing={1} sx={{ alignItems: "flex-start" }}>
-                            <LocalizationProvider
-                              dateAdapter={AdapterDayjs}
-                              adapterLocale={pickerLocale}
-                              localeText={pickerLocaleText}
+              {rows.map((r) => {
+                const roomSelectStyles = getRoomSelectStyles(r.room_id);
+                return (
+                  <Fragment key={r.id}>
+                    <TableRow
+                      hover
+                      sx={
+                        rowError?.id === r.id
+                          ? { backgroundColor: "rgba(239, 68, 68, 0.15)" }
+                          : undefined
+                      }
+                    >
+                      <TableCell>{r.id}</TableCell>
+                      <TableCell>
+                        {(() => {
+                          const weekday = formatWeekdayColombia(
+                            r.date,
+                            r.start_time
+                          );
+                          const relativeLabel = formatDaysUntilColombia(r.date);
+                          return (
+                            <Stack
+                              spacing={1}
+                              sx={{ alignItems: "flex-start" }}
                             >
-                              <DateTimePicker
-                                value={parseRowDateTime(r.date, r.start_time)}
-                                onChange={(value) => {
-                                  if (!value || !value.isValid()) return;
-                                  const nextDate = value.format("YYYY-MM-DD");
-                                  const nextTime = value.format("HH:mm");
-                                  setRows((prev) =>
-                                    prev.map((x) =>
-                                      x.id === r.id
-                                        ? {
-                                            ...x,
-                                            date: nextDate,
-                                            start_time: nextTime,
-                                            end_time: "",
-                                          }
-                                        : x
-                                    )
-                                  );
-                                }}
-                                format="YYYY-MM-DD HH:mm"
-                                slotProps={{
-                                  textField: {
-                                    size: "small",
-                                    fullWidth: true,
-                                    placeholder: "2026-01-05 19:00",
-                                  },
-                                }}
-                              />
-                            </LocalizationProvider>
-                            <Stack flexDirection={"row"} gap={1}>
-                              {weekday ? (
-                                <Chip label={weekday} size="small" />
-                              ) : null}
-                              {relativeLabel ? (
-                                <Chip
-                                  label={relativeLabel}
-                                  size="small"
-                                  variant="outlined"
-                                  color={
-                                    relativeLabel === "Hoy" ? "warning" : "info"
-                                  }
+                              <LocalizationProvider
+                                dateAdapter={AdapterDayjs}
+                                adapterLocale={pickerLocale}
+                                localeText={pickerLocaleText}
+                              >
+                                <DateTimePicker
+                                  value={parseRowDateTime(r.date, r.start_time)}
+                                  onChange={(value) => {
+                                    if (!value || !value.isValid()) return;
+                                    const nextDate = value.format("YYYY-MM-DD");
+                                    const nextTime = value.format("HH:mm");
+                                    setRows((prev) =>
+                                      prev.map((x) =>
+                                        x.id === r.id
+                                          ? {
+                                              ...x,
+                                              date: nextDate,
+                                              start_time: nextTime,
+                                              end_time: "",
+                                            }
+                                          : x
+                                      )
+                                    );
+                                  }}
+                                  format="YYYY-MM-DD HH:mm"
+                                  slotProps={{
+                                    textField: {
+                                      size: "small",
+                                      fullWidth: true,
+                                      placeholder: "2026-01-05 19:00",
+                                      sx: {
+                                        maxWidth: 210,
+                                      },
+                                    },
+                                  }}
                                 />
-                              ) : null}
+                              </LocalizationProvider>
+                              <Stack flexDirection={"row"} gap={1}>
+                                {weekday ? (
+                                  <Chip label={weekday} size="small" />
+                                ) : null}
+                                {relativeLabel ? (
+                                  <Chip
+                                    label={relativeLabel}
+                                    size="small"
+                                    variant="outlined"
+                                    color={
+                                      relativeLabel === "Hoy"
+                                        ? "warning"
+                                        : "info"
+                                    }
+                                  />
+                                ) : null}
+                              </Stack>
                             </Stack>
-                          </Stack>
-                        );
-                      })()}
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={r.room_id}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? { ...x, room_id: Number(e.target.value) }
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        fullWidth
-                      >
-                        {rooms.map((room) => (
-                          <MenuItem key={room.id} value={room.id}>
-                            {room.name || `Room #${room.id}`}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </TableCell>
-                    <TableCell>
-                      <Stack spacing={1}>
-                        <TextField
-                          value={r.first_name}
+                          );
+                        })()}
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={r.room_id}
                           onChange={(e) =>
                             setRows((prev) =>
                               prev.map((x) =>
                                 x.id === r.id
-                                  ? { ...x, first_name: e.target.value }
+                                  ? { ...x, room_id: Number(e.target.value) }
                                   : x
                               )
                             )
                           }
                           size="small"
-                          placeholder="Nombre"
-                        />
+                          fullWidth
+                          sx={{
+                            ...roomSelectStyles,
+                            borderRadius: 1,
+                            "& .MuiSelect-select": {
+                              paddingY: "6px",
+                            },
+                            "& .MuiSelect-icon": {
+                              color: roomSelectStyles.color,
+                            },
+                            "& .MuiOutlinedInput-notchedOutline": {
+                              borderColor: roomSelectStyles.borderColor,
+                            },
+                            "&:hover .MuiOutlinedInput-notchedOutline": {
+                              borderColor: roomSelectStyles.borderColor,
+                            },
+                          }}
+                        >
+                          {rooms.map((room) => (
+                            <MenuItem key={room.id} value={room.id}>
+                              {room.name || `Room #${room.id}`}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </TableCell>
+                      <TableCell>
+                        <Stack spacing={1}>
+                          <TextField
+                            value={r.first_name}
+                            onChange={(e) =>
+                              setRows((prev) =>
+                                prev.map((x) =>
+                                  x.id === r.id
+                                    ? { ...x, first_name: e.target.value }
+                                    : x
+                                )
+                              )
+                            }
+                            size="small"
+                            placeholder="Nombre"
+                          />
+                          <TextField
+                            value={r.last_name}
+                            onChange={(e) =>
+                              setRows((prev) =>
+                                prev.map((x) =>
+                                  x.id === r.id
+                                    ? { ...x, last_name: e.target.value }
+                                    : x
+                                )
+                              )
+                            }
+                            size="small"
+                            placeholder="Apellido"
+                          />
+                          {r.consult_code ? (
+                            <Box sx={{ opacity: 0.75, fontSize: "0.95rem" }}>
+                              {r.consult_code}
+                            </Box>
+                          ) : null}
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
+                        <Stack spacing={1}>
+                          <TextField
+                            value={r.phone ?? ""}
+                            onChange={(e) =>
+                              setRows((prev) =>
+                                prev.map((x) =>
+                                  x.id === r.id
+                                    ? { ...x, phone: e.target.value || null }
+                                    : x
+                                )
+                              )
+                            }
+                            size="small"
+                            placeholder="teléfono"
+                          />
+                        </Stack>
+                      </TableCell>
+                      <TableCell>
                         <TextField
-                          value={r.last_name}
+                          value={String(r.players)}
                           onChange={(e) =>
                             setRows((prev) =>
                               prev.map((x) =>
                                 x.id === r.id
-                                  ? { ...x, last_name: e.target.value }
-                                  : x
-                              )
-                            )
-                          }
-                          size="small"
-                          placeholder="Apellido"
-                        />
-                        {r.consult_code ? (
-                          <Box sx={{ opacity: 0.75, fontSize: "0.95rem" }}>
-                            {r.consult_code}
-                          </Box>
-                        ) : null}
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <Stack spacing={1}>
-                        <TextField
-                          value={r.phone ?? ""}
-                          onChange={(e) =>
-                            setRows((prev) =>
-                              prev.map((x) =>
-                                x.id === r.id
-                                  ? { ...x, phone: e.target.value || null }
-                                  : x
-                              )
-                            )
-                          }
-                          size="small"
-                          placeholder="teléfono"
-                        />
-                      </Stack>
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        value={String(r.players)}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? (() => {
-                                    const raw = e.target.value;
-                                    const trimmed = raw.trim();
-                                    if (!trimmed) return x;
-                                    const parsed = Number(trimmed);
-                                    if (!Number.isFinite(parsed)) return x;
-                                    return {
-                                      ...x,
-                                      players: Math.trunc(parsed),
-                                    };
-                                  })()
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        type="number"
-                        inputProps={{ min: 1, step: 1, inputMode: "numeric" }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        value={r.total == null ? "" : String(r.total)}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? {
-                                    ...x,
-                                    total: (() => {
+                                  ? (() => {
                                       const raw = e.target.value;
                                       const trimmed = raw.trim();
-                                      if (!trimmed) return null;
+                                      if (!trimmed) return x;
                                       const parsed = Number(trimmed);
-                                      if (!Number.isFinite(parsed))
-                                        return x.total;
-                                      return Math.trunc(parsed);
-                                    })(),
-                                  }
-                                : x
+                                      if (!Number.isFinite(parsed)) return x;
+                                      return {
+                                        ...x,
+                                        players: Math.trunc(parsed),
+                                      };
+                                    })()
+                                  : x
+                              )
                             )
-                          )
-                        }
-                        size="small"
-                        type="number"
-                        inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
-                        placeholder="COP"
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <TextField
-                        value={r.notes ?? ""}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? { ...x, notes: e.target.value || null }
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        placeholder="nota..."
-                        fullWidth
-                        multiline
-                        minRows={3}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Select
-                        value={r.status}
-                        onChange={(e) =>
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? { ...x, status: String(e.target.value) }
-                                : x
-                            )
-                          )
-                        }
-                        size="small"
-                        fullWidth
-                      >
-                        <MenuItem value="PENDING">PENDING</MenuItem>
-                        <MenuItem value="CONFIRMED">CONFIRMED</MenuItem>
-                        <MenuItem value="COMPLETED">COMPLETED</MenuItem>
-                        <MenuItem value="CANCELLED">CANCELLED</MenuItem>
-                      </Select>
-                    </TableCell>
-                    <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
-                      <TextField
-                        value={
-                          durationDrafts[r.id] ??
-                          formatDurationMs(r.actual_duration_ms)
-                        }
-                        onChange={(e) => {
-                          setDurationDrafts((prev) => ({
-                            ...prev,
-                            [r.id]: e.target.value,
-                          }));
-                          setDurationErrors((prev) => {
-                            if (!prev[r.id]) return prev;
-                            const next = { ...prev };
-                            delete next[r.id];
-                            return next;
-                          });
-                        }}
-                        onBlur={(e) => {
-                          const trimmed = e.target.value.trim();
-                          if (!trimmed) {
+                          }
+                          size="small"
+                          type="number"
+                          inputProps={{ min: 1, step: 1, inputMode: "numeric" }}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          value={r.total == null ? "" : String(r.total)}
+                          onChange={(e) =>
                             setRows((prev) =>
                               prev.map((x) =>
                                 x.id === r.id
-                                  ? { ...x, actual_duration_ms: null }
+                                  ? {
+                                      ...x,
+                                      total: (() => {
+                                        const raw = e.target.value;
+                                        const trimmed = raw.trim();
+                                        if (!trimmed) return null;
+                                        const parsed = Number(trimmed);
+                                        if (!Number.isFinite(parsed))
+                                          return x.total;
+                                        return Math.trunc(parsed);
+                                      })(),
+                                    }
+                                  : x
+                              )
+                            )
+                          }
+                          size="small"
+                          type="number"
+                          inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
+                          placeholder="COP"
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <TextField
+                          value={r.notes ?? ""}
+                          onChange={(e) =>
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, notes: e.target.value || null }
+                                  : x
+                              )
+                            )
+                          }
+                          size="small"
+                          placeholder="nota..."
+                          fullWidth
+                          multiline
+                          minRows={3}
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Select
+                          value={r.status}
+                          onChange={(e) =>
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, status: String(e.target.value) }
+                                  : x
+                              )
+                            )
+                          }
+                          size="small"
+                          fullWidth
+                        >
+                          <MenuItem value="PENDING">PENDING</MenuItem>
+                          <MenuItem value="CONFIRMED">CONFIRMED</MenuItem>
+                          <MenuItem value="COMPLETED">COMPLETED</MenuItem>
+                          <MenuItem value="CANCELLED">CANCELLED</MenuItem>
+                        </Select>
+                      </TableCell>
+                      <TableCell sx={{ width: "1%", whiteSpace: "nowrap" }}>
+                        <TextField
+                          value={
+                            durationDrafts[r.id] ??
+                            formatDurationMs(r.actual_duration_ms)
+                          }
+                          onChange={(e) => {
+                            setDurationDrafts((prev) => ({
+                              ...prev,
+                              [r.id]: e.target.value,
+                            }));
+                            setDurationErrors((prev) => {
+                              if (!prev[r.id]) return prev;
+                              const next = { ...prev };
+                              delete next[r.id];
+                              return next;
+                            });
+                          }}
+                          onBlur={(e) => {
+                            const trimmed = e.target.value.trim();
+                            if (!trimmed) {
+                              setRows((prev) =>
+                                prev.map((x) =>
+                                  x.id === r.id
+                                    ? { ...x, actual_duration_ms: null }
+                                    : x
+                                )
+                              );
+                              setDurationDrafts((prev) => {
+                                const next = { ...prev };
+                                delete next[r.id];
+                                return next;
+                              });
+                              setDurationErrors((prev) => {
+                                if (!prev[r.id]) return prev;
+                                const next = { ...prev };
+                                delete next[r.id];
+                                return next;
+                              });
+                              return;
+                            }
+                            const parsed = parseDurationToMs(trimmed);
+                            if (parsed == null) {
+                              setDurationErrors((prev) => ({
+                                ...prev,
+                                [r.id]: "Formato esperado: MM:SS.hh.",
+                              }));
+                              return;
+                            }
+                            setRows((prev) =>
+                              prev.map((x) =>
+                                x.id === r.id
+                                  ? { ...x, actual_duration_ms: parsed }
                                   : x
                               )
                             );
@@ -898,93 +968,70 @@ export default function AdminReservations() {
                               delete next[r.id];
                               return next;
                             });
-                            return;
-                          }
-                          const parsed = parseDurationToMs(trimmed);
-                          if (parsed == null) {
-                            setDurationErrors((prev) => ({
-                              ...prev,
-                              [r.id]: "Formato esperado: MM:SS.hh.",
-                            }));
-                            return;
-                          }
-                          setRows((prev) =>
-                            prev.map((x) =>
-                              x.id === r.id
-                                ? { ...x, actual_duration_ms: parsed }
-                                : x
-                            )
-                          );
-                          setDurationDrafts((prev) => {
-                            const next = { ...prev };
-                            delete next[r.id];
-                            return next;
-                          });
-                          setDurationErrors((prev) => {
-                            if (!prev[r.id]) return prev;
-                            const next = { ...prev };
-                            delete next[r.id];
-                            return next;
-                          });
-                        }}
-                        size="small"
-                        placeholder="00:00.00"
-                        error={Boolean(durationErrors[r.id])}
-                        helperText={durationErrors[r.id] || undefined}
-                      />
-                    </TableCell>
-                    <TableCell
-                      sx={{
-                        ...actionsCellSx,
-                        ...(rowError?.id === r.id
-                          ? { backgroundColor: "rgba(127, 29, 29, 0.4)" }
-                          : {}),
-                      }}
-                    >
-                      <Stack direction="row" spacing={1}>
-                        <IconButton
-                          onClick={() => void save(r)}
-                          disabled={status.type === "loading"}
-                          aria-label="Guardar"
-                          title="Guardar"
-                          color="primary"
-                        >
-                          <SaveOutlinedIcon />
-                        </IconButton>
-                        <IconButton
-                          onClick={() => setConfirmDeleteId(r.id)}
-                          disabled={status.type === "loading"}
-                          aria-label="Eliminar"
-                          title={fullName(r)}
-                          color="error"
-                        >
-                          <DeleteOutlineIcon />
-                        </IconButton>
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-                  {rowError?.id === r.id ? (
-                    <TableRow>
-                      <TableCell
-                        colSpan={11}
-                        sx={{ backgroundColor: "rgba(239, 68, 68, 0.12)" }}
-                      >
-                        <Typography
-                          variant="body2"
-                          sx={{
-                            color: "#b91c1c",
-                            whiteSpace: "normal",
-                            wordBreak: "break-word",
-                            fontSize: { xs: "0.8rem", sm: "0.9rem" },
                           }}
+                          size="small"
+                          placeholder="00:00.00"
+                          error={Boolean(durationErrors[r.id])}
+                          helperText={durationErrors[r.id] || undefined}
+                        />
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          ...actionsCellSx,
+                          ...(rowError?.id === r.id
+                            ? { backgroundColor: "rgba(127, 29, 29, 0.4)" }
+                            : {}),
+                        }}
+                      >
+                        <Stack
+                          direction={{ xs: "column", sm: "row" }}
+                          spacing={1}
+                          alignItems="center"
                         >
-                          {rowError.message}
-                        </Typography>
+                          <IconButton
+                            onClick={() => void save(r)}
+                            disabled={status.type === "loading"}
+                            aria-label="Guardar"
+                            title="Guardar"
+                            color="primary"
+                          >
+                            <SaveOutlinedIcon />
+                          </IconButton>
+                          <IconButton
+                            onClick={() => setConfirmDeleteId(r.id)}
+                            disabled={status.type === "loading"}
+                            aria-label="Eliminar"
+                            title={fullName(r)}
+                            color="error"
+                          >
+                            <DeleteOutlineIcon />
+                          </IconButton>
+                        </Stack>
                       </TableCell>
                     </TableRow>
-                  ) : null}
-                </Fragment>
-              ))}
+                    {rowError?.id === r.id ? (
+                      <TableRow>
+                        <TableCell
+                          colSpan={11}
+                          sx={{ backgroundColor: "rgba(239, 68, 68, 0.12)" }}
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              color: "#b91c1c",
+                              whiteSpace: "normal",
+                              wordBreak: "break-word",
+                              fontSize: { xs: "0.8rem", sm: "0.9rem" },
+                            }}
+                          >
+                            {rowError.message}
+                          </Typography>
+                        </TableCell>
+                      </TableRow>
+                    ) : null}
+                  </Fragment>
+                );
+              })}
               {totalRecords === 0 ? (
                 <TableRow>
                   <TableCell colSpan={11}>Sin registros.</TableCell>
