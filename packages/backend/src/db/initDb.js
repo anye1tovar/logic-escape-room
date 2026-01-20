@@ -86,6 +86,12 @@ async function initSchema() {
   `);
 
   await pool.query(`
+    CREATE UNIQUE INDEX IF NOT EXISTS reservations_consult_code_unique
+    ON reservations (consult_code)
+    WHERE consult_code IS NOT NULL;
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS reservation_changes (
       id SERIAL PRIMARY KEY,
       reservation_id INTEGER NOT NULL,

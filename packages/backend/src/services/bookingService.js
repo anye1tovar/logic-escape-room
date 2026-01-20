@@ -1,4 +1,6 @@
-﻿/**
+const crypto = require("crypto");
+
+/**
  * bookingService: contains business logic and uses a consumer for persistence.
  * The consumer must implement: createBooking({name,date}), getBookingById(id), listBookings()
  */
@@ -8,7 +10,7 @@ function buildBookingService(consumer, deps = {}) {
   const TIMEZONE_OFFSET_MINUTES = -5 * 60; // Bogota has fixed UTC-5
   const MIN_ADVANCE_MINUTES = 40;
   const SLOT_DURATION_MINUTES = 90;
-  const MAX_CONSULT_CODE_LENGTH = 64;
+  const MAX_CONSULT_CODE_LENGTH = 15;
 
   function pad2(value) {
     return String(value).padStart(2, "0");
@@ -82,35 +84,27 @@ function buildBookingService(consumer, deps = {}) {
       .replace(/(^-|-$)/g, "");
   }
 
-  function roomPrefixFromName(roomName) {
-    const normalized = String(roomName || "")
-      .trim()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "")
-      .replace(/[^a-zA-Z0-9]/g, "")
-      .toUpperCase();
-    const raw = normalized.slice(0, 3);
-    return raw.padEnd(3, "X");
+  function randomBase32(length) {
+    const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ234567";
+    const bytes = crypto.randomBytes(length);
+    let out = "";
+    for (let i = 0; i < length; i += 1) {
+      out += alphabet[bytes[i] % alphabet.length];
+    }
+    return out;
   }
 
-  function extractHourMinute(value) {
-    const raw = String(value || "").trim();
-    const match = raw.match(/T(\d{2}):(\d{2})/);
-    if (match) return { hour: Number(match[1]), minute: Number(match[2]) };
-    const matchPlain = raw.match(/^(\d{2}):(\d{2})$/);
-    if (matchPlain)
-      return { hour: Number(matchPlain[1]), minute: Number(matchPlain[2]) };
-    return null;
+  function generateConsultCode() {
+    return `LG${randomBase32(13)}`;
   }
 
-  function generateConsultCode(roomName, date, time) {
-    const datePart = String(date || "").replace(/-/g, "");
-    const hm = extractHourMinute(time);
-    const timePart =
-      hm && Number.isFinite(hm.hour) && Number.isFinite(hm.minute)
-        ? `${hm.hour}${pad2(hm.minute)}`
-        : "000";
-    return `${roomPrefixFromName(roomName)}${datePart}${timePart}`;
+  function isUniqueViolation(err) {
+    const code = err?.code || err?.sqlState || "";
+    if (code === "23505") return true;
+    const message = String(err?.message || "").toLowerCase();
+    return (
+      message.includes("consult_code") || message.includes("unique")
+    );
   }
 
   function splitName(fullName) {
@@ -435,12 +429,6 @@ function buildBookingService(consumer, deps = {}) {
       throw err;
     }
 
-    const computedConsultCode = generateConsultCode(
-      resolvedRoomName || roomId,
-      requestedDate,
-      startIso
-    );
-
     const safeNotes =
       typeof notes === "string" && notes.trim() ? notes.trim() : null;
 
@@ -449,24 +437,37 @@ function buildBookingService(consumer, deps = {}) {
       attendees: players,
     });
     const finalTotal = quote?.total ?? null;
-    const booking = await consumer.createBooking({
-      firstName: safeFirstName,
-      lastName: safeLastName,
-      name: fullName,
-      whatsapp,
-      date: requestedDate,
-      roomId: resolvedRoomDbId,
-      time: startIso,
-      endTime: endIso,
-      attendees,
-      notes: safeNotes,
-      total: finalTotal,
-      sendReceipt: data.sendReceipt,
-      consultCode: computedConsultCode,
-      isFirstTime: Boolean(isFirstTime),
-      reservationSource,
-    });
-    return { ...booking, reservationCode: booking.consultCode };
+
+    let lastErr = null;
+    for (let attempt = 0; attempt < 3; attempt += 1) {
+      const computedConsultCode = generateConsultCode();
+      try {
+        const booking = await consumer.createBooking({
+          firstName: safeFirstName,
+          lastName: safeLastName,
+          name: fullName,
+          whatsapp,
+          date: requestedDate,
+          roomId: resolvedRoomDbId,
+          time: startIso,
+          endTime: endIso,
+          attendees,
+          notes: safeNotes,
+          total: finalTotal,
+          sendReceipt: data.sendReceipt,
+          consultCode: computedConsultCode,
+          isFirstTime: Boolean(isFirstTime),
+          reservationSource,
+        });
+        return { ...booking, reservationCode: booking.consultCode };
+      } catch (err) {
+        lastErr = err;
+        if (isUniqueViolation(err) && attempt < 2) continue;
+        throw err;
+      }
+    }
+
+    throw lastErr || new Error("Failed to create booking");
   }
 
   async function listBookings() {
