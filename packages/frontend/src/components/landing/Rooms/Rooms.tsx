@@ -95,10 +95,7 @@ const normalizeRoom = (room: ApiRoom): RoomCard => {
     difficulty: room.difficulty,
     status,
     coverImage: normalizeCoverImage(
-      room.coverImage ||
-        room.cover_image ||
-        room.image ||
-        room.image_url,
+      room.coverImage || room.cover_image || room.image || room.image_url,
       slug
     ),
     badge: room.badge,
@@ -118,14 +115,14 @@ const Rooms = () => {
         name: "Portal",
         description: t(
           "rooms.fallback.portal",
-          "Cruza universos, resuelve acertijos y vence al tiempo."
+          "Los jugadores despiertan en un mundo desconocido, regido por las reglas de un antiguo juego. Un tablero revela que la única forma de regresar a la realidad es encontrar siete gemas ocultas. Solo reuniéndolas podrán abrir el portal que los lleve de vuelta a casa. El tiempo corre y el mundo no perdona errores."
         ),
         theme: "Sci-Fi",
         minPlayers: 2,
         maxPlayers: 6,
         minAge: 12,
         durationMinutes: 60,
-        difficulty: 3,
+        difficulty: 1,
         status: "active",
         coverImage: portalImg,
         badge: t("rooms.badges.featured"),
@@ -135,14 +132,14 @@ const Rooms = () => {
         name: "Canibal",
         description: t(
           "rooms.fallback.canibal",
-          "Silencio, sigilo y nervios de acero para escapar."
+          "Tras ser secuestrados, los jugadores despiertan en un apartamento desconocido. El ambiente es inquietante y la sensación es clara: la hora de la cena se acerca. Deberán trabajar juntos, resolver los acertijos y escapar antes de que sea demasiado tarde."
         ),
         theme: "Horror",
         minPlayers: 2,
         maxPlayers: 6,
         minAge: 15,
         durationMinutes: 60,
-        difficulty: 4,
+        difficulty: 2,
         status: "active",
         coverImage: canibalImg,
       },
@@ -151,7 +148,7 @@ const Rooms = () => {
         name: "Manicomio",
         description: t(
           "rooms.fallback.manicomio",
-          "Un escape psicológico donde cada detalle cuenta."
+          "Los jugadores ingresan a un hospital psiquiátrico abandonado. Entre documentos, habitaciones olvidadas y rastros del pasado, deberán descubrir la verdad sobre los pacientes que estuvieron allí. Nada es lo que parece y algunas respuestas es mejor encontrarlas antes de quedarse atrapados."
         ),
         theme: "Thriller",
         minPlayers: 2,
@@ -161,21 +158,6 @@ const Rooms = () => {
         difficulty: 3,
         status: "active",
         coverImage: manicomioImg,
-      },
-      {
-        id: "coming-soon",
-        name: t("rooms.comingSoonTitle", "Próximamente"),
-        description: t(
-          "rooms.comingSoonCopy",
-          "Una nueva misión está en construcción, lista para ponerte a prueba."
-        ),
-        theme: t("rooms.comingSoonTagline", "Muy pronto"),
-        minPlayers: 2,
-        maxPlayers: 6,
-        minAge: 13,
-        durationMinutes: 60,
-        difficulty: t("rooms.difficulty.unknown", "Secreto"),
-        status: "comingSoon",
       },
     ],
     [t]
