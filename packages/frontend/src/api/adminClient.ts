@@ -19,6 +19,12 @@ export async function adminRequest<T>(
   });
 
   if (!res.ok) {
+    if (res.status === 401) {
+      localStorage.removeItem("adminToken");
+      localStorage.removeItem("adminUser");
+      window.location.href = "/admin";
+    }
+
     const err = await res.json().catch(() => ({ error: "Unknown error" }));
     const error = new Error(err.error || "Request failed") as ApiError;
     error.status = res.status;
