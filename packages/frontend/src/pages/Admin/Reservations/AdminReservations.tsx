@@ -55,6 +55,7 @@ type ReservationRow = {
   status: string;
   is_first_time: number;
   reservation_source?: string | null;
+  out_of_hours?: number | boolean | null;
   reprogrammed?: number | boolean | null;
 };
 
@@ -705,6 +706,14 @@ export default function AdminReservations() {
                                         ? "warning"
                                         : "info"
                                     }
+                                  />
+                                ) : null}
+                                {Boolean(r.out_of_hours) ? (
+                                  <Chip
+                                    label="Fuera de horario"
+                                    size="small"
+                                    color="warning"
+                                    variant="outlined"
                                   />
                                 ) : null}
                               </Stack>

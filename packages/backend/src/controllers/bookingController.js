@@ -35,15 +35,22 @@ function buildBookingController(service, deps = {}) {
     try {
       const { date } = req.query;
       const allowPastRaw = req.query?.allowPast;
+      const allowOutOfHoursRaw = req.query?.allowOutOfHours;
       const allowPast =
         allowPastRaw === "1" ||
         allowPastRaw === "true" ||
         allowPastRaw === 1 ||
         allowPastRaw === true;
-      const user = allowPast ? getUserFromRequest(req) : null;
+      const allowOutOfHours =
+        allowOutOfHoursRaw === "1" ||
+        allowOutOfHoursRaw === "true" ||
+        allowOutOfHoursRaw === 1 ||
+        allowOutOfHoursRaw === true;
+      const user = allowPast || allowOutOfHours ? getUserFromRequest(req) : null;
       const availability = await service.getAvailabilityByDate(date, {
         allowPast: Boolean(user) && allowPast,
         ignoreMinAdvance: Boolean(user) && allowPast,
+        allowOutOfHours: Boolean(user) && allowOutOfHours,
       });
       res.json(availability);
     } catch (err) {

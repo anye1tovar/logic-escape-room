@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import { DateTimePicker } from "@mui/x-date-pickers/DateTimePicker";
 import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
 import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
 import { enUS, esES } from "@mui/x-date-pickers/locales";
@@ -7,7 +8,7 @@ import dayjs, { Dayjs } from "dayjs";
 import { useTranslation } from "react-i18next";
 import "dayjs/locale/en";
 import "dayjs/locale/es";
-import { Typography } from "@mui/material";
+import { FormControlLabel, Switch, Typography } from "@mui/material";
 
 const portalImg = "/rooms/portal.webp";
 const canibalImg = "/rooms/canibal.webp";
@@ -53,6 +54,7 @@ export type BookingStep1Output = {
   slotStart: string;
   slotEnd: string;
   peopleCount: number;
+  outOfHours?: boolean;
 };
 
 type BookingStepSelectionProps = {
@@ -61,6 +63,7 @@ type BookingStepSelectionProps = {
 };
 
 const SLOT_DURATION_MINUTES = 90;
+const COLOMBIA_OFFSET = "-05:00";
 
 function difficultyLabel(
   value: AvailabilityRoom["difficulty"],
@@ -82,6 +85,10 @@ function formatTime(value: string) {
   const parsed = dayjs(value);
   if (!parsed.isValid()) return value;
   return parsed.format("HH:mm");
+}
+
+function formatOutOfHoursStart(value: Dayjs) {
+  return `${value.format("YYYY-MM-DDTHH:mm:00")}${COLOMBIA_OFFSET}`;
 }
 
 function roomImage(roomId: string) {
@@ -174,6 +181,7 @@ export default function BookingStepSelection({
 
   const today = useMemo(() => dayjs().startOf("day"), []);
   const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [outOfHoursEnabled, setOutOfHoursEnabled] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(
     null
   );
@@ -185,6 +193,12 @@ export default function BookingStepSelection({
     null
   );
   const [peopleCount, setPeopleCount] = useState<number | null>(null);
+
+  const selectedDateString = useMemo(() => {
+    if (selectedDate && selectedDate.isValid())
+      return selectedDate.format("YYYY-MM-DD");
+    return "";
+  }, [selectedDate]);
 
   const selectedRoom = useMemo(() => {
     if (!availability || !selectedRoomId) return null;
@@ -213,7 +227,7 @@ export default function BookingStepSelection({
       : null;
 
   const canContinue =
-    Boolean(selectedDate) &&
+    Boolean(selectedDateString) &&
     Boolean(selectedRoomId) &&
     Boolean(selectedSlotStart) &&
     typeof peopleCount === "number" &&
@@ -226,7 +240,7 @@ export default function BookingStepSelection({
   }, [pickerLocale]);
 
   useEffect(() => {
-    if (!selectedDate) {
+    if (!selectedDateString) {
       setAvailability(null);
       setSelectedRoomId(null);
       setSelectedSlotStart(null);
@@ -235,19 +249,23 @@ export default function BookingStepSelection({
       return;
     }
 
-    const date = selectedDate.format("YYYY-MM-DD");
+    const date = selectedDateString;
     const controller = new AbortController();
 
     (async () => {
       try {
         setIsLoading(true);
         setLoadError(null);
-        setSelectedRoomId(null);
-        setSelectedSlotStart(null);
-        setPeopleCount(null);
+        if (!outOfHoursEnabled) {
+          setSelectedRoomId(null);
+          setSelectedSlotStart(null);
+          setPeopleCount(null);
+        }
 
         const apiBase = import.meta.env.VITE_API_BASE_URL || "";
         const allowPastParam = hasAdminToken ? "&allowPast=1" : "";
+        const allowOutOfHoursParam =
+          hasAdminToken && outOfHoursEnabled ? "&allowOutOfHours=1" : "";
         const headers: HeadersInit = {};
         const token = hasAdminToken
           ? window.localStorage.getItem("adminToken")
@@ -256,7 +274,7 @@ export default function BookingStepSelection({
         const res = await fetch(
           `${apiBase}/api/bookings/availability?date=${encodeURIComponent(
             date
-          )}${allowPastParam}`,
+          )}${allowPastParam}${allowOutOfHoursParam}`,
           { signal: controller.signal, headers }
         );
         if (!res.ok) {
@@ -277,11 +295,11 @@ export default function BookingStepSelection({
     })();
 
     return () => controller.abort();
-  }, [selectedDate, hasAdminToken]);
+  }, [selectedDateString, hasAdminToken, outOfHoursEnabled]);
 
   const handleSelectRoom = (room: AvailabilityRoom) => {
     setSelectedRoomId(room.roomId);
-    setSelectedSlotStart(null);
+    if (!outOfHoursEnabled) setSelectedSlotStart(null);
     setPeopleCount((current) => {
       if (typeof current !== "number") return room.minPlayers;
       if (current < room.minPlayers) return room.minPlayers;
@@ -291,6 +309,7 @@ export default function BookingStepSelection({
   };
 
   const handleSelectSlot = (room: AvailabilityRoom, slot: AvailabilitySlot) => {
+    if (outOfHoursEnabled) return;
     if (!slot.available) return;
     setSelectedRoomId(room.roomId);
     setSelectedSlotStart(slot.start);
@@ -305,7 +324,7 @@ export default function BookingStepSelection({
   const handleContinue = () => {
     if (
       !canContinue ||
-      !selectedDate ||
+      !selectedDateString ||
       !selectedRoomId ||
       !selectedSlotStart ||
       typeof peopleCount !== "number"
@@ -318,7 +337,7 @@ export default function BookingStepSelection({
     );
 
     onComplete?.({
-      date: selectedDate.format("YYYY-MM-DD"),
+      date: selectedDateString,
       roomId: selectedRoomId,
       roomName: selectedRoom.name,
       durationMinutes:
@@ -329,6 +348,7 @@ export default function BookingStepSelection({
       slotStart: selectedSlotStart,
       slotEnd,
       peopleCount,
+      outOfHours: outOfHoursEnabled ? true : undefined,
     });
   };
 
@@ -352,140 +372,193 @@ export default function BookingStepSelection({
             <span className="booking-form__label">
               {t("booking.selection.selectDateLabel")}
             </span>
+            {hasAdminToken && (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={outOfHoursEnabled}
+                    onChange={(event) => {
+                      const checked = event.target.checked;
+                      setOutOfHoursEnabled(checked);
+                      if (!checked) {
+                        setSelectedSlotStart(null);
+                      }
+                    }}
+                  />
+                }
+                label={t("booking.selection.outOfHoursLabel")}
+              />
+            )}
+            {hasAdminToken && outOfHoursEnabled && (
+              <Typography
+                variant="caption"
+                sx={{ color: "rgba(255,255,255,0.7)", display: "block" }}
+              >
+                {t("booking.selection.outOfHoursHint")}
+              </Typography>
+            )}
             <LocalizationProvider
               dateAdapter={AdapterDayjs}
               adapterLocale={pickerLocale}
               localeText={pickerLocaleText}
             >
-              <DatePicker
-                value={selectedDate}
-                onChange={(value) => setSelectedDate(value)}
-                minDate={hasAdminToken ? undefined : today}
-                slotProps={{
-                  popper: {
-                    sx: {
-                      "& .MuiPaper-root": {
-                        background:
-                          "linear-gradient(135deg, rgba(17,10,38,0.98), rgba(19,9,44,0.92))",
-                        border: "1px solid rgba(203,171,255,0.22)",
-                        color: "#fff",
-                        boxShadow: "0 22px 60px rgba(0, 0, 0, 0.55)",
-                        backdropFilter: "blur(14px)",
-                      },
-                      "& .MuiPickersCalendarHeader-label": {
-                        fontWeight: 900,
-                        letterSpacing: "0.06em",
-                      },
-                      "& .MuiPickersArrowSwitcher-button": {
-                        color: "rgba(255,255,255,0.95)",
-                        "&:hover": {
-                          backgroundColor: "rgba(203,171,255,0.10)",
+              {hasAdminToken && outOfHoursEnabled ? (
+                <DateTimePicker
+                  value={selectedDate}
+                  onChange={(value) => {
+                    if (!value || !value.isValid()) return;
+                    setSelectedDate(value);
+                    setSelectedSlotStart(formatOutOfHoursStart(value));
+                  }}
+                  minDate={today}
+                  format="YYYY-MM-DD HH:mm"
+                  slotProps={{
+                    textField: {
+                      fullWidth: true,
+                      placeholder: t("booking.selection.dateTimePlaceholder"),
+                      sx: {
+                        "> div > fieldset": {
+                          borderColor: "#fff",
                         },
-                      },
-                      "& .MuiDayCalendar-weekDayLabel": {
-                        color: "rgba(255,255,255,0.7)",
-                        fontWeight: 900,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                      },
-                      "& .MuiPickersDay-root": {
-                        color: "rgba(255,255,255,0.92)",
-                        borderRadius: "12px",
-                        "&:hover": {
-                          backgroundColor: "rgba(203,171,255,0.12)",
+                        "& .MuiIconButton-root": { color: "#fff" },
+                        "& .MuiPickersInputBase-sectionsContainer": {
+                          color: "#fff",
                         },
-                      },
-                      "& .MuiPickersDay-root.MuiPickersDay-today": {
-                        border: "1px solid rgba(239,187,61,0.6)",
-                      },
-                      "& .MuiPickersDay-root.Mui-disabled": {
-                        color: "rgba(255,255,255,0.35)",
-                      },
-                      "& .MuiPickersDay-root.Mui-selected": {
-                        backgroundColor: "#efbb3d",
-                        color: "#110a26",
-                        fontWeight: 900,
-                        boxShadow: "0 10px 30px rgba(239,187,61,0.25)",
-                      },
-                      "& .MuiPickersDay-root.Mui-selected:hover": {
-                        backgroundColor: "rgba(239,187,61,0.92)",
-                      },
-                      "& .MuiPickersLayout-actionBar button": {
-                        borderRadius: "12px",
-                        fontWeight: 900,
-                        letterSpacing: "0.04em",
                       },
                     },
-                  },
-                  dialog: {
-                    sx: {
-                      "& .MuiPaper-root": {
-                        background:
-                          "linear-gradient(135deg, rgba(17,10,38,0.98), rgba(19,9,44,0.92))",
-                        border: "1px solid rgba(203,171,255,0.22)",
-                        color: "#fff",
-                        boxShadow: "0 22px 60px rgba(0, 0, 0, 0.55)",
-                      },
-                      "& .MuiPickersCalendarHeader-label": {
-                        fontWeight: 900,
-                        letterSpacing: "0.06em",
-                      },
-                      "& .MuiPickersArrowSwitcher-button": {
-                        color: "rgba(255,255,255,0.95)",
-                        "&:hover": {
-                          backgroundColor: "rgba(203,171,255,0.10)",
+                  }}
+                />
+              ) : (
+                <DatePicker
+                  value={selectedDate}
+                  onChange={(value) => setSelectedDate(value)}
+                  minDate={hasAdminToken ? undefined : today}
+                  slotProps={{
+                    popper: {
+                      sx: {
+                        "& .MuiPaper-root": {
+                          background:
+                            "linear-gradient(135deg, rgba(17,10,38,0.98), rgba(19,9,44,0.92))",
+                          border: "1px solid rgba(203,171,255,0.22)",
+                          color: "#fff",
+                          boxShadow: "0 22px 60px rgba(0, 0, 0, 0.55)",
+                          backdropFilter: "blur(14px)",
+                        },
+                        "& .MuiPickersCalendarHeader-label": {
+                          fontWeight: 900,
+                          letterSpacing: "0.06em",
+                        },
+                        "& .MuiPickersArrowSwitcher-button": {
+                          color: "rgba(255,255,255,0.95)",
+                          "&:hover": {
+                            backgroundColor: "rgba(203,171,255,0.10)",
+                          },
+                        },
+                        "& .MuiDayCalendar-weekDayLabel": {
+                          color: "rgba(255,255,255,0.7)",
+                          fontWeight: 900,
+                          letterSpacing: "0.12em",
+                          textTransform: "uppercase",
+                        },
+                        "& .MuiPickersDay-root": {
+                          color: "rgba(255,255,255,0.92)",
+                          borderRadius: "12px",
+                          "&:hover": {
+                            backgroundColor: "rgba(203,171,255,0.12)",
+                          },
+                        },
+                        "& .MuiPickersDay-root.MuiPickersDay-today": {
+                          border: "1px solid rgba(239,187,61,0.6)",
+                        },
+                        "& .MuiPickersDay-root.Mui-disabled": {
+                          color: "rgba(255,255,255,0.35)",
+                        },
+                        "& .MuiPickersDay-root.Mui-selected": {
+                          backgroundColor: "#efbb3d",
+                          color: "#110a26",
+                          fontWeight: 900,
+                          boxShadow: "0 10px 30px rgba(239,187,61,0.25)",
+                        },
+                        "& .MuiPickersDay-root.Mui-selected:hover": {
+                          backgroundColor: "rgba(239,187,61,0.92)",
+                        },
+                        "& .MuiPickersLayout-actionBar button": {
+                          borderRadius: "12px",
+                          fontWeight: 900,
+                          letterSpacing: "0.04em",
                         },
                       },
-                      "& .MuiDayCalendar-weekDayLabel": {
-                        color: "rgba(255,255,255,0.7)",
-                        fontWeight: 900,
-                        letterSpacing: "0.12em",
-                        textTransform: "uppercase",
-                      },
-                      "& .MuiPickersDay-root": {
-                        color: "rgba(255,255,255,0.92)",
-                        borderRadius: "12px",
-                        "&:hover": {
-                          backgroundColor: "rgba(203,171,255,0.12)",
+                    },
+                    dialog: {
+                      sx: {
+                        "& .MuiPaper-root": {
+                          background:
+                            "linear-gradient(135deg, rgba(17,10,38,0.98), rgba(19,9,44,0.92))",
+                          border: "1px solid rgba(203,171,255,0.22)",
+                          color: "#fff",
+                          boxShadow: "0 22px 60px rgba(0, 0, 0, 0.55)",
+                        },
+                        "& .MuiPickersCalendarHeader-label": {
+                          fontWeight: 900,
+                          letterSpacing: "0.06em",
+                        },
+                        "& .MuiPickersArrowSwitcher-button": {
+                          color: "rgba(255,255,255,0.95)",
+                          "&:hover": {
+                            backgroundColor: "rgba(203,171,255,0.10)",
+                          },
+                        },
+                        "& .MuiDayCalendar-weekDayLabel": {
+                          color: "rgba(255,255,255,0.7)",
+                          fontWeight: 900,
+                          letterSpacing: "0.12em",
+                          textTransform: "uppercase",
+                        },
+                        "& .MuiPickersDay-root": {
+                          color: "rgba(255,255,255,0.92)",
+                          borderRadius: "12px",
+                          "&:hover": {
+                            backgroundColor: "rgba(203,171,255,0.12)",
+                          },
+                        },
+                        "& .MuiPickersDay-root.MuiPickersDay-today": {
+                          border: "1px solid rgba(239,187,61,0.6)",
+                        },
+                        "& .MuiPickersDay-root.Mui-disabled": {
+                          color: "rgba(255,255,255,0.35)",
+                        },
+                        "& .MuiPickersDay-root.Mui-selected": {
+                          backgroundColor: "#efbb3d",
+                          color: "#110a26",
+                          fontWeight: 900,
+                          boxShadow: "0 10px 30px rgba(239,187,61,0.25)",
+                        },
+                        "& .MuiPickersDay-root.Mui-selected:hover": {
+                          backgroundColor: "rgba(239,187,61,0.92)",
+                        },
+                        "& .MuiPickersLayout-actionBar button": {
+                          borderRadius: "12px",
+                          fontWeight: 900,
+                          letterSpacing: "0.04em",
                         },
                       },
-                      "& .MuiPickersDay-root.MuiPickersDay-today": {
-                        border: "1px solid rgba(239,187,61,0.6)",
-                      },
-                      "& .MuiPickersDay-root.Mui-disabled": {
-                        color: "rgba(255,255,255,0.35)",
-                      },
-                      "& .MuiPickersDay-root.Mui-selected": {
-                        backgroundColor: "#efbb3d",
-                        color: "#110a26",
-                        fontWeight: 900,
-                        boxShadow: "0 10px 30px rgba(239,187,61,0.25)",
-                      },
-                      "& .MuiPickersDay-root.Mui-selected:hover": {
-                        backgroundColor: "rgba(239,187,61,0.92)",
-                      },
-                      "& .MuiPickersLayout-actionBar button": {
-                        borderRadius: "12px",
-                        fontWeight: 900,
-                        letterSpacing: "0.04em",
+                    },
+                    textField: {
+                      fullWidth: true,
+                      placeholder: t("booking.selection.datePlaceholder"),
+                      sx: {
+                        "> div > fieldset": {
+                          borderColor: "#fff",
+                        },
+                        "& .MuiIconButton-root": { color: "#fff" },
+                        "& .MuiPickersInputBase-sectionsContainer": {
+                          color: "#fff",
+                        },
                       },
                     },
-                  },
-                  textField: {
-                    fullWidth: true,
-                    placeholder: t("booking.selection.datePlaceholder"),
-                    sx: {
-                      "> div > fieldset": {
-                        borderColor: "#fff",
-                      },
-                      "& .MuiIconButton-root": { color: "#fff" },
-                      "& .MuiPickersInputBase-sectionsContainer": {
-                        color: "#fff",
-                      },
-                    },
-                  },
-                }}
-              />
+                  }}
+                />
+              )}
             </LocalizationProvider>
           </div>
         </div>
@@ -532,6 +605,7 @@ export default function BookingStepSelection({
             <div className="booking-rooms" role="list">
               {availability.rooms.map((room) => {
                 const isSelected = room.roomId === selectedRoomId;
+                const showSlots = !outOfHoursEnabled;
                 const roomHasSlots =
                   Array.isArray(room.slots) && room.slots.length > 0;
                 return (
@@ -570,55 +644,59 @@ export default function BookingStepSelection({
                       </div>
                     </button>
 
-                    <div
-                      className="booking-room-card__slots"
-                      aria-label={`Horarios ${room.name}`}
-                    >
-                      {!roomHasSlots && (
-                        <div className="booking-room-card__empty">
-                          Sin horarios para esta fecha.
-                        </div>
-                      )}
-                      {roomHasSlots && (
-                        <div className="booking-slots">
-                          {room.slots.map((slot) => {
-                            const isSlotSelected =
-                              isSelected && slot.start === selectedSlotStart;
-                            const label = formatTime(slot.start);
-                            return (
-                              <button
-                                key={slot.start}
-                                type="button"
-                                className={`booking-slot ${
-                                  slot.available
-                                    ? "booking-slot--available"
-                                    : "booking-slot--busy"
-                                } ${
-                                  isSlotSelected ? "booking-slot--selected" : ""
-                                }`}
-                                disabled={!slot.available}
-                                onClick={() => handleSelectSlot(room, slot)}
-                                aria-pressed={isSlotSelected}
-                                title={
-                                  slot.available
-                                    ? t("booking.selection.slot.available")
-                                    : t("booking.selection.slot.busy")
-                                }
-                              >
-                                <span className="booking-slot__time">
-                                  {label}
-                                </span>
-                                {!slot.available && (
-                                  <span className="booking-slot__badge">
-                                    {t("booking.selection.slot.busyBadge")}
+                    {showSlots && (
+                      <div
+                        className="booking-room-card__slots"
+                        aria-label={`Horarios ${room.name}`}
+                      >
+                        {!roomHasSlots && (
+                          <div className="booking-room-card__empty">
+                            Sin horarios para esta fecha.
+                          </div>
+                        )}
+                        {roomHasSlots && (
+                          <div className="booking-slots">
+                            {room.slots.map((slot) => {
+                              const isSlotSelected =
+                                isSelected && slot.start === selectedSlotStart;
+                              const label = formatTime(slot.start);
+                              return (
+                                <button
+                                  key={slot.start}
+                                  type="button"
+                                  className={`booking-slot ${
+                                    slot.available
+                                      ? "booking-slot--available"
+                                      : "booking-slot--busy"
+                                  } ${
+                                    isSlotSelected
+                                      ? "booking-slot--selected"
+                                      : ""
+                                  }`}
+                                  disabled={!slot.available}
+                                  onClick={() => handleSelectSlot(room, slot)}
+                                  aria-pressed={isSlotSelected}
+                                  title={
+                                    slot.available
+                                      ? t("booking.selection.slot.available")
+                                      : t("booking.selection.slot.busy")
+                                  }
+                                >
+                                  <span className="booking-slot__time">
+                                    {label}
                                   </span>
-                                )}
-                              </button>
-                            );
-                          })}
-                        </div>
-                      )}
-                    </div>
+                                  {!slot.available && (
+                                    <span className="booking-slot__badge">
+                                      {t("booking.selection.slot.busyBadge")}
+                                    </span>
+                                  )}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </article>
                 );
               })}

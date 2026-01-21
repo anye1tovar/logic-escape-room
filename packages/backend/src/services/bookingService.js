@@ -75,6 +75,11 @@ function buildBookingService(consumer, deps = {}) {
     return null;
   }
 
+  function isPrivilegedUser(user) {
+    const role = String(user?.role || "").toLowerCase();
+    return role === "admin" || role === "game_master";
+  }
+
   function slugify(value) {
     return String(value)
       .toLowerCase()
@@ -310,19 +315,32 @@ function buildBookingService(consumer, deps = {}) {
       data?.reservationSource ?? data?.reservation_source
     );
     const isWalkIn = reservationSource === "walk_in";
+    const outOfHoursRaw = data?.outOfHours ?? data?.out_of_hours;
+    const isOutOfHours =
+      outOfHoursRaw === true ||
+      outOfHoursRaw === "true" ||
+      outOfHoursRaw === 1 ||
+      outOfHoursRaw === "1";
     const user = options?.user ?? null;
     if (isWalkIn && !user) {
       const err = new Error("Unauthorized");
       err.status = 401;
       throw err;
     }
-    if (isWalkIn && user) {
-      const role = String(user.role || "").toLowerCase();
-      if (!["admin", "game_master"].includes(role)) {
-        const err = new Error("Forbidden");
-        err.status = 403;
-        throw err;
-      }
+    if (isWalkIn && user && !isPrivilegedUser(user)) {
+      const err = new Error("Forbidden");
+      err.status = 403;
+      throw err;
+    }
+    if (isOutOfHours && !user) {
+      const err = new Error("Unauthorized");
+      err.status = 401;
+      throw err;
+    }
+    if (isOutOfHours && user && !isPrivilegedUser(user)) {
+      const err = new Error("Forbidden");
+      err.status = 403;
+      throw err;
     }
     if (!date || !roomId || !time) {
       const err = new Error("Missing required fields: date, roomId, time");
@@ -356,24 +374,97 @@ function buildBookingService(consumer, deps = {}) {
         TIMEZONE_OFFSET_MINUTES
       );
 
-    // Validate availability again on reservation create.
-    const availability = await getAvailabilityByDate(requestedDate, {
-      allowPast: isWalkIn,
-      ignoreMinAdvance: isWalkIn,
-    });
-    const room = (availability?.rooms || []).find((r) => r.roomId === roomId);
-    const slot = room?.slots?.find((s) => s.start === startIso) || null;
-    if (!room || !slot) {
-      const err = new Error(
-        "Este horario no existe para la fecha seleccionada."
-      );
+    let resolvedRoomName = null;
+    let resolvedRoomDbId = null;
+    let resolvedRoomRow = null;
+    try {
+      const rooms = await listRoomsForAvailability();
+      const match =
+        (rooms || []).find(
+          (roomRow) => derivePublicRoomId(roomRow) === roomId
+        ) || null;
+      resolvedRoomRow = match;
+      resolvedRoomName = match?.name || null;
+      resolvedRoomDbId = match?.id != null ? Number(match.id) : null;
+    } catch (err) {
+      resolvedRoomName = null;
+      resolvedRoomDbId = null;
+      resolvedRoomRow = null;
+    }
+
+    if (!Number.isFinite(resolvedRoomDbId) || resolvedRoomDbId <= 0) {
+      const err = new Error("Invalid roomId.");
       err.status = 400;
       throw err;
     }
-    if (!slot.available) {
-      const err = new Error("Este horario ya no estÃ¡ disponible.");
-      err.status = 409;
-      throw err;
+
+    // Validate availability again on reservation create.
+    if (!isOutOfHours) {
+      const availability = await getAvailabilityByDate(requestedDate, {
+        allowPast: isWalkIn,
+        ignoreMinAdvance: isWalkIn,
+      });
+      const room = (availability?.rooms || []).find((r) => r.roomId === roomId);
+      const slot = room?.slots?.find((s) => s.start === startIso) || null;
+      if (!room || !slot) {
+        const err = new Error(
+          "Este horario no existe para la fecha seleccionada."
+        );
+        err.status = 400;
+        throw err;
+      }
+      if (!slot.available) {
+        const err = new Error("Este horario ya no esta disponible.");
+        err.status = 409;
+        throw err;
+      }
+    } else {
+      const list = consumer.listBookingsByDate
+        ? await consumer.listBookingsByDate(requestedDate)
+        : await consumer.listBookings();
+      const targetRoomId = String(resolvedRoomDbId);
+      const normalizedStart = normalizeBookingStartToIso(
+        requestedDate,
+        startIso
+      );
+      const normalizedEnd = normalizeBookingStartToIso(requestedDate, endIso);
+      const conflict = (list || []).some((booking) => {
+        const bookingDate = booking.date ?? booking.booking_date ?? null;
+        if (bookingDate && String(bookingDate) !== requestedDate) return false;
+        const bookingRoomRaw = `${
+          booking.room_id ?? booking.roomId ?? ""
+        }`.trim();
+        if (bookingRoomRaw !== targetRoomId) return false;
+        const startRaw =
+          booking.start_time ?? booking.time ?? booking.startTime ?? null;
+        const endRaw =
+          booking.end_time ?? booking.endTime ?? booking.time ?? null;
+        const existingStart = normalizeBookingStartToIso(
+          requestedDate,
+          startRaw
+        );
+        const existingEnd =
+          normalizeBookingStartToIso(requestedDate, endRaw) || existingStart;
+        if (!existingStart || !existingEnd || !normalizedStart || !normalizedEnd)
+          return false;
+        const newStartMs = Date.parse(normalizedStart);
+        const newEndMs = Date.parse(normalizedEnd);
+        const existingStartMs = Date.parse(existingStart);
+        const existingEndMs = Date.parse(existingEnd);
+        if (
+          Number.isNaN(newStartMs) ||
+          Number.isNaN(newEndMs) ||
+          Number.isNaN(existingStartMs) ||
+          Number.isNaN(existingEndMs)
+        )
+          return false;
+        return newStartMs < existingEndMs && newEndMs > existingStartMs;
+      });
+      if (conflict) {
+        const err = new Error("Este horario ya no esta disponible.");
+        err.status = 409;
+        throw err;
+      }
     }
 
     const players = Number(attendees);
@@ -382,8 +473,12 @@ function buildBookingService(consumer, deps = {}) {
       err.status = 400;
       throw err;
     }
-    const minPlayers = Number(room.minPlayers);
-    const maxPlayers = Number(room.maxPlayers);
+    const minPlayers = Number(
+      resolvedRoomRow?.min_players ?? resolvedRoomRow?.minPlayers
+    );
+    const maxPlayers = Number(
+      resolvedRoomRow?.max_players ?? resolvedRoomRow?.maxPlayers
+    );
     if (
       Number.isFinite(minPlayers) &&
       Number.isFinite(maxPlayers) &&
@@ -407,27 +502,6 @@ function buildBookingService(consumer, deps = {}) {
       typeof lastName === "string" && lastName.trim()
         ? lastName.trim()
         : nameParts.lastName;
-
-    let resolvedRoomName = null;
-    let resolvedRoomDbId = null;
-    try {
-      const rooms = await listRoomsForAvailability();
-      const match =
-        (rooms || []).find(
-          (roomRow) => derivePublicRoomId(roomRow) === roomId
-        ) || null;
-      resolvedRoomName = match?.name || null;
-      resolvedRoomDbId = match?.id != null ? Number(match.id) : null;
-    } catch (err) {
-      resolvedRoomName = null;
-      resolvedRoomDbId = null;
-    }
-
-    if (!Number.isFinite(resolvedRoomDbId) || resolvedRoomDbId <= 0) {
-      const err = new Error("Invalid roomId.");
-      err.status = 400;
-      throw err;
-    }
 
     const safeNotes =
       typeof notes === "string" && notes.trim() ? notes.trim() : null;
@@ -458,6 +532,7 @@ function buildBookingService(consumer, deps = {}) {
           consultCode: computedConsultCode,
           isFirstTime: Boolean(isFirstTime),
           reservationSource,
+          outOfHours: isOutOfHours,
         });
         return { ...booking, reservationCode: booking.consultCode };
       } catch (err) {
@@ -565,6 +640,7 @@ function buildBookingService(consumer, deps = {}) {
     }
     const allowPast = Boolean(options.allowPast);
     const ignoreMinAdvance = Boolean(options.ignoreMinAdvance);
+    const allowOutOfHours = Boolean(options.allowOutOfHours);
     const ignoreReservationId =
       options.ignoreReservationId != null
         ? String(options.ignoreReservationId)
@@ -642,37 +718,40 @@ function buildBookingService(consumer, deps = {}) {
     const nowIso = bogotaNowIso();
     const nowMs = Date.parse(nowIso);
     const minAdvanceMs = MIN_ADVANCE_MINUTES * 60_000;
-    const openingHours = await getOpeningHoursForDate(requestedDate);
-    const isOpen = openingHours?.is_open;
-    if (isOpen === 0 || isOpen === false || isOpen === "0") {
-      const err = new Error(
-        "Este dÃ­a no estÃ¡ disponible. Por favor escoge otra fecha."
-      );
-      err.status = 400;
-      err.code = "DAY_CLOSED";
-      throw err;
-    }
+    let slotStarts = [];
+    if (!allowOutOfHours) {
+      const openingHours = await getOpeningHoursForDate(requestedDate);
+      const isOpen = openingHours?.is_open;
+      if (isOpen === 0 || isOpen === false || isOpen === "0") {
+        const err = new Error(
+          "Este dia no esta disponible. Por favor escoge otra fecha."
+        );
+        err.status = 400;
+        err.code = "DAY_CLOSED";
+        throw err;
+      }
 
-    const startMinutes = timeToMinutes(openingHours?.open_time);
-    const endMinutes = timeToMinutes(openingHours?.close_time);
-    if (
-      startMinutes == null ||
-      endMinutes == null ||
-      Number(endMinutes) < Number(startMinutes)
-    ) {
-      const err = new Error(
-        "No hay horario configurado para este dÃ­a. Por favor escoge otra fecha."
-      );
-      err.status = 400;
-      err.code = "OPENING_HOURS_MISSING";
-      throw err;
-    }
+      const startMinutes = timeToMinutes(openingHours?.open_time);
+      const endMinutes = timeToMinutes(openingHours?.close_time);
+      if (
+        startMinutes == null ||
+        endMinutes == null ||
+        Number(endMinutes) < Number(startMinutes)
+      ) {
+        const err = new Error(
+          "No hay horario configurado para este dia. Por favor escoge otra fecha."
+        );
+        err.status = 400;
+        err.code = "OPENING_HOURS_MISSING";
+        throw err;
+      }
 
-    const slotStarts = generateSlotStarts(
-      requestedDate,
-      startMinutes,
-      endMinutes
-    );
+      slotStarts = generateSlotStarts(
+        requestedDate,
+        startMinutes,
+        endMinutes
+      );
+    }
 
     const rooms = activeRooms.map((roomRow) => {
       const roomKey = useDbRoomId

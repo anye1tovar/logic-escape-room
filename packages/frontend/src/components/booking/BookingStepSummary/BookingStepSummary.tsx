@@ -271,6 +271,7 @@ export default function BookingStepSummary({
                 total: quoteTotal,
                 isFirstTime: details.isFirstTime === true,
                 ...(isWalkIn ? { reservationSource: "walk_in" } : {}),
+                ...(selection?.outOfHours ? { outOfHours: true } : {}),
               })) as {
                 consultCode?: string;
                 reservationCode?: string;

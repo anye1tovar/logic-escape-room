@@ -61,7 +61,7 @@ async function listReservationsPage(input) {
   const limitIndex = params.length + 1;
   const offsetIndex = params.length + 2;
   const listSql =
-    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations${whereSql}` +
+    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, out_of_hours, reprogrammed FROM reservations${whereSql}` +
     ` ORDER BY date ASC, start_time ASC, id ASC LIMIT $${limitIndex} OFFSET $${offsetIndex};`;
 
   const listResult = await db.query(listSql, [...params, safeSize, offset]);
@@ -76,7 +76,7 @@ async function listReservations(filters) {
     dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
   });
   let sql =
-    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed FROM reservations";
+    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, out_of_hours, reprogrammed FROM reservations";
   if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
   sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 

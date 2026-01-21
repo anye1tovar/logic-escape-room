@@ -17,6 +17,7 @@ async function createBooking({
   consultCode,
   isFirstTime,
   reservationSource,
+  outOfHours,
 }) {
   const id = uuidv4();
   const createdAt = Date.now();
@@ -25,8 +26,8 @@ async function createBooking({
 
   const result = await db.query(
     `INSERT INTO reservations
-      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, reprogrammed)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, out_of_hours, reprogrammed)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
      RETURNING id;`,
     [
       roomId || null,
@@ -43,6 +44,7 @@ async function createBooking({
       "PENDING",
       isFirstTimeBool,
       reservationSource || "web",
+      Boolean(outOfHours),
       false,
     ]
   );
@@ -65,6 +67,7 @@ async function createBooking({
     consultCode: consultCode || null,
     createdAt,
     reservationSource: reservationSource || "web",
+    outOfHours: Boolean(outOfHours),
   };
 }
 
