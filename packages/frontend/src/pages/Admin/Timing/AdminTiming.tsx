@@ -414,12 +414,12 @@ export default function AdminTiming() {
       }
 
       let highestMet: (typeof NOTIFICATION_THRESHOLDS)[number] | null = null;
-      NOTIFICATION_THRESHOLDS.forEach((threshold) => {
+      for (const threshold of NOTIFICATION_THRESHOLDS) {
         const key = String(threshold.minutes);
-        if (cacheEntry.fired[key]) return;
-        if (elapsedMinutes < threshold.minutes) return;
+        if (cacheEntry.fired[key]) continue;
+        if (elapsedMinutes < threshold.minutes) continue;
         highestMet = threshold;
-      });
+      }
 
       if (highestMet) {
         const message =
@@ -433,11 +433,11 @@ export default function AdminTiming() {
           return;
         }
 
-        NOTIFICATION_THRESHOLDS.forEach((threshold) => {
+        for (const threshold of NOTIFICATION_THRESHOLDS) {
           if (threshold.minutes <= highestMet.minutes) {
             cacheEntry.fired[String(threshold.minutes)] = true;
           }
-        });
+        }
         didUpdate = true;
       }
 
