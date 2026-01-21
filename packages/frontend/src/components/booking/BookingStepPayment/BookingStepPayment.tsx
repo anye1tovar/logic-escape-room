@@ -11,7 +11,7 @@ type BookingStepPaymentProps = {
   quoteTotal?: number | null;
 };
 
-const BREB_KEY = "@PLATA3123715177";
+const BREB_KEY = "@PLATA3133815138";
 const DEPOSIT_AMOUNT_COP = 50000;
 const WHATSAPP_NUMBER = "3181278688";
 const WHATSAPP_BASE_URL = "https://wa.me/573181278688";
@@ -180,8 +180,8 @@ export default function BookingStepPayment({
                 {copyState === "copied"
                   ? t("booking.payment.copy.copied")
                   : copyState === "failed"
-                  ? t("booking.payment.copy.failed")
-                  : t("booking.payment.copy.idle")}
+                    ? t("booking.payment.copy.failed")
+                    : t("booking.payment.copy.idle")}
               </button>
               <a className="booking-code__link" href={consultUrl}>
                 {t("booking.payment.consultStatusLink")}
