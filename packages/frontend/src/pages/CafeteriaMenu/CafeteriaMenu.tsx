@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
@@ -54,10 +54,15 @@ function buildCategoryKey(label: string) {
 
 export default function CafeteriaMenu() {
   const { t, i18n } = useTranslation();
-  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [activeCategory, setActiveCategory] = useState<string>("");
   const [products, setProducts] = useState<CafeteriaProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [canScrollLeft, setCanScrollLeft] = useState(false);
+  const [canScrollRight, setCanScrollRight] = useState(false);
+  const filtersRef = useRef<HTMLDivElement | null>(null);
+  const sectionRefs = useRef(new Map<string, HTMLElement>());
+  const filterRefs = useRef(new Map<string, HTMLButtonElement>());
 
   useEffect(() => {
     window.scrollTo(0, 0);
@@ -139,10 +144,110 @@ export default function CafeteriaMenu() {
     return [title];
   }, [t]);
 
-  const visibleCategories = useMemo(() => {
-    if (selectedCategory === "all") return categories;
-    return categories.filter((c) => c.key === selectedCategory);
-  }, [categories, selectedCategory]);
+  const registerSectionRef = useCallback(
+    (key: string) => (node: HTMLElement | null) => {
+      if (!node) {
+        sectionRefs.current.delete(key);
+        return;
+      }
+      sectionRefs.current.set(key, node);
+    },
+    [],
+  );
+
+  const registerFilterRef = useCallback(
+    (key: string) => (node: HTMLButtonElement | null) => {
+      if (!node) {
+        filterRefs.current.delete(key);
+        return;
+      }
+      filterRefs.current.set(key, node);
+    },
+    [],
+  );
+
+  useEffect(() => {
+    if (!categories.length) {
+      setActiveCategory("");
+      return;
+    }
+    if (!activeCategory || !categories.some((c) => c.key === activeCategory)) {
+      setActiveCategory(categories[0].key);
+    }
+  }, [activeCategory, categories]);
+
+  useEffect(() => {
+    if (!categories.length) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter((entry) => entry.isIntersecting)
+          .sort((a, b) => a.boundingClientRect.top - b.boundingClientRect.top);
+
+        if (!visible.length) return;
+        const key = visible[0].target.getAttribute("data-category-key");
+        if (key) setActiveCategory(key);
+      },
+      {
+        rootMargin: "-20% 0px -70% 0px",
+        threshold: [0, 0.15, 0.4, 0.75],
+      },
+    );
+
+    categories.forEach((category) => {
+      const node = sectionRefs.current.get(category.key);
+      if (node) observer.observe(node);
+    });
+
+    return () => observer.disconnect();
+  }, [categories]);
+
+  useEffect(() => {
+    const container = filtersRef.current;
+    if (!container) return;
+
+    const updateScrollState = () => {
+      const { scrollLeft, scrollWidth, clientWidth } = container;
+      setCanScrollLeft(scrollLeft > 2);
+      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
+    };
+
+    updateScrollState();
+    container.addEventListener("scroll", updateScrollState, { passive: true });
+    window.addEventListener("resize", updateScrollState);
+
+    return () => {
+      container.removeEventListener("scroll", updateScrollState);
+      window.removeEventListener("resize", updateScrollState);
+    };
+  }, [categories.length]);
+
+  useEffect(() => {
+    if (!activeCategory) return;
+    const activeButton = filterRefs.current.get(activeCategory);
+    activeButton?.scrollIntoView({ inline: "center", block: "nearest" });
+  }, [activeCategory]);
+
+  const scrollFiltersBy = (delta: number) => {
+    const container = filtersRef.current;
+    if (!container) return;
+    container.scrollBy({ left: delta, behavior: "smooth" });
+  };
+
+  const scrollToCategory = (key: string) => {
+    const node = sectionRefs.current.get(key);
+    if (!node) return;
+    const filtersHeight = filtersRef.current?.offsetHeight ?? 0;
+    const rootFontSize = Number.parseFloat(
+      getComputedStyle(document.documentElement).fontSize || "16",
+    );
+    const offset = filtersHeight + rootFontSize + 110;
+    const top =
+      node.getBoundingClientRect().top + window.scrollY - Math.max(offset, 0);
+    window.scrollTo({ top, behavior: "smooth" });
+    setActiveCategory(key);
+  };
 
   const statusText = useMemo(() => {
     if (loading) return t("cafeteria.loading", "Cargando menú...");
@@ -186,36 +291,45 @@ export default function CafeteriaMenu() {
           </div>
 
           <div
-            className="cafeteria-menu__filters"
+            className="cafeteria-menu__filters-wrapper"
             aria-label={t("cafeteria.filters.label")}
           >
             <button
               type="button"
-              className={`cafeteria-menu__filter ${
-                selectedCategory === "all"
-                  ? "cafeteria-menu__filter--active"
-                  : ""
-              }`}
-              aria-pressed={selectedCategory === "all"}
-              onClick={() => setSelectedCategory("all")}
+              className="cafeteria-menu__filters-nav cafeteria-menu__filters-nav--left"
+              aria-label={t("cafeteria.filters.scrollLeft", "Ver anteriores")}
+              onClick={() => scrollFiltersBy(-220)}
+              disabled={!canScrollLeft}
             >
-              {t("cafeteria.filters.all")}
+              {"‹"}
             </button>
-            {categories.map((category) => (
-              <button
-                key={category.key}
-                type="button"
-                className={`cafeteria-menu__filter ${
-                  selectedCategory === category.key
-                    ? "cafeteria-menu__filter--active"
-                    : ""
-                }`}
-                aria-pressed={selectedCategory === category.key}
-                onClick={() => setSelectedCategory(category.key)}
-              >
-                {category.label}
-              </button>
-            ))}
+            <div className="cafeteria-menu__filters" ref={filtersRef}>
+              {categories.map((category) => (
+                <button
+                  key={category.key}
+                  ref={registerFilterRef(category.key)}
+                  type="button"
+                  className={`cafeteria-menu__filter ${
+                    activeCategory === category.key
+                      ? "cafeteria-menu__filter--active"
+                      : ""
+                  }`}
+                  aria-pressed={activeCategory === category.key}
+                  onClick={() => scrollToCategory(category.key)}
+                >
+                  {category.label}
+                </button>
+              ))}
+            </div>
+            <button
+              type="button"
+              className="cafeteria-menu__filters-nav cafeteria-menu__filters-nav--right"
+              aria-label={t("cafeteria.filters.scrollRight", "Ver siguientes")}
+              onClick={() => scrollFiltersBy(220)}
+              disabled={!canScrollRight}
+            >
+              {"›"}
+            </button>
           </div>
 
           <div className="cafeteria-menu__grid">
@@ -224,72 +338,85 @@ export default function CafeteriaMenu() {
                 <p>{statusText}</p>
               </section>
             )}
-            {visibleCategories.map((section) => (
-              <section key={section.key} className="cafeteria-menu__section">
-                <h2 className="cafeteria-menu__section-title">
-                  {section.label}
-                </h2>
-                <div className="cafeteria-menu__cards">
-                  {section.items.map((item) => (
-                    <article
-                      key={item.name}
-                      className={`cafeteria-menu__card ${
-                        item.available === false
-                          ? "cafeteria-menu__card--disabled"
-                          : ""
-                      }`}
-                    >
-                      <div className="cafeteria-menu__media">
-                        {item.image &&
-                        (isImageUrl(item.image) || imagesBaseUrl) ? (
-                          <img
-                            src={
-                              isImageUrl(item.image)
-                                ? toWebpIfLocal(item.image)
-                                : toWebpIfLocal(
-                                    joinUrl(imagesBaseUrl, item.image)
-                                  )
-                            }
-                            alt={item.name}
-                            loading="lazy"
-                            decoding="async"
-                            onError={(e) => {
-                              (
-                                e.currentTarget as HTMLImageElement
-                              ).style.display = "none";
-                            }}
-                          />
-                        ) : (
-                          <div
-                            className="cafeteria-menu__media-placeholder"
-                            aria-hidden="true"
-                          />
-                        )}
-                      </div>
-                      <div className="cafeteria-menu__content">
-                        <div className="cafeteria-menu__card-top">
-                          <h3 className="cafeteria-menu__item-name">
-                            {item.name}
-                          </h3>
-                          <div className="cafeteria-menu__item-right">
-                            {item.available === false && (
-                              <span className="cafeteria-menu__badge">
-                                {t("cafeteria.labels.unavailable")}
-                              </span>
-                            )}
-                            <span className="cafeteria-menu__item-price">
-                              {formatCurrency(item.price, currency, locale)}
-                            </span>
-                          </div>
+            {categories.map((section) => (
+              <section
+                key={section.key}
+                className={`cafeteria-menu__section ${
+                  activeCategory === section.key
+                    ? "cafeteria-menu__section--active"
+                    : ""
+                }`}
+                data-category-key={section.key}
+                ref={registerSectionRef(section.key)}
+              >
+                <div className="cafeteria-menu__section-paper">
+                  <header className="cafeteria-menu__section-header">
+                    <h2 className="cafeteria-menu__section-title">
+                      {section.label}
+                    </h2>
+                  </header>
+                  <div className="cafeteria-menu__cards">
+                    {section.items.map((item) => (
+                      <article
+                        key={item.name}
+                        className={`cafeteria-menu__card ${
+                          item.available === false
+                            ? "cafeteria-menu__card--disabled"
+                            : ""
+                        }`}
+                      >
+                        <div className="cafeteria-menu__media">
+                          {item.image &&
+                          (isImageUrl(item.image) || imagesBaseUrl) ? (
+                            <img
+                              src={
+                                isImageUrl(item.image)
+                                  ? toWebpIfLocal(item.image)
+                                  : toWebpIfLocal(
+                                      joinUrl(imagesBaseUrl, item.image),
+                                    )
+                              }
+                              alt={item.name}
+                              loading="lazy"
+                              decoding="async"
+                              onError={(e) => {
+                                (
+                                  e.currentTarget as HTMLImageElement
+                                ).style.display = "none";
+                              }}
+                            />
+                          ) : (
+                            <div
+                              className="cafeteria-menu__media-placeholder"
+                              aria-hidden="true"
+                            />
+                          )}
                         </div>
-                        {item.description && (
-                          <p className="cafeteria-menu__item-desc">
-                            {item.description}
-                          </p>
-                        )}
-                      </div>
-                    </article>
-                  ))}
+                        <div className="cafeteria-menu__content">
+                          <div className="cafeteria-menu__card-top">
+                            <h3 className="cafeteria-menu__item-name">
+                              {item.name}
+                            </h3>
+                            <div className="cafeteria-menu__item-right">
+                              {item.available === false && (
+                                <span className="cafeteria-menu__badge">
+                                  {t("cafeteria.labels.unavailable")}
+                                </span>
+                              )}
+                              <span className="cafeteria-menu__item-price">
+                                {formatCurrency(item.price, currency, locale)}
+                              </span>
+                            </div>
+                          </div>
+                          {item.description && (
+                            <p className="cafeteria-menu__item-desc">
+                              {item.description}
+                            </p>
+                          )}
+                        </div>
+                      </article>
+                    ))}
+                  </div>
                 </div>
               </section>
             ))}

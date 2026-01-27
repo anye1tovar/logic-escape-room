@@ -13,7 +13,7 @@
     padding: $spacing-xl $spacing-lg;
 
     @media (max-width: $mobile) {
-      padding: $spacing-lg $spacing-md;
+      padding: $spacing-lg 0;
     }
   }
 
@@ -93,7 +93,9 @@
     color: $text-light;
     font-weight: 700;
     background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      box-shadow 0.15s ease;
     white-space: nowrap;
 
     &:hover {
@@ -122,6 +124,7 @@
       grid-template-columns: 1fr;
       gap: $spacing-lg;
       padding: $spacing-md;
+      border-radius: 0;
     }
   }
 
@@ -147,11 +150,64 @@
   }
 
   &__filters {
-    margin-top: $spacing-lg;
     display: flex;
-    flex-wrap: wrap;
     gap: $spacing-sm;
     align-items: center;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    scroll-behavior: smooth;
+    padding: 4px $spacing-xs;
+
+    &::-webkit-scrollbar {
+      display: none;
+    }
+  }
+
+  &__filters-wrapper {
+    margin-top: $spacing-lg;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: $spacing-sm;
+    align-items: center;
+    padding: $spacing-xs $spacing-sm;
+    border-radius: 999px;
+    background: rgb(26, 20, 46);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    position: sticky;
+    top: calc(#{$spacing-lg} + 72px);
+    z-index: 2;
+
+    @media (max-width: $tablet) {
+      top: calc(#{$spacing-md} + 64px);
+    }
+  }
+
+  &__filters-nav {
+    background: rgba(255, 255, 255, 0.06);
+    color: $text-light;
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    font-size: 1.2rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition:
+      transform 0.15s ease,
+      opacity 0.15s ease;
+
+    &:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    &:not(:disabled):hover {
+      transform: translateY(-1px);
+    }
   }
 
   &__filter {
@@ -161,9 +217,13 @@
     padding: 8px 12px;
     border-radius: 999px;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease,
+    transition:
+      transform 0.15s ease,
+      background 0.15s ease,
       box-shadow 0.15s ease;
     font-size: 0.95rem;
+    white-space: nowrap;
+    flex: 0 0 auto;
 
     &:hover {
       transform: translateY(-2px);
@@ -180,6 +240,32 @@
   &__section-title {
     font-size: 2.2rem;
     margin-bottom: $spacing-md;
+    transition:
+      color 0.2s ease,
+      transform 0.2s ease;
+  }
+
+  &__section-paper {
+    padding: $spacing-lg;
+    border-radius: 18px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+
+    @media (max-width: $mobile) {
+      padding: $spacing-md;
+      border-radius: 0;
+    }
+  }
+
+  &__section-header {
+    margin-bottom: $spacing-md;
+  }
+
+  &__section--active {
+    .cafeteria-menu__section-title {
+      color: $primary-color;
+      transform: translateY(-2px);
+    }
   }
 
   &__cards {
@@ -193,15 +279,22 @@
   }
 
   &__card {
-    border-radius: 14px;
-    background: rgba(15, 23, 42, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    --media-size: 140px;
+    border-radius: 0;
+    background: none;
+    border: none;
+    padding: 0;
     overflow: hidden;
-    display: flex;
-    align-items: stretch;
+    position: relative;
+    display: grid;
+    grid-template-columns: var(--media-size) 1fr;
+    align-items: start;
+    gap: $spacing-md;
 
     @media (max-width: $mobile) {
-      flex-direction: column;
+      --media-size: 96px;
+      grid-template-columns: var(--media-size) 1fr;
+      gap: $spacing-sm;
     }
   }
 
@@ -210,20 +303,19 @@
   }
 
   &__media {
-    width: 180px;
-    flex: 0 0 180px;
+    width: var(--media-size);
+    height: var(--media-size);
+    aspect-ratio: 1 / 1;
     overflow: hidden;
     background: rgba(255, 255, 255, 0.04);
+    align-self: center;
 
     @media (max-width: $tablet) {
-      width: 140px;
-      flex-basis: 140px;
+      min-height: var(--media-size);
     }
 
     @media (max-width: $mobile) {
-      width: 100%;
-      flex-basis: auto;
-      height: 160px;
+      height: var(--media-size);
     }
 
     img {
@@ -246,26 +338,26 @@
 
   &__content {
     flex: 1 1 auto;
-    padding: $spacing-lg;
+    padding: 0;
     display: flex;
     flex-direction: column;
-    gap: $spacing-sm;
+    gap: 0;
     justify-content: center;
+    min-height: var(--media-size);
     min-width: 0;
 
     @media (max-width: $mobile) {
-      padding: $spacing-md;
+      padding: 0;
     }
   }
 
   &__card-top {
     display: flex;
-    justify-content: space-between;
-    gap: $spacing-md;
-    align-items: baseline;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0;
 
     @media (max-width: $mobile) {
-      flex-wrap: wrap;
       align-items: flex-start;
     }
   }
@@ -273,9 +365,10 @@
   &__item-right {
     display: flex;
     align-items: baseline;
-    gap: $spacing-sm;
+    gap: 0;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    order: -1;
   }
 
   &__badge {
@@ -285,16 +378,20 @@
     border: 1px solid rgba(255, 255, 255, 0.18);
     background: rgba(255, 255, 255, 0.05);
     opacity: 0.95;
+    position: absolute;
+    top: 0;
+    right: 0;
   }
 
   &__item-name {
-    font-size: 1.6rem;
+    font-size: 1.4rem;
+    margin: 0;
     text-wrap: balance;
   }
 
   &__item-price {
     font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
-    font-size: 1.35rem;
+    font-size: 1.25rem;
     background: linear-gradient(135deg, $primary-color, $secondary-color);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
@@ -302,7 +399,8 @@
   }
 
   &__item-desc {
-    margin-top: $spacing-sm;
+    margin: 0;
+    font-size: 1rem;
     opacity: 0.9;
   }
 
