@@ -1,6 +1,13 @@
 {
   "header": {
-    "menu": ["Inicio", "Salas", "Nosotros", "Precios", "Contacto", "Cafetería"],
+    "menu": [
+      "Inicio",
+      "Salas",
+      "Nosotros",
+      "Precios",
+      "Contacto",
+      "Cafetería"
+    ],
     "bookNow": "Reservar Ahora",
     "logo": "Logic Escape"
   },
@@ -75,7 +82,9 @@
       "book": "Reservar"
     },
     "loading": "Cargando salas...",
-    "loadError": "No pudimos cargar las salas. Mostramos las destacadas.",
+    "loadError": "No pudimos cargar las salas. Por favor intenta en unos minutos. Mientras solucionamos el error, escríbenos al WhatsApp para darte la información.",
+    "whatsappCta": "Contactanos directamente",
+    "whatsappMessage": "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor",
     "emptyFallback": "Mostramos nuestras favoritas.",
     "comingSoonTitle": "Próximamente",
     "comingSoonCopy": "Una nueva misión está en construcción, lista para ponerte a prueba.",
@@ -190,7 +199,9 @@
       "cta": "Reserva tu aventura"
     },
     "loading": "Cargando tarifas...",
-    "error": "No pudimos cargar las tarifas. Mostramos valores de referencia."
+    "error": "No pudimos cargar las tarifas. Por favor intenta en unos minutos. Mientras solucionamos el error, escríbenos al WhatsApp para darte la información.",
+    "whatsappCta": "Contactanos directamente",
+    "whatsappMessage": "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor"
   },
   "app": {
     "moreContent": "Más contenido aquí...",
@@ -198,7 +209,10 @@
   },
   "about": {
     "title": "BIENVENIDOS A NUESTRO MUNDO",
-    "titleLines": ["BIENVENIDOS A", "NUESTRO MUNDO"],
+    "titleLines": [
+      "BIENVENIDOS A",
+      "NUESTRO MUNDO"
+    ],
     "sections": [
       {
         "title": "QUIÉNES SOMOS",
@@ -240,7 +254,10 @@
       "combos": "Combos"
     },
     "items": {
-      "espresso": { "name": "Espresso", "desc": "Fuerte y corto." },
+      "espresso": {
+        "name": "Espresso",
+        "desc": "Fuerte y corto."
+      },
       "cappuccino": {
         "name": "Capuchino",
         "desc": "Espresso con espuma de leche."
@@ -253,12 +270,30 @@
         "name": "Limonada artesanal",
         "desc": "Refrescante y suave."
       },
-      "soda": { "name": "Gaseosa", "desc": "Sabores surtidos." },
-      "cookies": { "name": "Galletas", "desc": "Perfectas para compartir." },
-      "brownie": { "name": "Brownie", "desc": "Chocolate y suave." },
-      "nachos": { "name": "Nachos", "desc": "Crujientes con salsa." },
-      "combo1": { "name": "Combo 1", "desc": "Bebida + galletas." },
-      "combo2": { "name": "Combo 2", "desc": "Bebida + brownie o nachos." }
+      "soda": {
+        "name": "Gaseosa",
+        "desc": "Sabores surtidos."
+      },
+      "cookies": {
+        "name": "Galletas",
+        "desc": "Perfectas para compartir."
+      },
+      "brownie": {
+        "name": "Brownie",
+        "desc": "Chocolate y suave."
+      },
+      "nachos": {
+        "name": "Nachos",
+        "desc": "Crujientes con salsa."
+      },
+      "combo1": {
+        "name": "Combo 1",
+        "desc": "Bebida + galletas."
+      },
+      "combo2": {
+        "name": "Combo 2",
+        "desc": "Bebida + brownie o nachos."
+      }
     }
   },
   "notFound": {
@@ -300,10 +335,22 @@
       }
     },
     "steps": {
-      "selection": { "title": "Selección", "desc": "Sala, fecha y hora" },
-      "details": { "title": "Datos", "desc": "Contacto y notas" },
-      "summary": { "title": "Resumen", "desc": "Revisa y reserva" },
-      "payment": { "title": "Pago", "desc": "Instrucciones y código" }
+      "selection": {
+        "title": "Selección",
+        "desc": "Sala, fecha y hora"
+      },
+      "details": {
+        "title": "Datos",
+        "desc": "Contacto y notas"
+      },
+      "summary": {
+        "title": "Resumen",
+        "desc": "Revisa y reserva"
+      },
+      "payment": {
+        "title": "Pago",
+        "desc": "Instrucciones y código"
+      }
     },
     "selection": {
       "subtitle": "Elige la experiencia, cuántas personas vienen y el horario disponible.",
@@ -424,7 +471,9 @@
       },
       "brebAria": "Llave Bre-B",
       "whatsappPrefill": "Hola! A continuación envío el comprobante de pago del abono para la reserva a nombre de {{name}} para el día {{date}} y hora {{time}}.",
-      "errors": { "loadTotal": "Error cargando el total." }
+      "errors": {
+        "loadTotal": "Error cargando el total."
+      }
     },
     "status": {
       "eyebrow": "Consulta",
@@ -477,12 +526,18 @@
       "titleLine2": "Sesión",
       "subtitle": "Accede para administrar reservas y parámetros del sistema.",
       "formAria": "Formulario de inicio de sesión",
-      "fields": { "username": "Usuario o correo", "password": "Contraseña" },
+      "fields": {
+        "username": "Usuario o correo",
+        "password": "Contraseña"
+      },
       "placeholders": {
         "username": "Ej: admin@logic.com",
         "password": "Tu contraseña"
       },
-      "actions": { "submit": "Entrar", "loading": "Validando..." },
+      "actions": {
+        "submit": "Entrar",
+        "loading": "Validando..."
+      },
       "errors": {
         "required": "Completa usuario y contraseña.",
         "invalid": "Correo o contraseña incorrectos."

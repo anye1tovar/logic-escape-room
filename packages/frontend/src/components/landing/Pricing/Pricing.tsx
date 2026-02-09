@@ -90,59 +90,6 @@ const Pricing = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fallbackGroups = useMemo<RateGroup[]>(() => {
-    const weekdayItemsRaw = (t("pricing.weekday.items", {
-      returnObjects: true,
-    }) || []) as Array<{
-      players?: number;
-      price?: number;
-      precio?: number;
-      currency?: string;
-    }>;
-    const weekendItemsRaw = (t("pricing.weekend.items", {
-      returnObjects: true,
-    }) || []) as Array<{
-      players?: number;
-      price?: number;
-      precio?: number;
-      currency?: string;
-    }>;
-
-    const toItems = (
-      list: typeof weekdayItemsRaw,
-      dayType: string
-    ): RateItem[] =>
-      (list || [])
-        .map((item) => ({
-          players: Number(item?.players ?? (item as any)?.jugadores ?? 0),
-          price: Number(item?.price ?? (item as any)?.precio ?? 0),
-          currency: item?.currency || "COP",
-          dayType,
-        }))
-        .filter((item) => item.players > 0 && item.price > 0);
-
-    return [
-      {
-        dayType: "weekday",
-        title: t("pricing.weekday.label", "Entre semana"),
-        dayRange: t("pricing.weekday.range", "Lunes a Jueves"),
-        note: t("pricing.weekday.note", "Precio por persona"),
-        items: toItems(weekdayItemsRaw, "weekday"),
-      },
-      {
-        dayType: "weekend",
-        title: t("pricing.weekend.label", "Fin de semana"),
-        dayRange: t("pricing.weekend.range", "Viernes a Domingo"),
-        note: t("pricing.weekend.note", "Precio por persona"),
-        items: toItems(weekendItemsRaw, "weekend"),
-      },
-    ];
-  }, [t]);
-
-  useEffect(() => {
-    setGroups(fallbackGroups);
-  }, [fallbackGroups]);
-
   useEffect(() => {
     let mounted = true;
 
@@ -159,16 +106,17 @@ const Pricing = () => {
 
         if (!normalized.length) {
           setError(t("pricing.error"));
-          setGroups(fallbackGroups);
+          setGroups([]);
           return;
         }
 
-        setGroups(groupRatesFromApi(normalized, fallbackGroups));
+        // We can pass an empty array as fallback since we don't want to use hardcoded fallbacks anymore
+        setGroups(groupRatesFromApi(normalized, []));
       } catch (err) {
         console.error("Failed to load rates", err);
         if (mounted) {
           setError(t("pricing.error"));
-          setGroups(fallbackGroups);
+          setGroups([]);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -179,7 +127,7 @@ const Pricing = () => {
     return () => {
       mounted = false;
     };
-  }, [fallbackGroups, t]);
+  }, [t]);
 
   const leadLines = useMemo(() => {
     const lines = t("pricing.lead", { returnObjects: true }) as
@@ -200,7 +148,7 @@ const Pricing = () => {
       maximumFractionDigits: 0,
     }).format(value);
 
-  const groupsToRender = groups.length ? groups : fallbackGroups;
+  const groupsToRender = groups;
 
   return (
     <section className="pricing" id="pricing">
@@ -231,7 +179,24 @@ const Pricing = () => {
           {leadLines.map((line, idx) => (
             <p key={`${line}-${idx}`}>{line}</p>
           ))}
-          {error && <p className="pricing__notice">{error}</p>}
+          {error && (
+            <div className="pricing__error-container">
+              <p className="pricing__notice">{error}</p>
+              <a
+                href={`https://wa.me/573181278688?text=${encodeURIComponent(
+                  t(
+                    "pricing.whatsappMessage",
+                    "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor"
+                  )
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="pricing__whatsapp-link"
+              >
+                {t("pricing.whatsappCta", "Enviar mensaje al 3181278688")}
+              </a>
+            </div>
+          )}
         </motion.div>
       </div>
 

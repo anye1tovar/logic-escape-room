@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
@@ -108,61 +108,6 @@ const Rooms = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const fallbackRooms = useMemo<RoomCard[]>(
-    () => [
-      {
-        id: "portal",
-        name: "Portal",
-        description: t(
-          "rooms.fallback.portal",
-          "Los jugadores despiertan en un mundo desconocido, regido por las reglas de un antiguo juego. Un tablero revela que la única forma de regresar a la realidad es encontrar siete gemas ocultas. Solo reuniéndolas podrán abrir el portal que los lleve de vuelta a casa. El tiempo corre y el mundo no perdona errores."
-        ),
-        theme: "Sci-Fi",
-        minPlayers: 2,
-        maxPlayers: 6,
-        minAge: 12,
-        durationMinutes: 60,
-        difficulty: 1,
-        status: "active",
-        coverImage: portalImg,
-        badge: t("rooms.badges.featured"),
-      },
-      {
-        id: "canibal",
-        name: "Canibal",
-        description: t(
-          "rooms.fallback.canibal",
-          "Tras ser secuestrados, los jugadores despiertan en un apartamento desconocido. El ambiente es inquietante y la sensación es clara: la hora de la cena se acerca. Deberán trabajar juntos, resolver los acertijos y escapar antes de que sea demasiado tarde."
-        ),
-        theme: "Horror",
-        minPlayers: 2,
-        maxPlayers: 6,
-        minAge: 15,
-        durationMinutes: 60,
-        difficulty: 2,
-        status: "active",
-        coverImage: canibalImg,
-      },
-      {
-        id: "manicomio",
-        name: "Manicomio",
-        description: t(
-          "rooms.fallback.manicomio",
-          "Los jugadores ingresan a un hospital psiquiátrico abandonado. Entre documentos, habitaciones olvidadas y rastros del pasado, deberán descubrir la verdad sobre los pacientes que estuvieron allí. Nada es lo que parece y algunas respuestas es mejor encontrarlas antes de quedarse atrapados."
-        ),
-        theme: "Thriller",
-        minPlayers: 2,
-        maxPlayers: 6,
-        minAge: 14,
-        durationMinutes: 60,
-        difficulty: 3,
-        status: "active",
-        coverImage: manicomioImg,
-      },
-    ],
-    [t]
-  );
-
   useEffect(() => {
     let mounted = true;
     async function loadRooms() {
@@ -175,8 +120,8 @@ const Rooms = () => {
           : [];
         if (mounted) {
           if (normalized.length === 0) {
-            setError(t("rooms.emptyFallback", "Mostramos nuestras favoritas."));
-            setRooms(fallbackRooms);
+            setError(t("rooms.empty", "No hay salas disponibles por el momento."));
+            setRooms([]);
           } else {
             setRooms(normalized);
           }
@@ -185,7 +130,7 @@ const Rooms = () => {
         console.error("Failed to load rooms", err);
         if (mounted) {
           setError(t("rooms.loadError", "No pudimos cargar las salas."));
-          setRooms(fallbackRooms);
+          setRooms([]);
         }
       } finally {
         if (mounted) setLoading(false);
@@ -195,7 +140,7 @@ const Rooms = () => {
     return () => {
       mounted = false;
     };
-  }, [fallbackRooms, t]);
+  }, [t]);
 
   const difficultyLabel = (value?: number | string) => {
     if (!value && value !== 0) return t("rooms.difficulty.medium", "Media");
@@ -213,7 +158,7 @@ const Rooms = () => {
     return null;
   };
 
-  const roomsToRender = rooms.length ? rooms : fallbackRooms;
+  const roomsToRender = rooms;
 
   return (
     <section className="rooms" id="rooms">
@@ -244,7 +189,24 @@ const Rooms = () => {
         >
           <p>{t("rooms.lead.primary")}</p>
           <p className="rooms__quote">{t("rooms.lead.secondary")}</p>
-          {error && <p className="rooms__notice">{error}</p>}
+          {error && (
+            <div className="rooms__error-container">
+              <p className="rooms__notice">{error}</p>
+              <a
+                href={`https://wa.me/573181278688?text=${encodeURIComponent(
+                  t(
+                    "rooms.whatsappMessage",
+                    "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor"
+                  )
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="rooms__whatsapp-link"
+              >
+                {t("rooms.whatsappCta", "Enviar mensaje al 3181278688")}
+              </a>
+            </div>
+          )}
         </motion.div>
       </div>
 
@@ -252,9 +214,8 @@ const Rooms = () => {
         {roomsToRender.map((room, idx) => (
           <motion.article
             key={room.id}
-            className={`room-card ${
-              room.status === "comingSoon" ? "room-card--soon" : ""
-            }`}
+            className={`room-card ${room.status === "comingSoon" ? "room-card--soon" : ""
+              }`}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
