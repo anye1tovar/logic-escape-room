@@ -201,7 +201,11 @@
     "loading": "Cargando tarifas...",
     "error": "No pudimos cargar las tarifas. Por favor intenta en unos minutos. Mientras solucionamos el error, escríbenos al WhatsApp para darte la información.",
     "whatsappCta": "Contactanos directamente",
-    "whatsappMessage": "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor"
+    "whatsappMessage": "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor",
+    "footer": {
+      "weekday": "AHORRA $7.000 POR PERSONA",
+      "weekend": "PRECIO POR PERSONA"
+    }
   },
   "app": {
     "moreContent": "Más contenido aquí...",

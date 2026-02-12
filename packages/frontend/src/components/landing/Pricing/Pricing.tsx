@@ -231,9 +231,12 @@ const Pricing = () => {
                   </div>
                 ))}
               </div>
-              {group.note && (
-                <h3 className="pricing__card-note">{group.note}</h3>
-              )}
+
+              <h3 className="pricing__card-note">
+                {group.dayType === "weekday"
+                  ? t("pricing.footer.weekday")
+                  : t("pricing.footer.weekend")}
+              </h3>
             </motion.article>
           ))}
           {loading && (

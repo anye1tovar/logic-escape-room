@@ -1,6 +1,13 @@
 {
   "header": {
-    "menu": ["Home", "Rooms", "About", "Pricing", "Contact", "Cafeteria"],
+    "menu": [
+      "Home",
+      "Rooms",
+      "About",
+      "Pricing",
+      "Contact",
+      "Cafeteria"
+    ],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },
@@ -34,19 +41,27 @@
     "rules": [
       {
         "title": "There is a minimum age per room",
-        "lines": ["Kids 9+ can enter with an adult"]
+        "lines": [
+          "Kids 9+ can enter with an adult"
+        ]
       },
       {
         "title": "If you have claustrophobia or heart conditions",
-        "lines": ["You enter at your own risk."]
+        "lines": [
+          "You enter at your own risk."
+        ]
       },
       {
         "title": "Do not distract or ignore",
-        "lines": ["the Game Master; they are there to help you"]
+        "lines": [
+          "the Game Master; they are there to help you"
+        ]
       },
       {
         "title": "Wear comfortable clothes",
-        "lines": ["and be ready to move and crouch"]
+        "lines": [
+          "and be ready to move and crouch"
+        ]
       }
     ],
     "fact": {
@@ -198,7 +213,11 @@
       "cta": "Book your adventure"
     },
     "loading": "Loading rates...",
-    "error": "We could not load the rates. Showing reference values."
+    "error": "We could not load the rates. Showing reference values.",
+    "footer": {
+      "weekday": "SAVE $7,000 PER PERSON",
+      "weekend": "PRICE PER PERSON"
+    }
   },
   "app": {
     "moreContent": "More content here...",
@@ -206,7 +225,10 @@
   },
   "about": {
     "title": "WELCOME TO OUR WORLD",
-    "titleLines": ["WELCOME", "TO OUR WORLD"],
+    "titleLines": [
+      "WELCOME",
+      "TO OUR WORLD"
+    ],
     "sections": [
       {
         "title": "WHO WE ARE",
@@ -329,10 +351,22 @@
       }
     },
     "steps": {
-      "selection": { "title": "Selection", "desc": "Room, date and time" },
-      "details": { "title": "Details", "desc": "Contact and notes" },
-      "summary": { "title": "Summary", "desc": "Review and reserve" },
-      "payment": { "title": "Payment", "desc": "Instructions and code" }
+      "selection": {
+        "title": "Selection",
+        "desc": "Room, date and time"
+      },
+      "details": {
+        "title": "Details",
+        "desc": "Contact and notes"
+      },
+      "summary": {
+        "title": "Summary",
+        "desc": "Review and reserve"
+      },
+      "payment": {
+        "title": "Payment",
+        "desc": "Instructions and code"
+      }
     },
     "selection": {
       "subtitle": "Choose the experience, how many people are coming, and an available time slot.",
@@ -366,11 +400,11 @@
         "hard": "Hard"
       }
     },
-      "details": {
-        "subtitle": "Tell us who's booking and how we can contact you.",
-        "fullName": {
-          "label": "Full name",
-          "placeholder": "Your first and last name"
+    "details": {
+      "subtitle": "Tell us who's booking and how we can contact you.",
+      "fullName": {
+        "label": "Full name",
+        "placeholder": "Your first and last name"
       },
       "phone": {
         "aria": "Contact number",
@@ -384,19 +418,19 @@
         "yes": "Yes",
         "no": "No"
       },
-        "notes": {
-          "title": "Notes",
-          "placeholder": "Birthday, accessibility needs, claustrophobia, etc."
-        },
-        "dataPolicy": {
-          "prefix": "By continuing you accept the processing of personal data under",
-          "linkLabel": "Law 1581 of 2012",
-          "suffix": "."
-        },
-        "validation": {
-          "fullNameRequired": "Full name is required.",
-          "dialCodeRequired": "Dial code is required.",
-          "phoneDigitsOnly": "Phone number must contain only digits.",
+      "notes": {
+        "title": "Notes",
+        "placeholder": "Birthday, accessibility needs, claustrophobia, etc."
+      },
+      "dataPolicy": {
+        "prefix": "By continuing you accept the processing of personal data under",
+        "linkLabel": "Law 1581 of 2012",
+        "suffix": "."
+      },
+      "validation": {
+        "fullNameRequired": "Full name is required.",
+        "dialCodeRequired": "Dial code is required.",
+        "phoneDigitsOnly": "Phone number must contain only digits.",
         "phoneRequired": "Phone number is required.",
         "firstTimeRequired": "Select yes or no to continue."
       }
@@ -440,7 +474,11 @@
       "consultCodeHint": "Save this code to check the status of your booking.",
       "consultCodeAria": "Consultation code",
       "consultStatusLink": "Check status",
-      "copy": { "idle": "Copy", "copied": "Copied", "failed": "Couldn't copy" },
+      "copy": {
+        "idle": "Copy",
+        "copied": "Copied",
+        "failed": "Couldn't copy"
+      },
       "qrDialog": {
         "title": "Bre-B payment QR",
         "closeAria": "Close",
@@ -449,7 +487,9 @@
       },
       "brebAria": "Bre-B key",
       "whatsappPrefill": "Hello! I'm sending the payment receipt for the deposit under the name {{name}} for {{date}} at {{time}}.",
-      "errors": { "loadTotal": "Error loading the total." }
+      "errors": {
+        "loadTotal": "Error loading the total."
+      }
     },
     "status": {
       "eyebrow": "Lookup",
@@ -482,7 +522,10 @@
           "title": "Confirmed",
           "desc": "Payment verified and spot secured."
         },
-        "completed": { "title": "Completed", "desc": "Experience completed." }
+        "completed": {
+          "title": "Completed",
+          "desc": "Experience completed."
+        }
       },
       "errors": {
         "requiredCode": "Enter a consultation code to continue.",
@@ -499,12 +542,18 @@
       "titleLine2": "In",
       "subtitle": "Sign in to manage bookings and system settings.",
       "formAria": "Login form",
-      "fields": { "username": "Username or email", "password": "Password" },
+      "fields": {
+        "username": "Username or email",
+        "password": "Password"
+      },
       "placeholders": {
         "username": "Ex: admin@logic.com",
         "password": "Your password"
       },
-      "actions": { "submit": "Sign in", "loading": "Checking..." },
+      "actions": {
+        "submit": "Sign in",
+        "loading": "Checking..."
+      },
       "errors": {
         "required": "Enter username and password.",
         "invalid": "Email or password is incorrect."
