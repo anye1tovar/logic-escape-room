@@ -24,6 +24,7 @@ export default function Booking() {
   const step2Ref = useRef<HTMLDivElement | null>(null);
   const step3Ref = useRef<HTMLDivElement | null>(null);
   const step4Ref = useRef<HTMLDivElement | null>(null);
+  const previousActiveStepRef = useRef<BookingStep>(1);
 
   const getScrollBehavior = useCallback((): ScrollBehavior => {
     const prefersReducedMotion =
@@ -53,6 +54,11 @@ export default function Booking() {
   );
 
   useEffect(() => {
+    if (previousActiveStepRef.current === activeStep) {
+      return;
+    }
+
+    previousActiveStepRef.current = activeStep;
     scrollToStep(activeStep);
   }, [activeStep, scrollToStep]);
 

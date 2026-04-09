@@ -116,6 +116,10 @@
 
   &__stepper {
     margin-top: $spacing-lg;
+
+    @media (max-width: $tablet) {
+      display: none;
+    }
   }
 
   &__steps {
