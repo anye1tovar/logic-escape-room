@@ -427,7 +427,6 @@ export default function BookingStepSelection({
                     setSelectedDate(value);
                     setSelectedSlotStart(formatOutOfHoursStart(value));
                   }}
-                  minDate={today}
                   format="YYYY-MM-DD HH:mm"
                   slotProps={{
                     textField: {

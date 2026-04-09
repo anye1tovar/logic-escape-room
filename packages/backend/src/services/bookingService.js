@@ -354,7 +354,7 @@ function buildBookingService(consumer, deps = {}) {
       err.status = 400;
       throw err;
     }
-    if (!isWalkIn && requestedDate < bogotaTodayDateString()) {
+    if (!isWalkIn && !isOutOfHours && requestedDate < bogotaTodayDateString()) {
       const err = new Error("Date cannot be in the past");
       err.status = 400;
       throw err;

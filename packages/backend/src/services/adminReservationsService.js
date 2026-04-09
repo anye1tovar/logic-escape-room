@@ -98,6 +98,11 @@ function buildAdminReservationsService(consumer, deps = {}) {
     return null;
   }
 
+  function isPrivilegedUser(user) {
+    const role = String(user?.role || "").toLowerCase();
+    return role === "admin" || role === "game_master";
+  }
+
   function formatTimeFromMsWithOffset(ms, offsetMinutes) {
     const shifted = new Date(ms + offsetMinutes * 60_000);
     const hh = String(shifted.getUTCHours()).padStart(2, "0");
@@ -119,6 +124,81 @@ function buildAdminReservationsService(consumer, deps = {}) {
     const right = normalizeBookingStartToIso(compareDate, compareTime);
     if (!left || !right) return false;
     return left === right;
+  }
+
+  async function hasReservationOverlap({
+    reservationId,
+    roomId,
+    date,
+    startTime,
+    endTime,
+  }) {
+    const normalizedStart = normalizeBookingStartToIso(date, startTime);
+    const normalizedEnd = normalizeBookingStartToIso(date, endTime);
+    if (!normalizedStart || !normalizedEnd) {
+      const err = new Error("Invalid time format.");
+      err.status = 400;
+      throw err;
+    }
+
+    const list = consumer.listReservations
+      ? await consumer.listReservations({ date })
+      : [];
+    const targetReservationId =
+      reservationId != null ? String(reservationId) : null;
+    const targetRoomId = String(roomId);
+    const newStartMs = Date.parse(normalizedStart);
+    const newEndMs = Date.parse(normalizedEnd);
+
+    if (Number.isNaN(newStartMs) || Number.isNaN(newEndMs)) {
+      const err = new Error("Invalid time format.");
+      err.status = 400;
+      throw err;
+    }
+
+    return (list || []).some((reservation) => {
+      if (
+        targetReservationId &&
+        reservation?.id != null &&
+        String(reservation.id) === targetReservationId
+      ) {
+        return false;
+      }
+
+      const reservationDate =
+        reservation.date ?? reservation.booking_date ?? null;
+      if (reservationDate && String(reservationDate) !== String(date)) {
+        return false;
+      }
+
+      const reservationRoomRaw = `${
+        reservation.room_id ?? reservation.roomId ?? ""
+      }`.trim();
+      if (reservationRoomRaw !== targetRoomId) return false;
+
+      const reservationStart = normalizeBookingStartToIso(
+        date,
+        reservation.start_time ?? reservation.time ?? reservation.startTime ?? null
+      );
+      const reservationEnd =
+        normalizeBookingStartToIso(
+          date,
+          reservation.end_time ?? reservation.endTime ?? reservation.time ?? null
+        ) || reservationStart;
+
+      if (!reservationStart || !reservationEnd) return false;
+
+      const reservationStartMs = Date.parse(reservationStart);
+      const reservationEndMs = Date.parse(reservationEnd);
+      if (
+        Number.isNaN(reservationStartMs) ||
+        Number.isNaN(reservationEndMs)
+      ) {
+        return false;
+      }
+
+      return newStartMs < reservationEndMs && newEndMs > reservationStartMs;
+    });
   }
 
   async function listReservationsPage(input) {
@@ -291,7 +371,26 @@ function buildAdminReservationsService(consumer, deps = {}) {
       !isSameSlot(existing.date, existing.start_time, payload.date, payload.startTime) ||
       !isSameSlot(existing.date, existing.end_time, payload.date, payload.endTime);
 
-    if (hasReprogramChanges && bookingService?.getAvailabilityByDate) {
+    if (hasReprogramChanges && isPrivilegedUser(context?.user)) {
+      const overlap = await hasReservationOverlap({
+        reservationId,
+        roomId: payload.roomId,
+        date: payload.date,
+        startTime: payload.startTime,
+        endTime: payload.endTime,
+      });
+      if (overlap) {
+        const err = new Error("Este horario ya no está disponible.");
+        err.status = 409;
+        throw err;
+      }
+    }
+
+    if (
+      hasReprogramChanges &&
+      bookingService?.getAvailabilityByDate &&
+      !isPrivilegedUser(context?.user)
+    ) {
       const today = todayLocalDate();
       if (payload.date >= today) {
         const normalizedStart = normalizeBookingStartToIso(
