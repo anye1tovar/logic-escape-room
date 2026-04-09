@@ -9,6 +9,8 @@ import { useTranslation } from "react-i18next";
 import "dayjs/locale/en";
 import "dayjs/locale/es";
 import { FormControlLabel, Switch, Typography } from "@mui/material";
+import { fetchWithRetry } from "../../../utils/apiRequest";
+import { buildLogicWhatsAppUrl } from "../../../utils/support";
 
 const portalImg = "/rooms/portal.webp";
 const canibalImg = "/rooms/canibal.webp";
@@ -213,6 +215,16 @@ export default function BookingStepSelection({
     () => pickRateForPlayers(availability?.rates, peopleCount),
     [availability?.rates, peopleCount]
   );
+  const supportUrl = useMemo(
+    () =>
+      buildLogicWhatsAppUrl(
+        t(
+          "booking.selection.whatsappMessage",
+          "Hola, ocurrio un error al cargar horarios en la pagina web. Me ayudas por este medio a revisar disponibilidad y reservar, por favor"
+        )
+      ),
+    [t]
+  );
   const selectedCurrency = selectedRate?.currency || "COP";
   const pricePerPerson = useMemo(() => {
     if (!selectedRate) return null;
@@ -271,7 +283,7 @@ export default function BookingStepSelection({
           ? window.localStorage.getItem("adminToken")
           : null;
         if (token) headers.Authorization = `Bearer ${token}`;
-        const res = await fetch(
+        const res = await fetchWithRetry(
           `${apiBase}/api/bookings/availability?date=${encodeURIComponent(
             date
           )}${allowPastParam}${allowOutOfHoursParam}`,
@@ -285,13 +297,18 @@ export default function BookingStepSelection({
         }
         const json = (await res.json()) as AvailabilityResponse;
         setAvailability(json);
-      } catch (err) {
-        if ((err as { name?: string }).name === "AbortError") return;
-        setAvailability(null);
-        setLoadError(err instanceof Error ? err.message : "Error inesperado.");
-      } finally {
-        setIsLoading(false);
-      }
+        } catch (err) {
+          if ((err as { name?: string }).name === "AbortError") return;
+          setAvailability(null);
+          setLoadError(
+            t(
+              "booking.selection.loadError",
+              "No pudimos cargar los horarios en este momento. Intenta de nuevo o escribenos a WhatsApp y te ayudamos a reservar."
+            )
+          );
+        } finally {
+          setIsLoading(false);
+        }
     })();
 
     return () => controller.abort();
@@ -597,7 +614,18 @@ export default function BookingStepSelection({
 
           {loadError && (
             <div className="booking-alert" role="alert">
-              {loadError}
+              {loadError}{" "}
+              <a
+                className="booking-form__link"
+                href={supportUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t(
+                  "booking.selection.loadErrorCta",
+                  "Escríbenos por WhatsApp"
+                )}
+              </a>
             </div>
           )}
 

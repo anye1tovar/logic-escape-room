@@ -4,6 +4,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
 import { fetchBookingStatus } from "../../api/bookings";
+import { buildLogicWhatsAppUrl } from "../../utils/support";
 import "./BookingStatus.scss";
 
 type LookupState =
@@ -48,6 +49,16 @@ export default function BookingStatus() {
   const [lookup, setLookup] = useState<LookupState>({ type: "idle" });
   const [fieldError, setFieldError] = useState<string | null>(null);
   const lookupSeqRef = useRef(0);
+  const supportUrl = useMemo(
+    () =>
+      buildLogicWhatsAppUrl(
+        t(
+          "booking.status.whatsappMessage",
+          "Hola, ocurrio un error al consultar mi reserva en la pagina web. Me ayudan a revisar el estado por este medio, por favor"
+        )
+      ),
+    [t]
+  );
 
   const currentStatusRank = useMemo(() => {
     if (lookup.type !== "success") return 0;
@@ -248,6 +259,20 @@ export default function BookingStatus() {
                   {t("booking.status.resultTitle")}
                 </h2>
                 <p className="booking-status__result-text">{resultText}</p>
+                {lookup.type === "error" ? (
+                  <p className="booking-status__result-text">
+                    <a
+                      href={supportUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t(
+                        "booking.status.errors.contactCta",
+                        "Escríbenos por WhatsApp"
+                      )}
+                    </a>
+                  </p>
+                ) : null}
                 {lookup.type === "success" ? (
                   <dl className="booking-status__details">
                     <div className="booking-status__detail">

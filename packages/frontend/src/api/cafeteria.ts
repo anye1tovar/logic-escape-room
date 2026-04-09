@@ -1,3 +1,5 @@
+import { fetchJsonWithRetry } from "../utils/apiRequest";
+
 export type CafeteriaProduct = {
   name: string;
   price: number;
@@ -8,10 +10,7 @@ export type CafeteriaProduct = {
 };
 
 export async function fetchCafeteriaProducts(): Promise<CafeteriaProduct[]> {
-  const res = await fetch(
+  return fetchJsonWithRetry(
     `${import.meta.env.VITE_API_BASE_URL || ""}/api/cafeteria/products`
   );
-  if (!res.ok) throw new Error("Failed to fetch cafeteria products");
-  return res.json();
 }
-

@@ -1,3 +1,5 @@
+import { fetchWithRetry } from "../utils/apiRequest";
+
 type ApiError = Error & { status?: number };
 
 function getAdminToken() {
@@ -39,7 +41,7 @@ export async function fetchBookingStatus(
   consultCode: string
 ): Promise<BookingStatusResponse> {
   const base = import.meta.env.VITE_API_BASE_URL || "";
-  const res = await fetch(
+  const res = await fetchWithRetry(
     `${base}/api/bookings/consult/${encodeURIComponent(consultCode)}`
   );
 
@@ -74,7 +76,7 @@ export async function fetchBookingQuote(params: {
   url.searchParams.set("date", params.date);
   url.searchParams.set("attendees", String(params.attendees));
 
-  const res = await fetch(url.toString());
+  const res = await fetchWithRetry(url.toString());
   if (!res.ok) {
     const err = await res.json().catch(() => ({ error: "Unknown error" }));
     throw new Error(err.error || "Failed to fetch quote");

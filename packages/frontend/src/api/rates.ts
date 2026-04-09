@@ -9,6 +9,7 @@ export type ApiRate = {
 };
 
 import { getFromCache, saveToCache } from "../utils/apiCache";
+import { fetchJsonWithRetry } from "../utils/apiRequest";
 
 export async function fetchRates(dayType?: string) {
   const cacheKey = `rates_${dayType || "all"}`;
@@ -17,10 +18,7 @@ export async function fetchRates(dayType?: string) {
 
   const base = import.meta.env.VITE_API_BASE_URL || "";
   const query = dayType ? `?dayType=${encodeURIComponent(dayType)}` : "";
-  const res = await fetch(`${base}/api/rates${query}`);
-  if (!res.ok) throw new Error("Failed to fetch rates");
-
-  const data = await res.json();
+  const data = await fetchJsonWithRetry(`${base}/api/rates${query}`);
   saveToCache(cacheKey, data);
   return data;
 }

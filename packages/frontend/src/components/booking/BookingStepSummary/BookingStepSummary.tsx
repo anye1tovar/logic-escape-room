@@ -6,6 +6,7 @@ import { createBooking, fetchBookingQuote } from "../../../api/bookings";
 import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStepDetails";
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
+import { buildLogicWhatsAppUrl } from "../../../utils/support";
 
 type BookingStepSummaryProps = {
   className?: string;
@@ -75,6 +76,16 @@ export default function BookingStepSummary({
     }
     return false;
   }, [hasAdminToken, selection]);
+  const supportUrl = useMemo(
+    () =>
+      buildLogicWhatsAppUrl(
+        t(
+          "booking.summary.whatsappMessage",
+          "Hola, ocurrio un error al continuar la reserva desde la pagina web. Me ayudas por este medio a completar la reserva, por favor"
+        )
+      ),
+    [t]
+  );
 
   const canReserve = Boolean(selection) && Boolean(details) && !isSubmitting;
 
@@ -97,11 +108,8 @@ export default function BookingStepSummary({
       } catch (err) {
         if (!isActive) return;
         setQuoteTotal(null);
-        setQuoteError(
-          err instanceof Error
-            ? err.message
-            : t("booking.summary.errors.loadTotal")
-        );
+        console.error("Failed to load booking quote", err);
+        setQuoteError(t("booking.summary.errors.loadTotal"));
       }
     })();
 
@@ -232,10 +240,34 @@ export default function BookingStepSummary({
             ${DEPOSIT_AMOUNT_COP.toLocaleString("es-CO")}
           </span>
         </div>
-        {quoteError && <div className="booking-alert">{quoteError}</div>}
+        {quoteError && (
+          <div className="booking-alert">
+            {quoteError}{" "}
+            <a
+              className="booking-form__link"
+              href={supportUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              {t("booking.summary.errors.contactCta", "Escríbenos por WhatsApp")}
+            </a>
+          </div>
+        )}
       </div>
 
-      {submitError && <div className="booking-alert">{submitError}</div>}
+      {submitError && (
+        <div className="booking-alert">
+          {submitError}{" "}
+          <a
+            className="booking-form__link"
+            href={supportUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {t("booking.summary.errors.contactCta", "Escríbenos por WhatsApp")}
+          </a>
+        </div>
+      )}
 
       <footer className="booking-step__footer booking-step__footer--split">
         <button
@@ -290,10 +322,9 @@ export default function BookingStepSummary({
                 total: quoteTotal,
               });
             } catch (err) {
+              console.error("Failed to create booking", err);
               setSubmitError(
-                err instanceof Error
-                  ? err.message
-                  : t("booking.summary.errors.createFailed")
+                t("booking.summary.errors.createFailed")
               );
             } finally {
               setIsSubmitting(false);

@@ -1,3 +1,5 @@
+import { fetchWithRetry } from "../utils/apiRequest";
+
 type ApiError = Error & { status?: number };
 
 function getAdminToken() {
@@ -9,14 +11,19 @@ export async function adminRequest<T>(
   options?: { method?: string; body?: unknown }
 ): Promise<T> {
   const base = import.meta.env.VITE_API_BASE_URL || "";
-  const res = await fetch(`${base}${path}`, {
-    method: options?.method || "GET",
+  const method = options?.method || "GET";
+  const requestInit: RequestInit = {
+    method,
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${getAdminToken()}`,
     },
     body: options?.body != null ? JSON.stringify(options.body) : undefined,
-  });
+  };
+  const res =
+    method === "GET"
+      ? await fetchWithRetry(`${base}${path}`, requestInit)
+      : await fetch(`${base}${path}`, requestInit);
 
   if (!res.ok) {
     if (res.status === 401) {
@@ -33,4 +40,3 @@ export async function adminRequest<T>(
 
   return res.json();
 }
-

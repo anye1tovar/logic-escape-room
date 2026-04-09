@@ -253,6 +253,9 @@
     "eyebrow": "Cafeteria",
     "title": "Cafeteria Menu",
     "subtitle": "Recharge before or after your mission. Freshly made options for your team.",
+    "error": "We couldn't load the cafeteria. Please try again in a few minutes or contact us on WhatsApp and we'll share the menu with you.",
+    "whatsappCta": "Message us on WhatsApp",
+    "whatsappMessage": "Hello, there was an error loading the cafeteria on the website. Could you share the available menu with me here, please?",
     "pricesNote": "Prices in",
     "backHome": "Back to home",
     "availabilityNote": "Availability may vary by day.",
@@ -382,6 +385,9 @@
       "cantFindSlotPrefix": "If you can't find availability for the day or time you want,",
       "contactUsLink": "contact us",
       "cantFindSlotSuffix": "and we'll help you find another option.",
+      "loadError": "We couldn't load the available times right now. Please try again or message us on WhatsApp and we'll help you book.",
+      "loadErrorCta": "Message us on WhatsApp",
+      "whatsappMessage": "Hello, there was an error loading availability on the website. Could you help me check availability and book here, please?",
       "playersRange": "{{min}}–{{max}} players",
       "slot": {
         "available": "Available",
@@ -455,10 +461,12 @@
         "tooltipAria": "Minimum deposit information"
       },
       "errors": {
-        "loadTotal": "Error loading the total.",
+        "loadTotal": "We couldn't calculate the total right now. Please try again or message us on WhatsApp and we'll help you with the booking.",
         "missingCode": "The code was not generated.",
-        "createFailed": "We couldn't create the booking. Please try again."
-      }
+        "createFailed": "We couldn't create the booking. Please try again or message us on WhatsApp and we'll help you complete it.",
+        "contactCta": "Message us on WhatsApp"
+      },
+      "whatsappMessage": "Hello, there was an error while continuing the booking on the website. Could you help me complete the booking here, please?"
     },
     "payment": {
       "subtitle": "Booking created. Pay the deposit and send the receipt via WhatsApp.",
@@ -531,8 +539,10 @@
         "requiredCode": "Enter a consultation code to continue.",
         "invalidCode": "The consultation code is wrong.",
         "notFound": "We couldn't find a booking with that code.",
-        "unknown": "We couldn't check the status. Please try again."
-      }
+        "unknown": "We couldn't check the status. Please try again or message us on WhatsApp and we'll help you review it.",
+        "contactCta": "Message us on WhatsApp"
+      },
+      "whatsappMessage": "Hello, there was an error checking my booking on the website. Could you help me review the status here, please?"
     }
   },
   "admin": {

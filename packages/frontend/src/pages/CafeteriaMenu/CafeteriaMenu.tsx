@@ -6,6 +6,7 @@ import {
   fetchCafeteriaProducts,
   type CafeteriaProduct,
 } from "../../api/cafeteria";
+import { buildLogicWhatsAppUrl } from "../../utils/support";
 import "./CafeteriaMenu.scss";
 
 type CafeteriaCategory = {
@@ -80,7 +81,13 @@ export default function CafeteriaMenu() {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        setError(err instanceof Error ? err.message : "Failed to load menu");
+        console.error("Failed to load cafeteria menu", err);
+        setError(
+          t(
+            "cafeteria.error",
+            "No pudimos cargar la cafeteria. Intenta de nuevo en unos minutos o escribenos a WhatsApp y te compartimos el menu."
+          )
+        );
       })
       .finally(() => {
         if (cancelled) return;
@@ -94,6 +101,12 @@ export default function CafeteriaMenu() {
 
   const currency = "COP";
   const imagesBaseUrl = (import.meta.env.VITE_IMAGES_BASE_URL || "").trim();
+  const whatsappUrl = buildLogicWhatsAppUrl(
+    t(
+      "cafeteria.whatsappMessage",
+      "Hola, ocurrio un error al cargar la cafeteria en la pagina web. Me compartes el menu disponible por este medio, por favor"
+    )
+  );
 
   const locale =
     i18n.language && i18n.language.startsWith("en") ? "en-US" : "es-CO";
@@ -336,6 +349,17 @@ export default function CafeteriaMenu() {
             {statusText && (
               <section className="cafeteria-menu__section" aria-live="polite">
                 <p>{statusText}</p>
+                {error ? (
+                  <p>
+                    <a
+                      href={whatsappUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {t("cafeteria.whatsappCta", "Escribir por WhatsApp")}
+                    </a>
+                  </p>
+                ) : null}
               </section>
             )}
             {categories.map((section) => (

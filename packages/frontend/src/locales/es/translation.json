@@ -241,6 +241,9 @@
     "eyebrow": "Para compartir",
     "title": "CAFETERÍA & BEBIDAS y SNACKS",
     "subtitle": "Recarga energías antes o después de tu misión, o para acompañar un buen juego de mesa. Opciones frescas para tu equipo.",
+    "error": "No pudimos cargar la cafetería. Intenta de nuevo en unos minutos o escríbenos a WhatsApp y te compartimos el menú.",
+    "whatsappCta": "Escríbenos por WhatsApp",
+    "whatsappMessage": "Hola, ocurrió un error al cargar la cafetería en la página web. Me compartes el menú disponible por este medio, por favor",
     "pricesNote": "Precios en",
     "backHome": "Volver al inicio",
     "availabilityNote": "Sujeto a disponibilidad.",
@@ -370,6 +373,9 @@
       "cantFindSlotPrefix": "Si no encuentras cupo para el día u horario que buscas,",
       "contactUsLink": "comunícate con nosotros",
       "cantFindSlotSuffix": "y te ayudamos con otra opción.",
+      "loadError": "No pudimos cargar los horarios en este momento. Intenta de nuevo o escríbenos a WhatsApp y te ayudamos a reservar.",
+      "loadErrorCta": "Escríbenos por WhatsApp",
+      "whatsappMessage": "Hola, ocurrió un error al cargar horarios en la página web. Me ayudas por este medio a revisar disponibilidad y reservar, por favor",
       "playersRange": "{{min}}–{{max}} jugadores",
       "slot": {
         "available": "Disponible",
@@ -443,10 +449,12 @@
         "tooltipAria": "Información del abono mínimo"
       },
       "errors": {
-        "loadTotal": "Error cargando el total.",
+        "loadTotal": "No pudimos calcular el total en este momento. Intenta de nuevo o escríbenos a WhatsApp y te ayudamos con la reserva.",
         "missingCode": "No se generó el código.",
-        "createFailed": "No pudimos crear la reserva. Intenta de nuevo."
-      }
+        "createFailed": "No pudimos crear la reserva. Intenta de nuevo o escríbenos a WhatsApp y te ayudamos a completarla.",
+        "contactCta": "Escríbenos por WhatsApp"
+      },
+      "whatsappMessage": "Hola, ocurrió un error al continuar la reserva desde la página web. Me ayudas por este medio a completar la reserva, por favor"
     },
     "payment": {
       "subtitle": "Reserva creada. Realiza el abono y envía el comprobante por WhatsApp.",
@@ -519,8 +527,10 @@
         "requiredCode": "Ingresa un código de consulta para continuar.",
         "invalidCode": "El código de consulta es incorrecto.",
         "notFound": "No encontramos una reserva con ese código.",
-        "unknown": "No pudimos consultar el estado. Intenta de nuevo."
-      }
+        "unknown": "No pudimos consultar el estado. Intenta de nuevo o escríbenos a WhatsApp y te ayudamos a revisarlo.",
+        "contactCta": "Escríbenos por WhatsApp"
+      },
+      "whatsappMessage": "Hola, ocurrió un error al consultar mi reserva en la página web. Me ayudan a revisar el estado por este medio, por favor"
     }
   },
   "admin": {
