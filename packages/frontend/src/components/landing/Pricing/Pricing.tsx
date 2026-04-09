@@ -177,7 +177,12 @@ const Pricing = () => {
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           {leadLines.map((line, idx) => (
-            <p key={`${line}-${idx}`}>{line}</p>
+            <p
+              key={`${line}-${idx}`}
+              className={idx === 0 ? "pricing__lead-highlight" : undefined}
+            >
+              {line}
+            </p>
           ))}
           {error && (
             <div className="pricing__error-container">
@@ -226,7 +231,8 @@ const Pricing = () => {
                       {item.players} {t("rooms.labels.players")}
                     </span>
                     <span className="pricing__price">
-                      {formatPrice(item.price, item.currency)}
+                      {formatPrice(item.price, item.currency)}{" "}
+                      <span className="pricing__price-unit">c/u</span>
                     </span>
                   </div>
                 ))}

@@ -41,7 +41,7 @@
 
     &-image {
       display: block;
-      width: 120px;
+      width: 235px;
       max-width: 42vw;
       height: auto;
       filter: drop-shadow(0 0 12px rgba(139, 92, 246, 0.35));
@@ -134,19 +134,8 @@
     }
 
     &-button {
-      display: inline-block;
-      padding: $spacing-sm $spacing-md;
-      background: linear-gradient(135deg, $primary-color, $secondary-color);
-      color: white;
-      text-decoration: none;
-      font-weight: 600;
-      border-radius: 8px;
-      transition: all 0.3s ease;
-      cursor: pointer;
-
-      &:hover {
-        transform: translateY(-2px);
-      }
+      @include button-base($button-font-size-sm, $button-font-weight, 8px, $spacing-sm, $spacing-md);
+      @include button-primary(white);
     }
   }
 
@@ -157,17 +146,11 @@
     align-items: center;
 
     &-button {
-      background: transparent;
-      border: 1px solid rgba(255, 255, 255, 0.06);
-      padding: 6px 8px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 1.1rem;
+      @include button-base(0.9rem, 700, 6px, 6px, 8px);
+      @include button-ghost(rgba(255, 255, 255, 0.06), transparent);
       line-height: 1;
-      transition: all 0.15s ease;
 
       &:hover {
-        transform: translateY(-2px);
         box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
       }
 

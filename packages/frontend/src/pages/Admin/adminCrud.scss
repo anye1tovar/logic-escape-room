@@ -82,39 +82,15 @@
   }
 
   &__button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: $text-light;
-    font-weight: 900;
-    cursor: pointer;
-    background: rgba(255, 255, 255, 0.04);
-    transition: transform 0.12s ease, box-shadow 0.12s ease, filter 0.12s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-    }
+    @include button-base();
+    @include button-neutral;
 
     &--primary {
-      background: linear-gradient(135deg, $primary-color, $secondary-color);
+      @include button-primary();
     }
 
     &--danger {
-      background: rgba(255, 180, 180, 0.12);
-      border-color: rgba(255, 180, 180, 0.35);
-      color: #ffb4b4;
-    }
-
-    &:disabled {
-      opacity: 0.6;
-      cursor: not-allowed;
-      transform: none;
-      box-shadow: none;
-      filter: grayscale(0.25);
+      @include button-danger;
     }
   }
 

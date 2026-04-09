@@ -19,3 +19,114 @@ $mobile: 480px;
 $tablet: 768px;
 $desktop: 1024px;
 $wide: 1280px;
+
+// Tipografia de botones
+$button-font-family: "Nunito", "Segoe UI", sans-serif;
+$button-font-size-sm: 0.95rem;
+$button-font-size-md: 1rem;
+$button-font-weight: 700;
+$button-line-height: 1.2;
+$button-letter-spacing: 0.01em;
+
+@mixin button-text($size: $button-font-size-md, $weight: $button-font-weight) {
+  font-family: $button-font-family;
+  font-size: $size;
+  font-weight: $weight;
+  line-height: $button-line-height;
+  letter-spacing: $button-letter-spacing;
+}
+
+@mixin button-base(
+  $size: $button-font-size-md,
+  $weight: $button-font-weight,
+  $radius: 12px,
+  $padding-y: 10px,
+  $padding-x: 14px,
+  $border-width: 1px
+) {
+  @include button-text($size, $weight);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: $padding-y $padding-x;
+  border-radius: $radius;
+  border: $border-width solid transparent;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease,
+    filter 0.15s ease;
+}
+
+@mixin button-primary(
+  $text-color: $text-light,
+  $gradient-start: $primary-color,
+  $gradient-end: $secondary-color
+) {
+  background: linear-gradient(135deg, $gradient-start, $gradient-end);
+  border-color: rgba(255, 255, 255, 0.12);
+  color: $text-color;
+
+  &:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    filter: grayscale(0.25);
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@mixin button-ghost($border-color: rgba(255, 255, 255, 0.16), $bg: rgba(255, 255, 255, 0.04)) {
+  background: $bg;
+  border-color: $border-color;
+  color: $text-light;
+
+  &:hover {
+    transform: translateY(-2px);
+    background: rgba(255, 255, 255, 0.07);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+  }
+}
+
+@mixin button-neutral {
+  @include button-ghost(rgba(255, 255, 255, 0.12), rgba(255, 255, 255, 0.04));
+}
+
+@mixin button-danger {
+  background: rgba(255, 180, 180, 0.12);
+  border-color: rgba(255, 180, 180, 0.35);
+  color: #ffb4b4;
+
+  &:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
+  }
+
+  &:disabled {
+    cursor: not-allowed;
+    opacity: 0.6;
+    transform: none;
+    box-shadow: none;
+    filter: grayscale(0.25);
+  }
+}
+
+@mixin button-pill($size: $button-font-size-sm, $weight: $button-font-weight) {
+  @include button-base($size, $weight, 999px, 8px, 12px);
+}

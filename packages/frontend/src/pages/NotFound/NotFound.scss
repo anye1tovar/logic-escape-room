@@ -108,20 +108,8 @@
   }
 
   &__button {
-    border: none;
-    cursor: pointer;
-    padding: 12px 20px;
-    border-radius: 999px;
-    font-weight: 800;
-    color: $text-dark;
-    background: linear-gradient(135deg, $secondary-color, #f6d56b);
-    box-shadow: 0 16px 30px rgba(0, 0, 0, 0.35);
-    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
-
-    &:hover {
-      transform: translateY(-2px) scale(1.01);
-      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-    }
+    @include button-base($button-font-size-md, $button-font-weight, 999px, 12px, 20px, 0);
+    @include button-primary($text-dark, $secondary-color, #f6d56b);
 
     &:focus-visible {
       outline: 3px solid rgba(239, 187, 61, 0.6);

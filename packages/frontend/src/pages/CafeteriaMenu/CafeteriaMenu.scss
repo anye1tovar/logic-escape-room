@@ -84,24 +84,9 @@
   }
 
   &__banner-cta {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 14px;
-    border-radius: 10px;
-    text-decoration: none;
-    color: $text-light;
-    font-weight: 700;
-    background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition:
-      transform 0.15s ease,
-      box-shadow 0.15s ease;
+    @include button-base($button-font-size-md, $button-font-weight, 10px, 10px, 14px);
+    @include button-primary();
     white-space: nowrap;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
-    }
   }
 
   &__header {
@@ -184,52 +169,26 @@
   }
 
   &__filters-nav {
-    background: rgba(255, 255, 255, 0.06);
-    color: $text-light;
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    @include button-base(0.9rem, 700, 999px, 0, 0);
+    @include button-neutral;
     width: 34px;
     height: 34px;
-    border-radius: 50%;
-    font-size: 1.2rem;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    transition:
-      transform 0.15s ease,
-      opacity 0.15s ease;
 
     &:disabled {
       opacity: 0.35;
-      cursor: not-allowed;
-      transform: none;
     }
 
     &:not(:disabled):hover {
-      transform: translateY(-1px);
+      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.28);
     }
   }
 
   &__filter {
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.12);
+    @include button-pill($button-font-size-sm);
+    @include button-neutral;
     color: $text-light;
-    padding: 8px 12px;
-    border-radius: 999px;
-    cursor: pointer;
-    transition:
-      transform 0.15s ease,
-      background 0.15s ease,
-      box-shadow 0.15s ease;
-    font-size: 0.95rem;
     white-space: nowrap;
     flex: 0 0 auto;
-
-    &:hover {
-      transform: translateY(-2px);
-      background: rgba(255, 255, 255, 0.07);
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.25);
-    }
 
     &--active {
       border-color: rgba(203, 171, 255, 0.8);

@@ -111,20 +111,11 @@
   }
 
   &__logout {
+    @include button-base();
+    @include button-neutral;
     margin-top: auto;
-    padding: 10px 12px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.03);
     color: $text-light;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform 0.12s ease, box-shadow 0.12s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 12px 28px rgba(0, 0, 0, 0.28);
-    }
+    padding-inline: 12px;
   }
 
   &__content {

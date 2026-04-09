@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Header.scss";
+import Button from "../../common/Button";
 
-const logicLogo = "/img/logic.webp";
+const logicLogo = "/img/logo-logic-horizontal.webp";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -17,7 +18,7 @@ const Header = () => {
   const headerBlur = useTransform(
     scrollY,
     [0, 100],
-    ["blur(0px)", "blur(10px)"]
+    ["blur(0px)", "blur(10px)"],
   );
 
   useEffect(() => {
@@ -42,7 +43,7 @@ const Header = () => {
   }> = [
     { name: t("header.menu.0"), href: "#home", kind: "hash" },
     { name: t("header.menu.1"), href: "#rooms", kind: "hash" },
-    { name: t("header.menu.2"), href: "#about", kind: "hash" },
+    { name: t("header.menu.2"), href: "/nosotros", kind: "route" },
     { name: t("header.menu.3"), href: "#pricing", kind: "hash" },
     { name: t("header.menu.4"), href: "#contact", kind: "hash" },
     { name: t("header.menu.5"), href: "/cafeteria", kind: "route" },
@@ -50,7 +51,7 @@ const Header = () => {
 
   const handleMenuItemClick = (
     item: (typeof menuItems)[number],
-    opts?: { closeMobileMenu?: boolean }
+    opts?: { closeMobileMenu?: boolean },
   ) => {
     if (opts?.closeMobileMenu) setIsMenuOpen(false);
 
@@ -155,7 +156,9 @@ const Header = () => {
             }
             title={otherLang === "en" ? "English" : "Español"}
           >
-            <span className="header__lang-text">{otherLang === "en" ? "EN" : "ES"}</span>
+            <span className="header__lang-text">
+              {otherLang === "en" ? "EN" : "ES"}
+            </span>
           </button>
         </div>
 
@@ -166,18 +169,14 @@ const Header = () => {
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.5 }}
         >
-          <motion.button
+          <Button
             type="button"
             className="header__cta-button"
             onClick={() => openBooking()}
-            whileHover={{
-              scale: 1.05,
-              boxShadow: "0 10px 30px rgba(139, 92, 246, 0.4)",
-            }}
-            whileTap={{ scale: 0.95 }}
+            size="sm"
           >
             {t("header.bookNow")}
-          </motion.button>
+          </Button>
         </motion.div>
 
         {/* Mobile Menu Button */}
@@ -254,16 +253,12 @@ const Header = () => {
             }
             title={otherLang === "en" ? "English" : "Español"}
           >
-            <span className="header__lang-text">{otherLang === "en" ? "EN" : "ES"}</span>
+            <span className="header__lang-text">
+              {otherLang === "en" ? "EN" : "ES"}
+            </span>
           </button>
         </div>
-        <motion.button
-          type="button"
-          className="header__nav-link header__nav-link--cta"
-          onClick={() => {
-            setIsMenuOpen(false);
-            openBooking();
-          }}
+        <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{
             opacity: isMenuOpen ? 1 : 0,
@@ -271,8 +266,18 @@ const Header = () => {
           }}
           transition={{ delay: menuItems.length * 0.1 }}
         >
-          {t("header.bookNow")}
-        </motion.button>
+          <Button
+            type="button"
+            className="header__nav-link header__nav-link--cta"
+            onClick={() => {
+              setIsMenuOpen(false);
+              openBooking();
+            }}
+            size="sm"
+          >
+            {t("header.bookNow")}
+          </Button>
+        </motion.div>
       </motion.nav>
     </motion.header>
   );

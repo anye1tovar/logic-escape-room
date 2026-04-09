@@ -2,12 +2,13 @@ import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import "./Hero.scss";
 import { useNavigate } from "react-router-dom";
+import Button from "../../common/Button";
 
 const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
-const logicLogo = "/img/logic.webp";
+const heroBackground = "/landing/logic-escape-room-hero.webp";
 
 const statsValues = [
-  { labelKey: "hero.stats.teams", value: "+1564" },
+  { labelKey: "hero.stats.teams", value: "+2000" },
   { labelKey: "hero.stats.rating", value: "5/5" },
   { labelKey: "hero.stats.time", value: "60 min" },
 ];
@@ -29,27 +30,16 @@ const Hero = () => {
 
   return (
     <section className="hero" id="home">
+      <div className="hero__background" aria-hidden="true">
+        <img
+          src={heroBackground}
+          alt=""
+          className="hero__background-image"
+          loading="eager"
+          decoding="async"
+        />
+      </div>
       <div className="hero__grid">
-        <motion.div
-          className="hero__visual"
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 1.05, ease: "easeInOut", delay: 0.15 }}
-        >
-          <div className="hero__glow hero__glow--primary" />
-          <div className="hero__glow hero__glow--accent" />
-
-          <motion.img
-            src={logicLogo}
-            alt="Logic Escape Room"
-            className="hero__logo"
-            loading="lazy"
-            decoding="async"
-            initial={{ y: 24, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            transition={{ duration: 1, ease: "easeOut", delay: 0.55 }}
-          />
-        </motion.div>
         <motion.div
           className="hero__copy"
           initial={{ opacity: 0, y: 28 }}
@@ -81,32 +71,27 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.9, delay: 0.45 }}
           >
-            <motion.button
-              className="hero__button hero__button--primary"
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.97 }}
+            <Button
+              className="hero__button"
+              variant="sun"
+              pill
               onClick={() => openBooking()}
             >
               {t("hero.reserve")}
-            </motion.button>
-            <motion.a
-              href="#rooms"
-              className="hero__button hero__button--ghost"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-            >
+            </Button>
+            <Button href="#rooms" className="hero__button" variant="ghost" pill>
               {t("hero.viewRooms")}
-            </motion.a>
-            <motion.a
+            </Button>
+            <Button
               href={interactiveTourUrl}
               target="_blank"
               rel="noreferrer"
-              className="hero__button hero__button--interactive"
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
+              className="hero__button"
+              variant="interactive"
+              pill
             >
               {t("hero.tourInteractive")}
-            </motion.a>
+            </Button>
           </motion.div>
 
           <motion.div

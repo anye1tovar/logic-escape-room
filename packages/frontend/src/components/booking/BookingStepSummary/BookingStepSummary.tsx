@@ -7,6 +7,7 @@ import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStep
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { buildLogicWhatsAppUrl } from "../../../utils/support";
+import Button from "../../common/Button";
 
 type BookingStepSummaryProps = {
   className?: string;
@@ -270,17 +271,16 @@ export default function BookingStepSummary({
       )}
 
       <footer className="booking-step__footer booking-step__footer--split">
-        <button
+        <Button
           type="button"
-          className="booking-actions__button booking-actions__button--ghost"
           onClick={onBack}
           disabled={!onBack || isSubmitting}
+          variant="neutral"
         >
           {t("booking.actions.back")}
-        </button>
-        <button
+        </Button>
+        <Button
           type="button"
-          className="booking-actions__button"
           disabled={!canReserve}
           onClick={async () => {
             if (!selection || !details) return;
@@ -334,7 +334,7 @@ export default function BookingStepSummary({
           {isSubmitting
             ? t("booking.actions.reserving")
             : t("booking.actions.reserve")}
-        </button>
+        </Button>
       </footer>
     </section>
   );

@@ -11,6 +11,7 @@ import "dayjs/locale/es";
 import { FormControlLabel, Switch, Typography } from "@mui/material";
 import { fetchWithRetry } from "../../../utils/apiRequest";
 import { buildLogicWhatsAppUrl } from "../../../utils/support";
+import Button from "../../common/Button";
 
 const portalImg = "/rooms/portal.webp";
 const canibalImg = "/rooms/canibal.webp";
@@ -688,7 +689,7 @@ export default function BookingStepSelection({
                                 isSelected && slot.start === selectedSlotStart;
                               const label = formatTime(slot.start);
                               return (
-                                <button
+                                <Button
                                   key={slot.start}
                                   type="button"
                                   className={`booking-slot ${
@@ -708,6 +709,9 @@ export default function BookingStepSelection({
                                       ? t("booking.selection.slot.available")
                                       : t("booking.selection.slot.busy")
                                   }
+                                  variant="neutral"
+                                  size="sm"
+                                  pill
                                 >
                                   <span className="booking-slot__time">
                                     {label}
@@ -717,7 +721,7 @@ export default function BookingStepSelection({
                                       {t("booking.selection.slot.busyBadge")}
                                     </span>
                                   )}
-                                </button>
+                                </Button>
                               );
                             })}
                           </div>
@@ -745,7 +749,7 @@ export default function BookingStepSelection({
               }`}
               aria-label={t("booking.selection.peopleSelectorAria")}
             >
-              <button
+              <Button
                 type="button"
                 className="booking-people__btn"
                 disabled={
@@ -757,13 +761,14 @@ export default function BookingStepSelection({
                   if (!selectedRoom || typeof peopleCount !== "number") return;
                   setPeopleCount(Math.max(minPlayers, peopleCount - 1));
                 }}
+                variant="neutral"
               >
                 −
-              </button>
+              </Button>
               <div className="booking-people__value">
                 {typeof peopleCount === "number" ? peopleCount : "—"}
               </div>
-              <button
+              <Button
                 type="button"
                 className="booking-people__btn"
                 disabled={
@@ -775,9 +780,10 @@ export default function BookingStepSelection({
                   if (!selectedRoom || typeof peopleCount !== "number") return;
                   setPeopleCount(Math.min(maxPlayers, peopleCount + 1));
                 }}
+                variant="neutral"
               >
                 +
-              </button>
+              </Button>
             </div>
             <p className="booking-form__hint booking-form__hint--inline">
               {selectedRoom
@@ -814,14 +820,13 @@ export default function BookingStepSelection({
       </div>
 
       <footer className="booking-step__footer">
-        <button
+        <Button
           type="button"
-          className="booking-actions__button"
           disabled={!canContinue}
           onClick={handleContinue}
         >
           {t("booking.actions.continue")}
-        </button>
+        </Button>
       </footer>
     </section>
   );

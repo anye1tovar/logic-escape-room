@@ -2,6 +2,7 @@ import { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStepDetails";
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
+import Button from "../../common/Button";
 
 type BookingStepPaymentProps = {
   className?: string;
@@ -86,6 +87,24 @@ export default function BookingStepPayment({
 
       <div className="booking-step__content">
         <div className="booking-form__section">
+          <div className="booking-payment__alert" role="alert">
+            <p className="booking-payment__alert-title">
+              {t("booking.payment.alert.title")}
+            </p>
+            <p className="booking-payment__alert-copy">
+              {t("booking.payment.alert.copy")}
+            </p>
+            <Button
+              className="booking-payment__alert-action"
+              href={whatsappUrl}
+              variant="primary"
+              size="sm"
+              pill
+            >
+              {t("booking.payment.alert.cta")}
+            </Button>
+          </div>
+
           <h3 className="booking-form__section-title">
             {t("booking.payment.instructionsTitle")}
           </h3>
@@ -104,10 +123,19 @@ export default function BookingStepPayment({
             </li>
             <li className="booking-form__hint">
               {t("booking.payment.sendToWhatsapp")}{" "}
-              <a className="booking-payment__link" href={whatsappUrl}>
+              <Button
+                className="booking-payment__link"
+                href={whatsappUrl}
+                variant="ghost"
+                size="sm"
+                pill
+              >
                 {WHATSAPP_NUMBER}
-              </a>
+              </Button>
               .
+            </li>
+            <li className="booking-form__hint">
+              {t("booking.payment.mustMessageWhatsapp")}
             </li>
           </ol>
 
@@ -142,13 +170,14 @@ export default function BookingStepPayment({
                   Copiado
                 </span>
               </div>
-              <button
+              <Button
                 type="button"
-                className="booking-actions__button booking-actions__button--ghost booking-payment__qr-button"
+                className="booking-payment__qr-button"
                 onClick={() => dialogRef.current?.showModal()}
+                variant="neutral"
               >
                 {t("booking.payment.viewQr")}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
@@ -168,9 +197,8 @@ export default function BookingStepPayment({
               {consultCode || "-"}
             </div>
             <div className="booking-code__actions">
-              <button
+              <Button
                 type="button"
-                className="booking-actions__button booking-actions__button--ghost"
                 onClick={async () => {
                   if (!consultCode) return;
                   const ok = await copyToClipboard(consultCode);
@@ -178,16 +206,17 @@ export default function BookingStepPayment({
                   window.setTimeout(() => setCopyState("idle"), 1500);
                 }}
                 disabled={!consultCode}
+                variant="neutral"
               >
                 {copyState === "copied"
                   ? t("booking.payment.copy.copied")
                   : copyState === "failed"
                     ? t("booking.payment.copy.failed")
                     : t("booking.payment.copy.idle")}
-              </button>
-              <a className="booking-code__link" href={consultUrl}>
+              </Button>
+              <Button className="booking-code__link" href={consultUrl}>
                 {t("booking.payment.consultStatusLink")}
-              </a>
+              </Button>
             </div>
           </div>
         </div>

@@ -6,6 +6,7 @@ import { useSearchParams } from "react-router-dom";
 import { fetchBookingStatus } from "../../api/bookings";
 import { buildLogicWhatsAppUrl } from "../../utils/support";
 import "./BookingStatus.scss";
+import Button from "../../components/common/Button";
 
 type LookupState =
   | { type: "idle" }
@@ -245,12 +246,9 @@ export default function BookingStatus() {
                   </span>
                 ) : null}
               </label>
-              <button
-                type="submit"
-                className="booking-status__button"
-              >
+              <Button type="submit" className="booking-status__button">
                 {t("booking.status.searchCta")}
-              </button>
+              </Button>
             </form>
 
             <div className="booking-status__result" aria-live="polite">

@@ -1,9 +1,10 @@
 import { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Alert, Button, TextField } from "@mui/material";
+import { Alert, TextField } from "@mui/material";
 import { login } from "../../api/auth";
 import { useNavigate } from "react-router-dom";
 import "./AdminLogin.scss";
+import Button from "../../components/common/Button";
 
 type LoginState =
   | { type: "idle" }
@@ -118,7 +119,7 @@ export default function AdminLogin() {
 
               <Button
                 type="submit"
-                variant="contained"
+                className="admin-login__button"
                 disabled={!canSubmit || loginState.type === "submitting"}
               >
                 {loginState.type === "submitting"

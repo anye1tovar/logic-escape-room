@@ -1,13 +1,6 @@
 {
   "header": {
-    "menu": [
-      "Inicio",
-      "Salas",
-      "Nosotros",
-      "Precios",
-      "Contacto",
-      "Cafetería"
-    ],
+    "menu": ["Inicio", "Salas", "Nosotros", "Precios", "Contacto", "Cafetería"],
     "bookNow": "Reservar Ahora",
     "logo": "Logic Escape"
   },
@@ -30,8 +23,8 @@
     "tourInteractive": "Tour interactivo (video)",
     "stats": {
       "teams": "Equipos victoriosos",
-      "rating": "Calificación",
-      "time": "Cuenta regresiva"
+      "rating": "Calificación en Google",
+      "time": "Para lograr escapar"
     },
     "scrollText": "Descubre más"
   },
@@ -213,10 +206,7 @@
   },
   "about": {
     "title": "BIENVENIDOS A NUESTRO MUNDO",
-    "titleLines": [
-      "BIENVENIDOS A",
-      "NUESTRO MUNDO"
-    ],
+    "titleLines": ["BIENVENIDOS A", "NUESTRO MUNDO"],
     "sections": [
       {
         "title": "QUIÉNES SOMOS",
@@ -328,7 +318,7 @@
       "eyebrow": "Reservas",
       "titleLine1": "Reserva tu",
       "titleLine2": "Experiencia",
-      "subtitle": "Completa el proceso en 4 pasos: selección, datos, resumen y pago.",
+      "subtitle": "Completa el proceso en 4 pasos: selección, datos, resumen y pago con confirmación.",
       "haveCode": "¿Ya tienes un código?",
       "consultLink": "Consultar estado de reserva",
       "stepperAria": "Flujo de reserva",
@@ -355,8 +345,8 @@
         "desc": "Revisa y reserva"
       },
       "payment": {
-        "title": "Pago",
-        "desc": "Instrucciones y código"
+        "title": "Pago y confirmación",
+        "desc": "Abono, WhatsApp y código"
       }
     },
     "selection": {
@@ -457,13 +447,14 @@
       "whatsappMessage": "Hola, ocurrió un error al continuar la reserva desde la página web. Me ayudas por este medio a completar la reserva, por favor"
     },
     "payment": {
-      "subtitle": "Reserva creada. Realiza el abono y envía el comprobante por WhatsApp.",
+      "subtitle": "Reserva creada. El abono y tu mensaje por WhatsApp son necesarios para confirmar la reserva.",
       "instructionsTitle": "Instrucciones",
       "depositPrefix": "Para confirmar tu reserva, realiza un abono de",
       "deadlinePrefix": "Tienes",
       "deadlineSuffix": "horas para enviar el comprobante.",
       "estimatedTotalLabel": "Total estimado de la reserva:",
       "sendToWhatsapp": "Envíalo al WhatsApp de Logic:",
+      "mustMessageWhatsapp": "Es importante que nos escribas por WhatsApp, aunque sea para avisar que ya realizaste el pago. Sin ese mensaje la reserva puede quedar sin confirmar.",
       "payHint": "Puedes pagar escaneando el QR o usando la llave Bre-B:",
       "viewQr": "Ver QR de pago",
       "consultCodeTitle": "Código de consulta",
@@ -482,6 +473,11 @@
         "fallbackKey": "Si prefieres, también puedes pagar por llave: {{key}}."
       },
       "brebAria": "Llave Bre-B",
+      "alert": {
+        "title": "Importante: confirma por WhatsApp",
+        "copy": "Después de hacer el abono debes enviarnos el comprobante por WhatsApp. Si no recibimos tu mensaje, la reserva no quedará confirmada y en algunos casos podría no presentarse un game master a la hora reservada.",
+        "cta": "Enviar comprobante por WhatsApp"
+      },
       "whatsappPrefill": "Hola! A continuación envío el comprobante de pago del abono para la reserva a nombre de {{name}} para el día {{date}} y hora {{time}}.",
       "errors": {
         "loadTotal": "Error cargando el total."

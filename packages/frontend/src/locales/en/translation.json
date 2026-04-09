@@ -340,7 +340,7 @@
       "eyebrow": "Bookings",
       "titleLine1": "Book your",
       "titleLine2": "Experience",
-      "subtitle": "Complete the process in 4 steps: selection, details, summary, and payment.",
+      "subtitle": "Complete the process in 4 steps: selection, details, summary, and payment with confirmation.",
       "haveCode": "Already have a code?",
       "consultLink": "Check booking status",
       "stepperAria": "Booking flow",
@@ -367,8 +367,8 @@
         "desc": "Review and reserve"
       },
       "payment": {
-        "title": "Payment",
-        "desc": "Instructions and code"
+        "title": "Payment & confirmation",
+        "desc": "Deposit, WhatsApp, and code"
       }
     },
     "selection": {
@@ -469,13 +469,14 @@
       "whatsappMessage": "Hello, there was an error while continuing the booking on the website. Could you help me complete the booking here, please?"
     },
     "payment": {
-      "subtitle": "Booking created. Pay the deposit and send the receipt via WhatsApp.",
+      "subtitle": "Booking created. The deposit and your WhatsApp message are required to confirm it.",
       "instructionsTitle": "Instructions",
       "depositPrefix": "To confirm your booking, pay a deposit of",
       "deadlinePrefix": "You have",
       "deadlineSuffix": "hours to send the receipt.",
       "estimatedTotalLabel": "Estimated total:",
       "sendToWhatsapp": "Send it to Logic's WhatsApp:",
+      "mustMessageWhatsapp": "It is important that you message us on WhatsApp, even if it is only to let us know you have already paid. Without that message, the booking may remain unconfirmed.",
       "payHint": "You can pay by scanning the QR or using the Bre-B key:",
       "viewQr": "View payment QR",
       "consultCodeTitle": "Consultation code",
@@ -494,6 +495,11 @@
         "fallbackKey": "If you prefer, you can also pay using the key: {{key}}."
       },
       "brebAria": "Bre-B key",
+      "alert": {
+        "title": "Important: confirm via WhatsApp",
+        "copy": "After paying the deposit, you must send us the receipt through WhatsApp. If we do not receive your message, the booking will not be confirmed and in some cases a game master may not be assigned for your reserved time.",
+        "cta": "Send receipt on WhatsApp"
+      },
       "whatsappPrefill": "Hello! I'm sending the payment receipt for the deposit under the name {{name}} for {{date}} at {{time}}.",
       "errors": {
         "loadTotal": "Error loading the total."

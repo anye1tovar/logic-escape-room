@@ -4,19 +4,36 @@
 .hero {
   position: relative;
   overflow: hidden;
-  min-height: 100vh;
   padding: calc(6rem + 56px) $spacing-xl 5rem;
-  background: radial-gradient(
+  background:
+    radial-gradient(
       circle at 20% 20%,
       rgba(203, 171, 255, 0.12),
       transparent 35%
     ),
-    radial-gradient(circle at 80% 0%, rgba(239, 187, 61, 0.14), transparent 40%),
+    radial-gradient(
+      circle at 80% 0%,
+      rgba(239, 187, 61, 0.14),
+      transparent 40%
+    ),
     $dark-bg;
   color: $text-light;
 
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      rgba($dark-bg, 0.72) 0%,
+      rgba($dark-bg, 0.6) 38%,
+      rgba($dark-bg, 0.5) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
+  }
+
   @media (max-width: $tablet) {
-    min-height: auto;
     padding: calc(5rem + 48px) $spacing-lg 4rem;
   }
 
@@ -25,21 +42,35 @@
   }
 
   &__grid {
+    position: relative;
+    z-index: 2;
     width: min(1200px, 100%);
     margin: 0 auto;
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: $spacing-xl;
+    display: flex;
+    justify-content: center;
     align-items: center;
-
-    @media (max-width: $desktop) {
-      grid-template-columns: 1fr;
-      gap: $spacing-lg;
-      justify-items: center;
-    }
 
     @media (max-width: $mobile) {
       gap: $spacing-md;
+    }
+  }
+
+  &__background {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  &__background-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+    transform: scale(1.03);
+
+    @media (max-width: $tablet) {
+      object-position: 56% center;
     }
   }
 
@@ -47,12 +78,18 @@
     display: flex;
     flex-direction: column;
     gap: $spacing-md;
-    text-align: right;
-    align-items: flex-end;
+    text-align: center;
+    align-items: center;
+    width: min(680px, 100%);
+    padding: 0;
 
     @media (max-width: $desktop) {
       text-align: center;
       align-items: center;
+    }
+
+    @media (max-width: $tablet) {
+      width: 100%;
     }
 
     @media (max-width: $mobile) {
@@ -105,7 +142,7 @@
     flex-wrap: wrap;
     gap: $spacing-sm;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: center;
 
     @media (max-width: $tablet) {
       justify-content: center;
@@ -117,44 +154,38 @@
   }
 
   &__button {
-    border: 2px solid transparent;
-    border-radius: 999px;
-    padding: 0.9rem 1.4rem;
-    font-weight: 700;
-
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    text-decoration: none;
-    cursor: pointer;
-    transition: background 0.3s ease, color 0.3s ease, border-color 0.3s ease,
-      box-shadow 0.3s ease;
+    @include button-base(
+      $button-font-size-md,
+      $button-font-weight,
+      999px,
+      0.9rem,
+      1.4rem,
+      2px
+    );
     text-align: center;
 
     &--primary {
-      background: linear-gradient(
-        120deg,
+      @include button-primary(
+        $text-dark,
         $secondary-color,
         color.adjust($secondary-color, $lightness: 12%)
       );
-      color: $text-dark;
-      box-shadow: 0 15px 40px rgba($secondary-color, 0.35);
     }
 
     &--ghost {
-      background: transparent;
-      border-color: rgba($text-light, 0.2);
-      color: $text-light;
+      @include button-ghost(rgba($text-light, 0.2), transparent);
 
       &:hover {
         border-color: $primary-color;
-        box-shadow: 0 10px 25px rgba($primary-color, 0.25);
       }
     }
 
     &--interactive {
+      @include button-ghost(
+        rgba($primary-color, 0.55),
+        rgba($primary-color, 0.14)
+      );
       background: rgba($primary-color, 0.14);
-      border-color: rgba($primary-color, 0.55);
       color: $text-light;
       box-shadow: 0 12px 26px rgba($primary-color, 0.25);
 
@@ -174,7 +205,7 @@
     gap: $spacing-sm;
     margin-top: $spacing-sm;
     flex-wrap: wrap;
-    justify-content: flex-end;
+    justify-content: center;
 
     @media (max-width: $desktop) {
       justify-content: center;
@@ -190,8 +221,8 @@
   &__stat {
     padding: $spacing-md;
     border-radius: 18px;
-    background: rgba($primary-color, 0.12);
-    border: 1px solid rgba($primary-color, 0.3);
+    background: rgba($primary-color, 0.1);
+    border: 1px solid rgba($primary-color, 0.22);
     backdrop-filter: blur(4px);
     min-width: 190px;
 
@@ -223,173 +254,6 @@
     @media (max-width: $mobile) {
       font-size: 0.9rem;
     }
-  }
-
-  &__visual {
-    position: relative;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 420px;
-
-    @media (max-width: $desktop) {
-      min-height: 360px;
-    }
-
-    @media (max-width: $tablet) {
-      flex-direction: column;
-      gap: $spacing-sm;
-      min-height: auto;
-      width: 100%;
-      max-width: 520px;
-    }
-  }
-
-  &__glow {
-    position: absolute;
-    width: 320px;
-    height: 320px;
-    border-radius: 50%;
-    filter: blur(80px);
-    opacity: 0.6;
-
-    &--primary {
-      background: rgba($primary-color, 0.6);
-      top: 8%;
-      left: 12%;
-    }
-
-    &--accent {
-      background: rgba($secondary-color, 0.6);
-      bottom: 4%;
-      right: 8%;
-    }
-  }
-
-  &__card {
-    position: absolute;
-    top: 12%;
-    right: 10%;
-    padding: $spacing-md;
-    border-radius: 18px;
-    width: min(320px, 75%);
-    background: rgba($dark-bg, 0.7);
-    border: 1px solid rgba($text-light, 0.12);
-    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
-    color: $text-light;
-    backdrop-filter: blur(10px);
-    text-align: left;
-    z-index: 1;
-
-    @media (max-width: $desktop) {
-      right: 6%;
-      top: 8%;
-    }
-
-    @media (max-width: $tablet) {
-      position: relative;
-      top: 0;
-      right: 0;
-      width: 100%;
-      margin: 0 auto $spacing-md;
-    }
-
-    @media (max-width: $mobile) {
-      width: 100%;
-      padding: $spacing-sm $spacing-md;
-    }
-
-    p {
-      margin: $spacing-xs 0 0;
-      color: rgba($text-light, 0.78);
-      line-height: 1.5;
-      font-size: 0.98rem;
-    }
-  }
-
-  &__timer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: $spacing-sm;
-    background: rgba($primary-color, 0.12);
-    border: 1px solid rgba($primary-color, 0.3);
-    padding: $spacing-sm;
-    border-radius: 12px;
-
-    span {
-      color: $primary-color;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      font-size: 0.85rem;
-    }
-
-    strong {
-      font-size: 1.7rem;
-      color: $secondary-color;
-      letter-spacing: 0.06em;
-    }
-  }
-
-  &__logo {
-    width: clamp(240px, 60vw, 420px);
-    height: auto;
-    filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.45));
-    z-index: 1;
-  }
-
-  &__tag {
-    position: absolute;
-    bottom: 8%;
-    left: 8%;
-    display: flex;
-    gap: $spacing-sm;
-    align-items: flex-start;
-    padding: $spacing-sm $spacing-md;
-    border-radius: 16px;
-    background: rgba($text-light, 0.06);
-    border: 1px solid rgba($text-light, 0.12);
-    backdrop-filter: blur(8px);
-    max-width: 320px;
-
-    @media (max-width: $mobile) {
-      max-width: 100%;
-      width: 100%;
-      justify-content: center;
-      text-align: left;
-    }
-
-    @media (max-width: $tablet) {
-      position: relative;
-      left: 0;
-      bottom: 0;
-      margin-top: $spacing-sm;
-    }
-  }
-
-  &__tag-dot {
-    width: 12px;
-    height: 12px;
-    margin-top: 4px;
-    border-radius: 50%;
-    background: $secondary-color;
-    box-shadow: 0 0 0 10px rgba($secondary-color, 0.16);
-  }
-
-  &__tag-label {
-    margin: 0;
-    color: $secondary-color;
-    font-weight: 700;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    font-size: 0.85rem;
-  }
-
-  &__tag-text {
-    margin: 0.1rem 0 0;
-    color: rgba($text-light, 0.8);
-    line-height: 1.4;
   }
 
   &__scroll {

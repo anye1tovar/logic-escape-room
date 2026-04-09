@@ -131,30 +131,8 @@
   }
 
   &__button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: $text-light;
-    font-weight: 900;
-    cursor: pointer;
-    background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      filter: grayscale(0.25);
-      transform: none;
-      box-shadow: none;
-    }
+    @include button-base($button-font-size-md, $button-font-weight, 12px, 12px, 14px);
+    @include button-primary();
   }
 
   &__message {

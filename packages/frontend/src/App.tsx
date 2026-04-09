@@ -7,17 +7,13 @@ import Hero from "./components/landing/Hero";
 import Footer from "./components/layout/Footer";
 import Header from "./components/layout/Header";
 import theme from "./theme";
-
-const PinZoomOverlay = lazy(
-  () => import("./components/PinnedZoomOverlay/PinnedZoomOverlay")
-);
-const About = lazy(() => import("./components/landing/About/About"));
 const Guidelines = lazy(() => import("./components/landing/Guidelines"));
 const Location = lazy(() => import("./components/landing/Location"));
 const Opinions = lazy(() => import("./components/landing/Opinions"));
 const Pricing = lazy(() => import("./components/landing/Pricing"));
 const Rooms = lazy(() => import("./components/landing/Rooms"));
 
+const AboutPage = lazy(() => import("./pages/About/AboutPage"));
 const Booking = lazy(() => import("./pages/Booking/Booking"));
 const BookingStatus = lazy(() => import("./pages/BookingStatus/BookingStatus"));
 const CafeteriaMenu = lazy(() => import("./pages/CafeteriaMenu/CafeteriaMenu"));
@@ -26,24 +22,24 @@ const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin/AdminLogin"));
 const AdminLayout = lazy(() => import("./pages/Admin/AdminLayout/AdminLayout"));
 const AdminRates = lazy(() => import("./pages/Admin/Rates/AdminRates"));
-const AdminHolidays = lazy(() => import("./pages/Admin/Holidays/AdminHolidays"));
+const AdminHolidays = lazy(
+  () => import("./pages/Admin/Holidays/AdminHolidays"),
+);
 const AdminOpeningHours = lazy(
-  () => import("./pages/Admin/OpeningHours/AdminOpeningHours")
+  () => import("./pages/Admin/OpeningHours/AdminOpeningHours"),
 );
 const AdminRooms = lazy(() => import("./pages/Admin/Rooms/AdminRooms"));
-const AdminSettings = lazy(() => import("./pages/Admin/Settings/AdminSettings"));
+const AdminSettings = lazy(
+  () => import("./pages/Admin/Settings/AdminSettings"),
+);
 const AdminReservations = lazy(
-  () => import("./pages/Admin/Reservations/AdminReservations")
+  () => import("./pages/Admin/Reservations/AdminReservations"),
 );
 const AdminTiming = lazy(() => import("./pages/Admin/Timing/AdminTiming"));
 const AdminCafeteriaProducts = lazy(
-  () => import("./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts")
+  () => import("./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts"),
 );
 const AdminUsers = lazy(() => import("./pages/Admin/Users/AdminUsers"));
-
-const jugadoresImg = "/landing/jugadores.webp";
-const notasImg = "/landing/notas.webp";
-const wallmapImg = "/landing/wallmap.webp";
 
 const PageFallback = () => (
   <div className="app-loading" role="status" aria-live="polite">
@@ -67,9 +63,6 @@ function HomeContent() {
       <AnnouncementBar text={t("topHeader.announcement")} />
       <main>
         <Suspense fallback={<SectionFallback />}>
-          <PinZoomOverlay imageUrl={wallmapImg} overlay={<About />} />
-        </Suspense>
-        <Suspense fallback={<SectionFallback />}>
           <Rooms />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
@@ -77,14 +70,14 @@ function HomeContent() {
         </Suspense>
         <AnnouncementBar text={t("topHeader.announcement")} />
         <Suspense fallback={<SectionFallback />}>
-          <PinZoomOverlay imageUrl={jugadoresImg} overlay={<Pricing />} />
+          <Pricing />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <Opinions />
         </Suspense>
         <AnnouncementBar text={t("topHeader.announcement")} />
         <Suspense fallback={<SectionFallback />}>
-          <PinZoomOverlay imageUrl={notasImg} overlay={<Location />} />
+          <Location />
         </Suspense>
       </main>
       <Footer />
@@ -99,6 +92,7 @@ function App() {
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<HomeContent />} />
+            <Route path="/nosotros" element={<AboutPage />} />
             <Route path="/cafeteria" element={<CafeteriaMenu />} />
             <Route path="/qr" element={<Qr />} />
             <Route path="/reservar" element={<Booking />} />

@@ -1,5 +1,5 @@
 @use "./variables" as *;
-@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=Indie+Flower&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Bebas+Neue:wght@400&family=Nunito:wght@400;500;600&display=swap");
 @import url("https://rsms.me/inter/inter.css");
 
 * {
@@ -9,18 +9,27 @@
 }
 
 body {
-  font-family: "Indie Flower", "Comic Sans MS", "Segoe UI", cursive;
+  font-family: "Nunito", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   color: $text-light;
   background-color: $dark-bg;
 }
 
+p {
+  font-family: "Nunito", "Segoe UI", sans-serif;
+}
+
 @media (max-width: $tablet) {
-  body,
-  button {
+  body {
     font-size: calc(1.05rem + 2pt);
   }
+}
+
+button,
+a[class*="button"],
+a[class*="btn"] {
+  font-family: "Nunito", "Segoe UI", sans-serif;
 }
 
 h1,

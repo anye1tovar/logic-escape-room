@@ -2,11 +2,13 @@
 
 .rooms {
   position: relative;
-  padding: 6rem $spacing-lg 4rem;
-  background: radial-gradient(circle at 25% 20%,
-      #2a1560 0%,
-      #110a26 45%,
-      #080316 100%);
+  padding: 4rem $spacing-lg 4rem;
+  background: radial-gradient(
+    circle at 25% 20%,
+    #2a1560 0%,
+    #110a26 45%,
+    #080316 100%
+  );
   overflow: hidden;
   color: $text-light;
 
@@ -17,12 +19,17 @@
   &__glow {
     position: absolute;
     inset: 0;
-    background: radial-gradient(circle at 70% 20%,
+    background:
+      radial-gradient(
+        circle at 70% 20%,
         rgba(79, 70, 229, 0.4),
-        transparent 40%),
-      radial-gradient(circle at 30% 60%,
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 30% 60%,
         rgba(239, 187, 61, 0.25),
-        transparent 40%);
+        transparent 40%
+      );
     filter: blur(60px);
     opacity: 0.8;
     pointer-events: none;
@@ -38,9 +45,11 @@
     padding: $spacing-lg;
     border: 1px solid rgba(255, 255, 255, 0.06);
     border-radius: 20px;
-    background: linear-gradient(135deg,
-        rgba(255, 255, 255, 0.06),
-        rgba(255, 255, 255, 0));
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0)
+    );
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
 
     @media (max-width: $tablet) {
@@ -117,27 +126,23 @@
   }
 
   &__whatsapp-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.9rem 1.4rem;
-    border-radius: 999px;
-    font-weight: 700;
-    font-size: 0.95rem;
-    text-decoration: none;
-    cursor: pointer;
-    transition: all 0.3s ease;
-
-    // Purple style (interactive tour)
-    background: rgba($primary-color, 0.14);
-    border: 1px solid rgba($primary-color, 0.55);
+    @include button-base(
+      $button-font-size-sm,
+      $button-font-weight,
+      999px,
+      0.9rem,
+      1.4rem
+    );
+    @include button-ghost(
+      rgba($primary-color, 0.55),
+      rgba($primary-color, 0.14)
+    );
     color: #ffffff;
     box-shadow: 0 12px 26px rgba($primary-color, 0.25);
 
     &:hover {
       border-color: $secondary-color;
       box-shadow: 0 14px 32px rgba($secondary-color, 0.25);
-      transform: translateY(-2px);
     }
   }
 
@@ -162,9 +167,11 @@
   flex-direction: column;
   border-radius: 18px;
   overflow: hidden;
-  background: linear-gradient(180deg,
-      rgba(255, 255, 255, 0.05),
-      rgba(255, 255, 255, 0.02));
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.05),
+    rgba(255, 255, 255, 0.02)
+  );
   border: 1px solid rgba(255, 255, 255, 0.05);
   box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
   backdrop-filter: blur(4px);
@@ -191,9 +198,11 @@
   &__overlay {
     position: absolute;
     inset: 0;
-    background: linear-gradient(180deg,
-        transparent 40%,
-        rgba(0, 0, 0, 0.6) 100%);
+    background: linear-gradient(
+      180deg,
+      transparent 40%,
+      rgba(0, 0, 0, 0.6) 100%
+    );
   }
 
   &__badge,
@@ -209,9 +218,11 @@
 
   &__badge {
     left: $spacing-sm;
-    background: linear-gradient(135deg,
-        rgba(239, 187, 61, 0.9),
-        rgba(203, 171, 255, 0.85));
+    background: linear-gradient(
+      135deg,
+      rgba(239, 187, 61, 0.9),
+      rgba(203, 171, 255, 0.85)
+    );
     color: #1b102f;
     font-weight: 700;
   }
@@ -226,9 +237,11 @@
   &__placeholder {
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle at 40% 30%,
-        rgba(203, 171, 255, 0.25),
-        rgba(17, 10, 38, 0.95));
+    background: radial-gradient(
+      circle at 40% 30%,
+      rgba(203, 171, 255, 0.25),
+      rgba(17, 10, 38, 0.95)
+    );
     display: flex;
     align-items: center;
     justify-content: center;
@@ -289,7 +302,6 @@
   }
 
   .label {
-
     letter-spacing: 0.05em;
     color: #efbb3d;
     text-transform: uppercase;
@@ -313,20 +325,15 @@
   }
 
   &__cta-button {
-    padding: 0.65rem 1.2rem;
-    background: linear-gradient(135deg, #efbb3d, #cbabff);
-    color: #1c102e;
-    border-radius: 12px;
-    font-weight: 700;
-    letter-spacing: 0.05em;
-    border: none;
-    cursor: pointer;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  &__cta-button:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 12px 25px rgba(203, 171, 255, 0.3);
+    @include button-base(
+      $button-font-size-sm,
+      $button-font-weight,
+      12px,
+      0.65rem,
+      1.2rem,
+      0
+    );
+    @include button-primary(#1c102e, #efbb3d, #cbabff);
   }
 
   &__cta--disabled {

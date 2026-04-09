@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import Footer from "../../components/layout/Footer";
 import Header from "../../components/layout/Header";
 import "./NotFound.scss";
+import Button from "../../components/common/Button";
 
 export default function NotFound() {
   const { t } = useTranslation();
@@ -28,13 +29,15 @@ export default function NotFound() {
           </h1>
           <p className="not-found__copy">{t("notFound.description")}</p>
           <div className="not-found__actions">
-            <button
+            <Button
               type="button"
               className="not-found__button"
               onClick={() => navigate("/")}
+              variant="sun"
+              pill
             >
               {t("notFound.cta")}
-            </button>
+            </Button>
           </div>
         </section>
 

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import { fetchRooms } from "../../../api/rooms";
 import "./Rooms.scss";
+import Button from "../../common/Button";
 
 const portalImg = "/rooms/portal.webp";
 const canibalImg = "/rooms/canibal.webp";
@@ -192,7 +192,7 @@ const Rooms = () => {
           {error && (
             <div className="rooms__error-container">
               <p className="rooms__notice">{error}</p>
-              <a
+              <Button
                 href={`https://wa.me/573181278688?text=${encodeURIComponent(
                   t(
                     "rooms.whatsappMessage",
@@ -202,9 +202,12 @@ const Rooms = () => {
                 target="_blank"
                 rel="noopener noreferrer"
                 className="rooms__whatsapp-link"
+                variant="interactive"
+                size="sm"
+                pill
               >
                 {t("rooms.whatsappCta", "Enviar mensaje al 3181278688")}
-              </a>
+              </Button>
             </div>
           )}
         </motion.div>
@@ -287,9 +290,13 @@ const Rooms = () => {
                       {t("rooms.badges.comingSoon")}
                     </span>
                   ) : (
-                    <Link to="/reservar" className="room-card__cta-button">
+                    <Button
+                      to="/reservar"
+                      className="room-card__cta-button"
+                      size="sm"
+                    >
                       {t("rooms.actions.book")}
-                    </Link>
+                    </Button>
                   )}
                 </div>
               </div>

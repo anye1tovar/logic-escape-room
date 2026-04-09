@@ -75,6 +75,17 @@
     text-align: center;
   }
 
+  &__lead-highlight {
+    margin: 0;
+    font-family: "Nunito", "Segoe UI", sans-serif;
+    font-size: 1.15rem;
+    font-weight: 800;
+    line-height: 1.5;
+    color: $text-light;
+    letter-spacing: 0.01em;
+    text-wrap: balance;
+  }
+
   &__notice {
     margin: 0;
     color: #ffffff;
@@ -163,6 +174,8 @@
     flex-direction: column;
     gap: 0.15rem;
     margin-bottom: $spacing-md;
+    min-height: 4.9rem;
+    justify-content: flex-start;
   }
 
   &__card-label {
@@ -224,6 +237,15 @@
     letter-spacing: 0.08em;
   }
 
+  &__price-unit {
+    font-family: "Nunito", "Segoe UI", sans-serif;
+    font-size: 0.8rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    color: rgba($text-light, 0.78);
+    vertical-align: middle;
+  }
+
   &__loading {
     text-align: center;
     color: rgba(255, 255, 255, 0.82);
@@ -233,6 +255,10 @@
 }
 
 @media (max-width: $mobile) {
+  .pricing__card-header {
+    min-height: auto;
+  }
+
   .pricing__title {
     font-size: 2.8rem;
   }

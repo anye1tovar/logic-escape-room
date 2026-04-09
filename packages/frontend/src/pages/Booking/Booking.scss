@@ -482,27 +482,17 @@
   }
 
   .booking-people__btn {
+    @include button-base(0.95rem, 800, 10px, 0, 0);
+    @include button-neutral;
     height: 40px;
-    border-radius: 10px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.04);
     color: $text-light;
-    font-weight: 900;
-    cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease,
-      box-shadow 0.15s ease;
 
     &:hover {
-      transform: translateY(-1px);
-      background: rgba(255, 255, 255, 0.06);
       box-shadow: 0 10px 26px rgba(0, 0, 0, 0.3);
     }
 
     &:disabled {
-      cursor: not-allowed;
       opacity: 0.55;
-      transform: none;
-      box-shadow: none;
     }
   }
 
@@ -598,30 +588,14 @@
   }
 
   .booking-slot {
-    display: inline-flex;
+    @include button-pill(0.95rem, 800);
     align-items: center;
     gap: 8px;
-    padding: 8px 12px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    background: rgba(255, 255, 255, 0.04);
+    @include button-neutral;
     color: $text-light;
-    cursor: pointer;
-    transition: transform 0.15s ease, box-shadow 0.15s ease,
-      background 0.15s ease, border-color 0.15s ease, opacity 0.15s ease;
-    font-weight: 800;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.25);
-      background: rgba(255, 255, 255, 0.06);
-    }
 
     &:disabled {
-      cursor: not-allowed;
       opacity: 0.6;
-      transform: none;
-      box-shadow: none;
     }
   }
 
@@ -654,33 +628,11 @@
   }
 
   .booking-actions__button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 14px;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    color: $text-light;
-    font-weight: 600;
-    cursor: pointer;
-    background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
-    }
-
-    &:disabled {
-      cursor: not-allowed;
-      opacity: 0.6;
-      filter: grayscale(0.25);
-      transform: none;
-      box-shadow: none;
-    }
+    @include button-base();
+    @include button-primary();
 
     &--ghost {
-      background: rgba(255, 255, 255, 0.04);
+      @include button-neutral;
     }
   }
 
@@ -831,26 +783,45 @@
   }
 
   .booking-code__link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 10px 14px;
-    border-radius: 12px;
-    text-decoration: none;
-    color: $text-light;
-    font-weight: 900;
-    background: linear-gradient(135deg, $primary-color, $secondary-color);
-    transition: transform 0.15s ease, box-shadow 0.15s ease;
-
-    &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 12px 34px rgba(0, 0, 0, 0.35);
-    }
+    @include button-base();
+    @include button-primary();
   }
 
   .booking-payment__breb {
     display: grid;
     gap: $spacing-xs;
+  }
+
+  .booking-payment__alert {
+    display: grid;
+    gap: $spacing-sm;
+    padding: $spacing-md;
+    border-radius: 16px;
+    background: linear-gradient(
+      135deg,
+      rgba(239, 187, 61, 0.16),
+      rgba(203, 171, 255, 0.14)
+    );
+    border: 1px solid rgba(239, 187, 61, 0.32);
+    box-shadow: 0 16px 36px rgba(0, 0, 0, 0.22);
+  }
+
+  .booking-payment__alert-title {
+    margin: 0;
+    color: $secondary-color;
+    font-weight: 900;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .booking-payment__alert-copy {
+    margin: 0;
+    color: rgba($text-light, 0.94);
+    line-height: 1.6;
+  }
+
+  .booking-payment__alert-action {
+    width: fit-content;
   }
 
   .booking-payment__list {
@@ -929,23 +900,9 @@
   }
 
   .booking-payment__link {
-    display: inline-flex;
-    align-items: center;
-    padding: 4px 10px;
-    border-radius: 999px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.06);
-    font-weight: 900;
+    @include button-pill(0.9rem, 700);
+    @include button-ghost(rgba(255, 255, 255, 0.16), rgba(255, 255, 255, 0.06));
     color: $text-light;
-    text-decoration: none;
-    transition: transform 0.15s ease, box-shadow 0.15s ease,
-      background 0.15s ease;
-
-    &:hover {
-      transform: translateY(-1px);
-      box-shadow: 0 10px 26px rgba(0, 0, 0, 0.35);
-      background: rgba(255, 255, 255, 0.09);
-    }
 
     &:focus-visible {
       outline: 2px solid rgba(255, 255, 255, 0.45);
@@ -966,6 +923,10 @@
     .booking-payment__breb-row {
       flex-direction: column;
       align-items: stretch;
+    }
+
+    .booking-payment__alert-action {
+      width: 100%;
     }
 
     .booking-payment__breb-key {
@@ -996,7 +957,7 @@
       gap: $spacing-xs;
     }
 
-    .booking-code__actions .booking-actions__button,
+    .booking-code__actions .ui-button,
     .booking-code__link {
       width: 100%;
     }

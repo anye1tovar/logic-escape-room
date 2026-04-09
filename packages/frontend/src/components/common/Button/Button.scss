@@ -1,0 +1,52 @@
+@use "../../../assets/styles/variables" as *;
+
+.ui-button {
+  @include button-base();
+  @include button-primary();
+
+  &--sm {
+    @include button-text($button-font-size-sm, $button-font-weight);
+  }
+
+  &--md {
+    @include button-text($button-font-size-md, $button-font-weight);
+  }
+
+  &--pill {
+    border-radius: 999px;
+  }
+
+  &--full-width {
+    width: 100%;
+  }
+
+  &--primary {
+    @include button-primary();
+  }
+
+  &--ghost {
+    @include button-ghost(rgba(255, 255, 255, 0.16), transparent);
+  }
+
+  &--neutral {
+    @include button-neutral;
+  }
+
+  &--danger {
+    @include button-danger;
+  }
+
+  &--interactive {
+    @include button-ghost(rgba($primary-color, 0.55), rgba($primary-color, 0.14));
+    box-shadow: 0 12px 26px rgba($primary-color, 0.25);
+
+    &:hover {
+      border-color: $secondary-color;
+      box-shadow: 0 14px 32px rgba($secondary-color, 0.25);
+    }
+  }
+
+  &--sun {
+    @include button-primary($text-dark, $secondary-color, #f6d56b);
+  }
+}

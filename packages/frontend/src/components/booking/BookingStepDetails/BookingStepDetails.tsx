@@ -1,6 +1,6 @@
 import {
   Box,
-  Button,
+  Button as MuiButton,
   ButtonGroup,
   FormControl,
   FormHelperText,
@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import * as yup from "yup";
 
 import countryDialCodes from "../../../assets/data/countryDialCodes.json";
+import Button from "../../common/Button";
 
 type BookingStepDetailsProps = {
   className?: string;
@@ -309,7 +310,7 @@ export default function BookingStepDetails({
                       },
                     }}
                   >
-                    <Button
+                    <MuiButton
                       type="button"
                       variant={
                         values.isFirstTime === true ? "contained" : "outlined"
@@ -326,8 +327,8 @@ export default function BookingStepDetails({
                       }}
                     >
                       {t("booking.details.firstTime.yes")}
-                    </Button>
-                    <Button
+                    </MuiButton>
+                    <MuiButton
                       type="button"
                       variant={
                         values.isFirstTime === false ? "contained" : "outlined"
@@ -344,7 +345,7 @@ export default function BookingStepDetails({
                       }}
                     >
                       {t("booking.details.firstTime.no")}
-                    </Button>
+                    </MuiButton>
                   </ButtonGroup>
                 </Box>
 
@@ -394,21 +395,20 @@ export default function BookingStepDetails({
       </div>
 
       <footer className="booking-step__footer booking-step__footer--split">
-        <button
+        <Button
           type="button"
-          className="booking-actions__button booking-actions__button--ghost"
           onClick={onBack}
           disabled={!onBack}
+          variant="neutral"
         >
           {t("booking.actions.back")}
-        </button>
-        <button
+        </Button>
+        <Button
           type="submit"
           form="booking-step-details-form"
-          className="booking-actions__button"
         >
           {t("booking.actions.continue")}
-        </button>
+        </Button>
       </footer>
     </section>
   );
