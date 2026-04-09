@@ -11,7 +11,7 @@ type BookingStepPaymentProps = {
   quoteTotal?: number | null;
 };
 
-const BREB_KEY = "@PLATA3133815138";
+const BREB_KEY = "0091786913";
 const DEPOSIT_AMOUNT_COP = 50000;
 const WHATSAPP_NUMBER = "3181278688";
 const WHATSAPP_BASE_URL = "https://wa.me/573181278688";
@@ -43,7 +43,7 @@ export default function BookingStepPayment({
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">(
-    "idle"
+    "idle",
   );
   const [brebCopyState, setBrebCopyState] = useState<
     "idle" | "copied" | "failed"
@@ -138,7 +138,9 @@ export default function BookingStepPayment({
                 <span className="booking-payment__breb-key-text">
                   {BREB_KEY}
                 </span>
-                <span className="booking-payment__breb-key-status">Copiado</span>
+                <span className="booking-payment__breb-key-status">
+                  Copiado
+                </span>
               </div>
               <button
                 type="button"
