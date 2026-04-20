@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import { fetchRates } from "../../../api/rates";
 import type { ApiRate } from "../../../api/rates";
 import "./Pricing.scss";
@@ -148,6 +149,11 @@ const Pricing = () => {
       maximumFractionDigits: 0,
     }).format(value);
 
+  const formatGroupTotal = (players: number, price: number, currency: string) =>
+    t("pricing.groupTotal", {
+      total: formatPrice(players * price, currency),
+    });
+
   const groupsToRender = groups;
 
   return (
@@ -228,21 +234,28 @@ const Pricing = () => {
                     className="pricing__row"
                   >
                     <span className="pricing__players">
-                      {item.players} {t("rooms.labels.players")}
+                      <PersonRoundedIcon
+                        className="pricing__players-icon"
+                        aria-hidden="true"
+                      />
+                      <span>{item.players}</span>
                     </span>
-                    <span className="pricing__price">
-                      {formatPrice(item.price, item.currency)}{" "}
-                      <span className="pricing__price-unit">c/u</span>
+                    <span className="pricing__price-block">
+                      <span className="pricing__price">
+                        {formatPrice(item.price, item.currency)}{" "}
+                        <span className="pricing__price-unit">c/u</span>
+                      </span>
+                      <span className="pricing__group-total">
+                        {formatGroupTotal(
+                          item.players,
+                          item.price,
+                          item.currency
+                        )}
+                      </span>
                     </span>
                   </div>
                 ))}
               </div>
-
-              <h3 className="pricing__card-note">
-                {group.dayType === "weekday"
-                  ? t("pricing.footer.weekday")
-                  : t("pricing.footer.weekend")}
-              </h3>
             </motion.article>
           ))}
           {loading && (

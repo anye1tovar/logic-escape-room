@@ -23,26 +23,6 @@ function formatCurrency(value: number, currency: string, locale: string) {
   }).format(value);
 }
 
-function isImageUrl(value: string) {
-  const trimmed = value.trim();
-  return (
-    trimmed.startsWith("http://") ||
-    trimmed.startsWith("https://") ||
-    trimmed.startsWith("/")
-  );
-}
-
-function toWebpIfLocal(value: string) {
-  if (/^https?:\/\//i.test(value)) return value;
-  return value.replace(/\.(png|jpe?g)$/i, ".webp");
-}
-
-function joinUrl(base: string, path: string) {
-  const cleanBase = base.replace(/\/+$/, "");
-  const cleanPath = path.replace(/^\/+/, "");
-  return `${cleanBase}/${cleanPath}`;
-}
-
 function buildCategoryKey(label: string) {
   return (
     label
@@ -100,7 +80,6 @@ export default function CafeteriaMenu() {
   }, []);
 
   const currency = "COP";
-  const imagesBaseUrl = (import.meta.env.VITE_IMAGES_BASE_URL || "").trim();
   const whatsappUrl = buildLogicWhatsAppUrl(
     t(
       "cafeteria.whatsappMessage",
@@ -129,6 +108,13 @@ export default function CafeteriaMenu() {
       items,
     }));
   }, [products, t]);
+
+  const featuredImageSrc = "/img/cafeteria.webp";
+
+  const availableCount = useMemo(
+    () => products.filter((product) => product.available !== false).length,
+    [products],
+  );
 
   const titleLines = useMemo(() => {
     const maybeLines = t("cafeteria.titleLines", {
@@ -300,7 +286,67 @@ export default function CafeteriaMenu() {
               <p className="cafeteria-menu__subtitle">
                 {t("cafeteria.subtitle")}
               </p>
+              <div className="cafeteria-menu__highlights">
+                <div className="cafeteria-menu__highlight">
+                  <span className="cafeteria-menu__highlight-value">
+                    {categories.length || "0"}
+                  </span>
+                  <span className="cafeteria-menu__highlight-label">
+                    {t("cafeteria.highlights.categories")}
+                  </span>
+                </div>
+                <div className="cafeteria-menu__highlight">
+                  <span className="cafeteria-menu__highlight-value">
+                    {availableCount || products.length || "0"}
+                  </span>
+                  <span className="cafeteria-menu__highlight-label">
+                    {t("cafeteria.highlights.available")}
+                  </span>
+                </div>
+                <div className="cafeteria-menu__highlight">
+                  <span className="cafeteria-menu__highlight-value">
+                    {t("cafeteria.highlights.fastValue")}
+                  </span>
+                  <span className="cafeteria-menu__highlight-label">
+                    {t("cafeteria.highlights.fastLabel")}
+                  </span>
+                </div>
+              </div>
+              <div className="cafeteria-menu__actions">
+                <button
+                  type="button"
+                  className="cafeteria-menu__action cafeteria-menu__action--primary"
+                  onClick={() => {
+                    if (categories[0]) scrollToCategory(categories[0].key);
+                  }}
+                  disabled={!categories.length}
+                >
+                  {t("cafeteria.actions.browse")}
+                </button>
+              </div>
             </div>
+
+            <div className="cafeteria-menu__hero-visual" aria-hidden="true">
+              <div className="cafeteria-menu__hero-frame">
+                <img
+                  src={featuredImageSrc}
+                  alt=""
+                  loading="eager"
+                  decoding="async"
+                />
+                <div className="cafeteria-menu__hero-note">
+                  <span className="cafeteria-menu__hero-note-kicker">
+                    {t("cafeteria.heroNote.kicker")}
+                  </span>
+                  <strong>{t("cafeteria.heroNote.title")}</strong>
+                  <p>{t("cafeteria.heroNote.copy")}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="cafeteria-menu__intro">
+            <p>{t("cafeteria.intro")}</p>
           </div>
 
           <div
@@ -375,9 +421,19 @@ export default function CafeteriaMenu() {
               >
                 <div className="cafeteria-menu__section-paper">
                   <header className="cafeteria-menu__section-header">
-                    <h2 className="cafeteria-menu__section-title">
-                      {section.label}
-                    </h2>
+                    <div>
+                      <p className="cafeteria-menu__section-kicker">
+                        {t("cafeteria.sectionEyebrow")}
+                      </p>
+                      <h2 className="cafeteria-menu__section-title">
+                        {section.label}
+                      </h2>
+                    </div>
+                    <span className="cafeteria-menu__section-count">
+                      {t("cafeteria.itemsCount", {
+                        count: section.items.length,
+                      })}
+                    </span>
                   </header>
                   <div className="cafeteria-menu__cards">
                     {section.items.map((item) => (
@@ -389,33 +445,6 @@ export default function CafeteriaMenu() {
                             : ""
                         }`}
                       >
-                        <div className="cafeteria-menu__media">
-                          {item.image &&
-                          (isImageUrl(item.image) || imagesBaseUrl) ? (
-                            <img
-                              src={
-                                isImageUrl(item.image)
-                                  ? toWebpIfLocal(item.image)
-                                  : toWebpIfLocal(
-                                      joinUrl(imagesBaseUrl, item.image),
-                                    )
-                              }
-                              alt={item.name}
-                              loading="lazy"
-                              decoding="async"
-                              onError={(e) => {
-                                (
-                                  e.currentTarget as HTMLImageElement
-                                ).style.display = "none";
-                              }}
-                            />
-                          ) : (
-                            <div
-                              className="cafeteria-menu__media-placeholder"
-                              aria-hidden="true"
-                            />
-                          )}
-                        </div>
                         <div className="cafeteria-menu__content">
                           <div className="cafeteria-menu__card-top">
                             <h3 className="cafeteria-menu__item-name">

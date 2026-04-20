@@ -195,6 +195,7 @@
     "error": "No pudimos cargar las tarifas. Por favor intenta en unos minutos. Mientras solucionamos el error, escríbenos al WhatsApp para darte la información.",
     "whatsappCta": "Contactanos directamente",
     "whatsappMessage": "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor",
+    "groupTotal": "Total: {{total}}",
     "footer": {
       "weekday": "AHORRA $7.000 POR PERSONA",
       "weekend": "PRECIO POR PERSONA"
@@ -231,12 +232,30 @@
     "eyebrow": "Para compartir",
     "title": "CAFETERÍA & BEBIDAS y SNACKS",
     "subtitle": "Recarga energías antes o después de tu misión, o para acompañar un buen juego de mesa. Opciones frescas para tu equipo.",
-    "error": "No pudimos cargar la cafetería. Intenta de nuevo en unos minutos o escríbenos a WhatsApp y te compartimos el menú.",
-    "whatsappCta": "Escríbenos por WhatsApp",
-    "whatsappMessage": "Hola, ocurrió un error al cargar la cafetería en la página web. Me compartes el menú disponible por este medio, por favor",
+    "intro": "Bebidas, snacks y antojos para compartir antes de entrar, al salir de la sala o mientras disfrutan un buen juego.",
+    "error": "No pudimos cargar la cafetería. Intenta de nuevo en unos minutos o escríbenos a WhatsApp para ayudarte con la información.",
+    "whatsappCta": "Contactar por WhatsApp",
+    "whatsappMessage": "Hola, ocurrió un error al cargar la cafetería en la página web. Me ayudas con la información disponible, por favor",
     "pricesNote": "Precios en",
     "backHome": "Volver al inicio",
     "availabilityNote": "Sujeto a disponibilidad.",
+    "sectionEyebrow": "Categoría",
+    "itemsCount_one": "{{count}} opción",
+    "itemsCount_other": "{{count}} opciones",
+    "actions": {
+      "browse": "Ver categorías"
+    },
+    "heroNote": {
+      "kicker": "Recomendado",
+      "title": "Algo rico para acompañar la experiencia",
+      "copy": "Encuentra opciones para picar, compartir y recargar energía sin complicarte."
+    },
+    "highlights": {
+      "categories": "categorías",
+      "available": "opciones disponibles",
+      "fastValue": "Listo",
+      "fastLabel": "para pedir"
+    },
     "filters": {
       "label": "Filtros de categoría",
       "all": "Todas"

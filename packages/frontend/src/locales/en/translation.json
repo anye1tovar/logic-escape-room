@@ -214,6 +214,7 @@
     },
     "loading": "Loading rates...",
     "error": "We could not load the rates. Showing reference values.",
+    "groupTotal": "Total: {{total}}",
     "footer": {
       "weekday": "SAVE $7,000 PER PERSON",
       "weekend": "PRICE PER PERSON"
@@ -253,12 +254,30 @@
     "eyebrow": "Cafeteria",
     "title": "Cafeteria Menu",
     "subtitle": "Recharge before or after your mission. Freshly made options for your team.",
-    "error": "We couldn't load the cafeteria. Please try again in a few minutes or contact us on WhatsApp and we'll share the menu with you.",
-    "whatsappCta": "Message us on WhatsApp",
-    "whatsappMessage": "Hello, there was an error loading the cafeteria on the website. Could you share the available menu with me here, please?",
+    "intro": "Drinks, snacks, and shareable bites for before the room, after the game, or while you enjoy a board game together.",
+    "error": "We couldn't load the cafeteria. Please try again in a few minutes or contact us on WhatsApp for help with the information.",
+    "whatsappCta": "Contact on WhatsApp",
+    "whatsappMessage": "Hello, there was an error loading the cafeteria on the website. Could you help me with the available information, please?",
     "pricesNote": "Prices in",
     "backHome": "Back to home",
     "availabilityNote": "Availability may vary by day.",
+    "sectionEyebrow": "Category",
+    "itemsCount_one": "{{count}} item",
+    "itemsCount_other": "{{count}} items",
+    "actions": {
+      "browse": "Browse categories"
+    },
+    "heroNote": {
+      "kicker": "Recommended",
+      "title": "Something good to match the experience",
+      "copy": "Find easy options to snack, share, and recharge without overthinking it."
+    },
+    "highlights": {
+      "categories": "categories",
+      "available": "available options",
+      "fastValue": "Ready",
+      "fastLabel": "to order"
+    },
     "filters": {
       "label": "Category filters",
       "all": "All"
