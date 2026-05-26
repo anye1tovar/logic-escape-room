@@ -21,6 +21,8 @@ Este repo es un monorepo con:
 - `PORT`: puerto del servidor (default `4000`).
 - `DATABASE_URL`: cadena de conexi?n a Postgres.
 - `DATABASE_SSL`: `true` si el proveedor requiere SSL.
+- `AUTH_SECRET`: secreto fuerte para firmar tokens. Obligatorio en producción; no uses `dev-secret-change-me`.
+- `AUTH_TOKEN_TTL_SECONDS`: duración de sesión admin en segundos (default `28800`).
 
 ## Deploy del Backend (API)
 

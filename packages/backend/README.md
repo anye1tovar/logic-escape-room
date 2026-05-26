@@ -20,6 +20,7 @@ Endpoints
 Notes
 
 - Database connection is configured via `DATABASE_URL` (see `.env.example`).
+- `AUTH_SECRET` must be set to a strong non-default value in production; startup fails on production-like hosts when it is missing or left as `dev-secret-change-me`.
 - To swap the consumer later, implement the same methods in a new consumer file (e.g. `bookingConsumerDynamo.js`) and inject it into the service.
 
 Usuarios de prueba en local
