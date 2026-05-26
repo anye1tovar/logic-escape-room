@@ -19,12 +19,19 @@ Este repo es un monorepo con:
 ### Backend (`packages/backend/.env`)
 
 - `PORT`: puerto del servidor (default `4000`).
-- `DATABASE_URL`: cadena de conexi?n a Postgres.
-- `DATABASE_SSL`: `true` si el proveedor requiere SSL.
+- `DATABASE_URL`: cadena de conexión a Postgres. En producción apunta a Neon.
+- `DATABASE_SSL`: `true` para Neon y otros proveedores que requieren SSL.
 - `AUTH_SECRET`: secreto fuerte para firmar tokens. Obligatorio en producción; no uses `dev-secret-change-me`.
 - `AUTH_TOKEN_TTL_SECONDS`: duración de sesión admin en segundos (default `28800`).
 
-## Deploy del Backend (API)
+## Infraestructura actual
+
+- Frontend: Vercel.
+- Backend API: Koyeb.
+- Database: Neon PostgreSQL.
+- Images bucket: Supabase Storage.
+
+## Deploy del Backend (API) en Koyeb
 
 El backend expone:
 
@@ -33,27 +40,35 @@ El backend expone:
 - `GET /api/rooms`
 - `GET /api/rates`
 
-### Opción A: Servidor Node (VM / EC2 / Droplet / Render / Fly)
+Configuración recomendada en Koyeb:
 
-1. Construir el entorno:
-   - Copia `packages/backend/.env.example` a `packages/backend/.env` y ajusta valores.
-2. Instalar dependencias:
-   - `cd packages/backend`
-   - `npm ci`
-3. Ejecutar:
-   - `npm start`
+- Runtime: Node.js.
+- Root directory: `packages/backend`.
+- Build command: `npm ci`.
+- Run command: `npm start`.
+- Health check path: `/health`.
+
+Variables de entorno obligatorias en Koyeb:
+
+- `NODE_ENV=production`
+- `PORT` — usar el puerto que indique Koyeb si lo inyecta; si no, `4000`.
+- `DATABASE_URL` — connection string de Neon.
+- `DATABASE_SSL=true`
+- `AUTH_SECRET` — valor fuerte generado para producción.
+- `AUTH_TOKEN_TTL_SECONDS=28800`
+- `CORS_ORIGINS=https://tu-frontend.vercel.app,https://tu-dominio.com`
+
+Para generar `AUTH_SECRET`:
+
+```bash
+node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
+```
 
 Notas:
 
-- Asegura que el proveedor tenga una base de datos Postgres persistente.
-- `cors()` está habilitado en `packages/backend/src/server.js`, pero en producción es recomendable restringir orígenes al dominio del frontend.
-
-### Opción B: Contenedor (Docker)
-
-No hay `Dockerfile` incluido actualmente. Si se decide contenerizar:
-
-- El contenedor debe exponer el puerto `PORT`.
-- Debe apuntar a un Postgres externo o incluir Postgres en el stack de Docker.
+- No uses `dev-secret-change-me` en producción; el backend falla al iniciar en entornos production-like si el secreto falta o quedó con el valor default.
+- Neon requiere SSL, por eso `DATABASE_SSL=true`.
+- `cors()` está habilitado en `packages/backend/src/server.js`; en producción restringilo al dominio real del frontend con `CORS_ORIGINS`.
 
 ## Deploy del Frontend (sitio estático)
 
@@ -69,7 +84,9 @@ No hay `Dockerfile` incluido actualmente. Si se decide contenerizar:
 - Backend accesible públicamente (ej. `https://api.tudominio.com/health`).
 - Frontend configurado con `VITE_API_BASE_URL` apuntando al backend.
 - CORS validado para el dominio del frontend.
-- Postgres configurado y accesible desde el backend.
+- Neon PostgreSQL configurado y accesible desde Koyeb.
+- `DATABASE_SSL=true` configurado para Neon.
+- `AUTH_SECRET` fuerte configurado; no usar el valor de desarrollo.
 
 ## Pendientes (Infraestructura)
 

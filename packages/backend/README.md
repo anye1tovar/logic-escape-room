@@ -1,6 +1,6 @@
 # Backend (local dev)
 
-This backend is a minimal Express + Postgres app built to act as a local monolith during development. It uses a consumer/service/controller pattern so the data access (`consumer`) can later be swapped for another implementation.
+This backend is a minimal Express + Postgres app built to act as a local monolith during development. In production, it is deployed on Koyeb and connects to Neon PostgreSQL. It uses a consumer/service/controller pattern so the data access (`consumer`) can later be swapped for another implementation.
 
 Quick start
 
@@ -19,7 +19,8 @@ Endpoints
 
 Notes
 
-- Database connection is configured via `DATABASE_URL` (see `.env.example`).
+- Database connection is configured via `DATABASE_URL` (see `.env.example`). Production uses Neon PostgreSQL.
+- Set `DATABASE_SSL=true` for Neon.
 - `AUTH_SECRET` must be set to a strong non-default value in production; startup fails on production-like hosts when it is missing or left as `dev-secret-change-me`.
 - To swap the consumer later, implement the same methods in a new consumer file (e.g. `bookingConsumerDynamo.js`) and inject it into the service.
 
