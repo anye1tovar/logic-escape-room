@@ -4,14 +4,7 @@ import "./Hero.scss";
 import { useNavigate } from "react-router-dom";
 import Button from "../../common/Button";
 
-const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
 const heroBackground = "/landing/logic-escape-room-hero.webp";
-
-const statsValues = [
-  { labelKey: "hero.stats.teams", value: "+2000" },
-  { labelKey: "hero.stats.rating", value: "5/5" },
-  { labelKey: "hero.stats.time", value: "60 min" },
-];
 
 const Hero = () => {
   const { t } = useTranslation();
@@ -27,6 +20,8 @@ const Hero = () => {
     Array.isArray(titleHighlights) && titleHighlights.length > 0
       ? titleHighlights[0]
       : t("hero.titlePrefix");
+  const leadHighlight = t("hero.descriptionHighlight");
+  const leadParts = t("hero.description").split(leadHighlight);
 
   return (
     <section className="hero" id="home">
@@ -62,7 +57,10 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.35, ease: "easeOut" }}
           >
-            {t("hero.description")}
+            {leadParts[0]}
+            <br />
+            <span className="hero__lead-highlight">{leadHighlight}</span>
+            {leadParts[1]}
           </motion.p>
 
           <motion.div
@@ -79,39 +77,14 @@ const Hero = () => {
             >
               {t("hero.reserve")}
             </Button>
-            <Button href="#rooms" className="hero__button" variant="ghost" pill>
-              {t("hero.viewRooms")}
-            </Button>
             <Button
-              href={interactiveTourUrl}
-              target="_blank"
-              rel="noreferrer"
-              className="hero__button"
+              href="#rooms"
+              className="hero__button--interactive"
               variant="interactive"
               pill
             >
-              {t("hero.tourInteractive")}
+              {t("hero.viewRooms")}
             </Button>
-          </motion.div>
-
-          <motion.div
-            className="hero__stats"
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.9, delay: 0.55 }}
-          >
-            {statsValues.map((stat, idx) => (
-              <motion.div
-                key={stat.labelKey}
-                className="hero__stat"
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6 + idx * 0.05, duration: 0.6 }}
-              >
-                <span className="hero__stat-value">{stat.value}</span>
-                <span className="hero__stat-label">{t(stat.labelKey)}</span>
-              </motion.div>
-            ))}
           </motion.div>
         </motion.div>
       </div>

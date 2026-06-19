@@ -15,6 +15,7 @@ Este repo es un monorepo con:
 ### Frontend (`packages/frontend/.env`)
 
 - `VITE_API_BASE_URL`: URL base del backend (ej. `https://api.tudominio.com` o `http://localhost:4000`).
+- `VITE_META_PIXEL_ID`: ID del Pixel/Dataset de Meta. Si no se configura, el Pixel no se carga.
 
 ### Backend (`packages/backend/.env`)
 
@@ -23,6 +24,11 @@ Este repo es un monorepo con:
 - `DATABASE_SSL`: `true` para Neon y otros proveedores que requieren SSL.
 - `AUTH_SECRET`: secreto fuerte para firmar tokens. Obligatorio en producción; no uses `dev-secret-change-me`.
 - `AUTH_TOKEN_TTL_SECONDS`: duración de sesión admin en segundos (default `28800`).
+- `META_CAPI_ENABLED`: `true` para activar Conversions API.
+- `META_PIXEL_ID`: ID del Pixel/Dataset de Meta.
+- `META_CAPI_ACCESS_TOKEN`: token de Conversions API generado en Events Manager.
+- `META_TEST_EVENT_CODE`: código opcional para probar eventos en Events Manager.
+- `META_CAPI_API_VERSION`: versión opcional de Graph API (default `v20.0`).
 
 ## Infraestructura actual
 
@@ -57,6 +63,9 @@ Variables de entorno obligatorias en Koyeb:
 - `AUTH_SECRET` — valor fuerte generado para producción.
 - `AUTH_TOKEN_TTL_SECONDS=28800`
 - `CORS_ORIGINS=https://tu-frontend.vercel.app,https://tu-dominio.com`
+- `META_CAPI_ENABLED=true`
+- `META_PIXEL_ID` — mismo Pixel/Dataset usado en frontend.
+- `META_CAPI_ACCESS_TOKEN` — token de CAPI.
 
 Para generar `AUTH_SECRET`:
 

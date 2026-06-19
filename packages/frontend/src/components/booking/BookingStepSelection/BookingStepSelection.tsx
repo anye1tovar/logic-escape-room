@@ -11,6 +11,7 @@ import "dayjs/locale/es";
 import { FormControlLabel, Switch, Typography } from "@mui/material";
 import { fetchWithRetry } from "../../../utils/apiRequest";
 import { buildLogicWhatsAppUrl } from "../../../utils/support";
+import { trackMetaEvent } from "../../../lib/metaPixel";
 import Button from "../../common/Button";
 
 const portalImg = "/rooms/portal.webp";
@@ -298,6 +299,22 @@ export default function BookingStepSelection({
         }
         const json = (await res.json()) as AvailabilityResponse;
         setAvailability(json);
+        const availableSlotsCount = (json.rooms || []).reduce(
+          (total, room) =>
+            total + (room.slots || []).filter((slot) => slot.available).length,
+          0
+        );
+        const roomsAvailableCount = (json.rooms || []).filter((room) =>
+          (room.slots || []).some((slot) => slot.available)
+        ).length;
+        trackMetaEvent("Search", {
+          search_string: date,
+          content_category: "booking_availability",
+          date,
+          day_type: json.dayType || null,
+          rooms_available_count: roomsAvailableCount,
+          available_slots_count: availableSlotsCount,
+        });
         } catch (err) {
           if ((err as { name?: string }).name === "AbortError") return;
           setAvailability(null);

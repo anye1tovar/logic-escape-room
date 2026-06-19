@@ -1,13 +1,6 @@
 {
   "header": {
-    "menu": [
-      "Home",
-      "Rooms",
-      "About",
-      "Pricing",
-      "Contact",
-      "Cafeteria"
-    ],
+    "menu": ["Home", "Rooms", "About", "Pricing", "Contact", "Cafeteria"],
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },
@@ -24,7 +17,8 @@
       "A Unique Adventure",
       "An Unforgettable Challenge"
     ],
-    "description": "Immerse yourself in a world of puzzles, mysteries and teamwork. Do you have what it takes to escape in 60 minutes?",
+    "description": "Immerse yourself in a world of puzzles, mysteries and teamwork.",
+    "descriptionHighlight": "Do you have what it takes to escape in 60 minutes?",
     "reserve": "Reserve Now",
     "viewRooms": "View Rooms",
     "tourInteractive": "Interactive tour (video)",
@@ -35,33 +29,34 @@
     },
     "scrollText": "Discover more"
   },
+  "experienceIncludes": {
+    "eyebrow": "The experience includes",
+    "title": "Everything you need to live the full mission",
+    "items": [
+      "Introduction and personalized guidance",
+      "60 minutes to escape",
+      "Final photo session"
+    ]
+  },
   "guidelines": {
     "title": "Things you must know",
     "subtitle": "Before entering any of our rooms, it's important to know these basic rules.",
     "rules": [
       {
         "title": "There is a minimum age per room",
-        "lines": [
-          "Kids 9+ can enter with an adult"
-        ]
+        "lines": ["Kids 9+ can enter with an adult"]
       },
       {
         "title": "If you have claustrophobia or heart conditions",
-        "lines": [
-          "You enter at your own risk."
-        ]
+        "lines": ["You enter at your own risk."]
       },
       {
         "title": "Do not distract or ignore",
-        "lines": [
-          "the Game Master; they are there to help you"
-        ]
+        "lines": ["the Game Master; they are there to help you"]
       },
       {
         "title": "Wear comfortable clothes",
-        "lines": [
-          "and be ready to move and crouch"
-        ]
+        "lines": ["and be ready to move and crouch"]
       }
     ],
     "fact": {
@@ -121,6 +116,7 @@
       "highlight": "adventure begins"
     },
     "link": "Open in Google Maps ↗",
+    "tourInteractive": "Interactive tour (video)",
     "mapTitle": "Logic Escape Room map"
   },
   "opinions": {
@@ -226,10 +222,7 @@
   },
   "about": {
     "title": "WELCOME TO OUR WORLD",
-    "titleLines": [
-      "WELCOME",
-      "TO OUR WORLD"
-    ],
+    "titleLines": ["WELCOME", "TO OUR WORLD"],
     "sections": [
       {
         "title": "WHO WE ARE",

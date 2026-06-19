@@ -15,7 +15,18 @@ function buildBookingController(service, deps = {}) {
     try {
       const payload = req.body;
       const user = getUserFromRequest(req);
-      const booking = await service.createBooking(payload, { user });
+      const booking = await service.createBooking(payload, {
+        user,
+        trackingContext: {
+          ip: req.ip,
+          userAgent: req.get("user-agent") || "",
+          sourceUrl:
+            payload?.tracking?.sourceUrl ||
+            req.get("referer") ||
+            req.get("referrer") ||
+            "",
+        },
+      });
       res.status(201).json(booking);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });

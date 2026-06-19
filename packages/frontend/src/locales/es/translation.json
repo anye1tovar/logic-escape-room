@@ -17,7 +17,8 @@
       "Una aventura única",
       "Un reto inolvidable"
     ],
-    "description": "Sumérgete en una aventura llena de acertijos, luz tenue y suspenso. Reúne a tu equipo, sigue las pistas y demuestra que puedes escapar antes de que el reloj marque cero. ¿Tienes lo necesario para escapar en 60 minutos?",
+    "description": "Sumérgete en una aventura llena de acertijos, luz tenue y suspenso. Reúne a tu equipo, sigue las pistas y demuestra que puedes escapar antes de que el reloj marque cero.",
+    "descriptionHighlight": "¿Tienes lo necesario para escapar en 60 minutos?",
     "reserve": "Reservar ahora",
     "viewRooms": "Ver salas disponibles",
     "tourInteractive": "Tour interactivo (video)",
@@ -27,6 +28,15 @@
       "time": "Para lograr escapar"
     },
     "scrollText": "Descubre más"
+  },
+  "experienceIncludes": {
+    "eyebrow": "La experiencia incluye",
+    "title": "Todo lo necesario para vivir la misión completa",
+    "items": [
+      "Introducción y acompañamiento personalizado",
+      "60 minutos para escapar",
+      "Sesión de fotos final"
+    ]
   },
   "guidelines": {
     "title": "Debes tener en cuenta",
@@ -44,15 +54,15 @@
     ],
     "fact": {
       "label": "Dato curioso:",
-      "copy": "El tiempo promedio para encontrar la primera pista es de 6 a 7 minutos. Los primeros 120 segundos juegan un papel importante."
+      "copy": "Entrar a un escape room es como vivir una película en primera persona donde cada segundo cuenta y una sola pista puede ser la diferencia entre escapar o quedar atrapado en el misterio."
     },
     "cta": "Solo valientes descubren el misterio"
   },
   "rooms": {
-    "eyebrow": "JUEGOS DE ESCAPE",
+    "eyebrow": "SALAS DE ESCAPE",
     "title": {
-      "line1": "NUESTRAS",
-      "line2": "AVENTURAS"
+      "line1": "DESCUBRE",
+      "line2": "EXPERIENCIAS ÚNICAS"
     },
     "lead": {
       "primary": "Entra a un mundo donde cada detalle es una pista y cada segundo cuenta. Descubre desafíos únicos, enigmas que pondrán a prueba tu mente.",
@@ -97,10 +107,11 @@
   "location": {
     "eyebrow": "Encuéntranos",
     "title": {
-      "start": "Aquí puede iniciar tu",
-      "highlight": "aventura"
+      "start": "Aquí comienza",
+      "highlight": "tu aventura"
     },
     "link": "Abrir en Google Maps ↗",
+    "tourInteractive": "Tour interactivo (video)",
     "mapTitle": "Mapa Logic Escape Room"
   },
   "opinions": {
@@ -116,13 +127,14 @@
     }
   },
   "pricing": {
+    "eyebrow": "VIVE UNA EXPERIENCIA ÉPICA",
     "title": {
       "line1": "NUESTRAS",
       "line2": "TARIFAS"
     },
     "lead": [
       "Entre más grande sea el grupo, menor es el costo por persona.",
-      "Los precios varían según si vienes entre semana o fin de semana."
+      "INTRODUCCIÓN PERSONALIZADA + 60 MINUTOS PARA ESCAPAR + SESIÓN DE FOTOS FINAL"
     ],
     "weekday": {
       "label": "Entre semana",

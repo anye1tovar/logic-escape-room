@@ -8,6 +8,23 @@
   box-sizing: border-box;
 }
 
+html {
+  scroll-behavior: smooth;
+  scroll-padding-top: 104px;
+
+  @media (max-width: $tablet) {
+    scroll-padding-top: 96px;
+  }
+}
+
+[id] {
+  scroll-margin-top: 104px;
+
+  @media (max-width: $tablet) {
+    scroll-margin-top: 96px;
+  }
+}
+
 body {
   font-family: "Nunito", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;

@@ -37,4 +37,11 @@ module.exports = {
 		secret: resolveAuthSecret(),
 		tokenTtlSeconds: Number(process.env.AUTH_TOKEN_TTL_SECONDS || 8 * 60 * 60),
 	},
+	meta: {
+		enabled: String(process.env.META_CAPI_ENABLED || "").toLowerCase() === "true",
+		pixelId: String(process.env.META_PIXEL_ID || "").trim(),
+		accessToken: String(process.env.META_CAPI_ACCESS_TOKEN || "").trim(),
+		testEventCode: String(process.env.META_TEST_EVENT_CODE || "").trim(),
+		apiVersion: String(process.env.META_CAPI_API_VERSION || "v20.0").trim(),
+	},
 };

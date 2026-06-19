@@ -7,6 +7,11 @@ import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStep
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
 import InfoOutlinedIcon from "@mui/icons-material/InfoOutlined";
 import { buildLogicWhatsAppUrl } from "../../../utils/support";
+import {
+  generateMetaEventId,
+  getMetaTrackingPayload,
+  trackMetaEvent,
+} from "../../../lib/metaPixel";
 import Button from "../../common/Button";
 
 type BookingStepSummaryProps = {
@@ -289,6 +294,8 @@ export default function BookingStepSummary({
             try {
               const whatsapp = `${details.dialCode}${details.phone}`;
               const { firstName, lastName } = splitName(details.fullName);
+              const leadEventId = generateMetaEventId("lead");
+              const scheduleEventId = generateMetaEventId("schedule");
               const created = (await createBooking({
                 name: details.fullName,
                 firstName,
@@ -302,6 +309,10 @@ export default function BookingStepSummary({
                 notes: details.notes,
                 total: quoteTotal,
                 isFirstTime: details.isFirstTime === true,
+                tracking: getMetaTrackingPayload({
+                  Lead: leadEventId,
+                  Schedule: scheduleEventId,
+                }),
                 ...(isWalkIn ? { reservationSource: "walk_in" } : {}),
                 ...(selection?.outOfHours ? { outOfHours: true } : {}),
               })) as {
@@ -314,6 +325,19 @@ export default function BookingStepSummary({
                 created.reservationCode || created.consultCode;
               if (!reservationCode)
                 throw new Error(t("booking.summary.errors.missingCode"));
+
+              const eventParams = {
+                content_name: selection.roomName,
+                content_category: "booking",
+                currency: "COP",
+                value: quoteTotal,
+                date: selection.date,
+                booking_time: selection.slotStart,
+                num_items: selection.peopleCount,
+                reservation_status: "PENDING",
+              };
+              trackMetaEvent("Lead", eventParams, leadEventId);
+              trackMetaEvent("Schedule", eventParams, scheduleEventId);
 
               onReserved?.({
                 reservationCode,

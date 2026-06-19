@@ -1,6 +1,7 @@
 function buildAdminReservationsService(consumer, deps = {}) {
   const bookingService = deps.bookingService;
   const roomsService = deps.roomsService;
+  const metaCapiService = deps.metaCapiService;
   const TIMEZONE_OFFSET_MINUTES = -5 * 60;
   const DEFAULT_SLOT_DURATION_MINUTES = 90;
 
@@ -124,6 +125,53 @@ function buildAdminReservationsService(consumer, deps = {}) {
     const right = normalizeBookingStartToIso(compareDate, compareTime);
     if (!left || !right) return false;
     return left === right;
+  }
+
+  async function sendReservationConfirmedMetaEvent(reservation) {
+    if (!metaCapiService) return;
+    const hasConsent =
+      reservation?.marketing_consent === true ||
+      reservation?.marketing_consent === 1 ||
+      reservation?.marketing_consent === "1";
+    if (!hasConsent) return;
+
+    let roomName = null;
+    try {
+      if (roomsService?.getRoom && reservation?.room_id != null) {
+        const room = await roomsService.getRoom(reservation.room_id);
+        roomName = room?.name || null;
+      }
+    } catch {
+      roomName = null;
+    }
+
+    const event = metaCapiService.buildWebsiteEvent({
+      eventName: "Purchase",
+      eventId: `purchase.reservation.${reservation.id}`,
+      actionSource: "system_generated",
+      userData: {
+        phone: reservation.phone,
+        firstName: reservation.first_name,
+        lastName: reservation.last_name,
+        externalId: reservation.consult_code || reservation.id,
+      },
+      customData: {
+        content_name: roomName,
+        content_category: "booking",
+        currency: "COP",
+        value: reservation.total,
+        date: reservation.date,
+        booking_time: reservation.start_time,
+        num_items: reservation.players,
+        reservation_status: "CONFIRMED",
+      },
+    });
+
+    await metaCapiService.sendEvents([event]);
+  }
+
+  function isConfirmedStatus(value) {
+    return String(value || "").trim().toUpperCase() === "CONFIRMED";
   }
 
   async function hasReservationOverlap({
@@ -442,6 +490,23 @@ function buildAdminReservationsService(consumer, deps = {}) {
       const err = new Error("Not found");
       err.status = 404;
       throw err;
+    }
+
+    if (!isConfirmedStatus(existing.status) && isConfirmedStatus(payload.status)) {
+      await sendReservationConfirmedMetaEvent({
+        ...existing,
+        room_id: payload.roomId,
+        date: payload.date,
+        start_time: payload.startTime,
+        end_time: payload.endTime,
+        first_name: payload.firstName,
+        last_name: payload.lastName,
+        phone: payload.phone,
+        players: payload.players,
+        total: payload.total,
+        status: payload.status,
+        consult_code: payload.consultCode,
+      });
     }
 
     if (hasReprogramChanges && consumer.createReservationChange) {

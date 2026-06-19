@@ -1,0 +1,123 @@
+@use "../../../assets/styles/variables" as *;
+@use "sass:color";
+
+.cookie-consent {
+  position: fixed;
+  right: 0;
+  bottom: 1rem;
+  left: 0;
+  z-index: 80;
+  display: grid;
+  grid-template-columns: minmax(0, 760px) auto;
+  justify-content: center;
+  align-items: center;
+  gap: clamp(1rem, 4vw, 3rem);
+  width: 100%;
+  margin: 0;
+  padding: clamp(1.1rem, 2.6vw, 1.75rem) max(1rem, calc((100vw - 1180px) / 2));
+  border: 1px solid rgba($primary-color, 0.28);
+  border-top: 3px solid $secondary-color;
+  border-right: 0;
+  border-bottom: 0;
+  border-left: 0;
+  border-radius: 0;
+  background:
+    radial-gradient(
+      circle at 8% 0%,
+      rgba($primary-color, 0.18),
+      transparent 32%
+    ),
+    radial-gradient(
+      circle at 88% 8%,
+      rgba($secondary-color, 0.18),
+      transparent 34%
+    ),
+    linear-gradient(
+      135deg,
+      rgba($dark-bg, 0.98),
+      rgba(color.adjust($dark-bg, $lightness: 4%), 0.96)
+    );
+  box-shadow: 0 -22px 60px rgba(0, 0, 0, 0.48);
+  color: $text-light;
+  backdrop-filter: blur(12px);
+}
+
+.cookie-consent__copy {
+  min-width: 0;
+  max-width: 760px;
+
+  p {
+    margin: 0;
+    color: rgba($text-light, 0.84);
+    font-family: "Nunito", "Segoe UI", sans-serif;
+    font-size: clamp(0.98rem, 1.4vw, 1.08rem);
+    line-height: 1.55;
+  }
+}
+
+.cookie-consent__title {
+  margin: 0 0 0.35rem;
+  color: $primary-color;
+  font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 400;
+  line-height: 0.95;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.cookie-consent__subtitle {
+  margin: 0 0 0.45rem;
+  color: $secondary-color;
+  font-family: "Nunito", "Segoe UI", sans-serif;
+  font-size: clamp(1.05rem, 1.8vw, 1.35rem);
+  font-weight: 900;
+  line-height: 1.2;
+  text-transform: none;
+}
+
+.cookie-consent__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  min-width: min(360px, 100%);
+
+  .ui-button {
+    min-width: 150px;
+    padding-inline: 1.25rem;
+  }
+}
+
+@media (max-width: $tablet) {
+  .cookie-consent {
+    bottom: 0;
+    grid-template-columns: 1fr;
+    align-items: stretch;
+    padding-right: 1rem;
+    padding-left: 1rem;
+  }
+
+  .cookie-consent__actions {
+    justify-content: stretch;
+    min-width: 0;
+
+    .ui-button {
+      flex: 1;
+    }
+  }
+}
+
+@media (max-width: $mobile) {
+  .cookie-consent {
+    padding-bottom: calc(1rem + env(safe-area-inset-bottom));
+  }
+
+  .cookie-consent__actions {
+    flex-direction: column-reverse;
+
+    .ui-button {
+      width: 100%;
+    }
+  }
+}

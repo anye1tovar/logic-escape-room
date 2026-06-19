@@ -11,6 +11,7 @@ function buildBookingService(consumer, deps = {}) {
   const MIN_ADVANCE_MINUTES = 40;
   const SLOT_DURATION_MINUTES = 90;
   const MAX_CONSULT_CODE_LENGTH = 15;
+  const metaCapiService = deps.metaCapiService;
 
   function pad2(value) {
     return String(value).padStart(2, "0");
@@ -120,6 +121,76 @@ function buildBookingService(consumer, deps = {}) {
     if (parts.length === 0) return { firstName: "", lastName: "" };
     if (parts.length === 1) return { firstName: parts[0], lastName: "" };
     return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+  }
+
+  function normalizeTrackingConsent(tracking) {
+    const consent = tracking?.consent;
+    const marketing = consent?.marketing === true;
+    const answeredAtRaw = consent?.answeredAt;
+    const answeredAtMs = answeredAtRaw ? Date.parse(answeredAtRaw) : NaN;
+    return {
+      marketing,
+      answeredAtMs: marketing && Number.isFinite(answeredAtMs) ? answeredAtMs : null,
+    };
+  }
+
+  async function sendBookingCreatedMetaEvents({
+    booking,
+    tracking,
+    trackingContext,
+    roomName,
+    total,
+    players,
+    date,
+    time,
+    firstName,
+    lastName,
+    phone,
+  }) {
+    if (!metaCapiService || tracking?.consent?.marketing !== true) return;
+
+    const common = {
+      sourceUrl: tracking?.sourceUrl || trackingContext?.sourceUrl || "",
+      request: {
+        ip: trackingContext?.ip,
+        userAgent: trackingContext?.userAgent,
+      },
+      tracking: {
+        fbp: tracking?.fbp,
+        fbc: tracking?.fbc,
+      },
+      userData: {
+        phone,
+        firstName,
+        lastName,
+        externalId: booking?.consultCode || booking?.id,
+      },
+      customData: {
+        content_name: roomName,
+        content_category: "booking",
+        currency: "COP",
+        value: total,
+        date,
+        booking_time: time,
+        num_items: players,
+        reservation_status: "PENDING",
+      },
+    };
+
+    const events = [
+      metaCapiService.buildWebsiteEvent({
+        ...common,
+        eventName: "Lead",
+        eventId: tracking?.eventIds?.Lead,
+      }),
+      metaCapiService.buildWebsiteEvent({
+        ...common,
+        eventName: "Schedule",
+        eventId: tracking?.eventIds?.Schedule,
+      }),
+    ];
+
+    await metaCapiService.sendEvents(events);
   }
 
   function derivePublicRoomId(roomRow) {
@@ -505,6 +576,10 @@ function buildBookingService(consumer, deps = {}) {
 
     const safeNotes =
       typeof notes === "string" && notes.trim() ? notes.trim() : null;
+    const tracking = data?.tracking && typeof data.tracking === "object"
+      ? data.tracking
+      : {};
+    const trackingConsent = normalizeTrackingConsent(tracking);
 
     const quote = await getBookingQuote({
       date: requestedDate,
@@ -531,8 +606,23 @@ function buildBookingService(consumer, deps = {}) {
           sendReceipt: data.sendReceipt,
           consultCode: computedConsultCode,
           isFirstTime: Boolean(isFirstTime),
+          marketingConsent: trackingConsent.marketing,
+          marketingConsentAt: trackingConsent.answeredAtMs,
           reservationSource,
           outOfHours: isOutOfHours,
+        });
+        await sendBookingCreatedMetaEvents({
+          booking,
+          tracking,
+          trackingContext: options?.trackingContext || {},
+          roomName: resolvedRoomName,
+          total: finalTotal,
+          players,
+          date: requestedDate,
+          time: startIso,
+          firstName: safeFirstName,
+          lastName: safeLastName,
+          phone: whatsapp,
         });
         return { ...booking, reservationCode: booking.consultCode };
       } catch (err) {

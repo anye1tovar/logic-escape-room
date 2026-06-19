@@ -71,6 +71,7 @@ const initAdminCafeteriaProductsConsumer = require("./consumers/adminCafeteriaPr
 const buildAdminCafeteriaProductsService = require("./services/adminCafeteriaProductsService");
 const buildAdminCafeteriaProductsController = require("./controllers/adminCafeteriaProductsController");
 const createAdminCafeteriaProductsRouter = require("./routes/adminCafeteriaProducts");
+const buildMetaCapiService = require("./services/metaCapiService");
 
 const initCafeteriaProductsConsumer = require("./consumers/cafeteriaProductsConsumer");
 const buildCafeteriaProductsService = require("./services/cafeteriaProductsService");
@@ -80,8 +81,10 @@ const createCafeteriaProductsRouter = require("./routes/cafeteriaProducts");
 async function start() {
   await db.ready;
   const app = express();
+  app.set("trust proxy", true);
   app.use(cors(corsOptions));
   app.use(bodyParser());
+  const metaCapiService = buildMetaCapiService(config.meta);
 
   const initRoomsConsumer = require("./consumers/roomsConsumer");
   const buildRoomsService = require("./services/roomsService");
@@ -125,6 +128,7 @@ async function start() {
     openingHoursConsumer,
     colombianHolidaysConsumer,
     ratesService,
+    metaCapiService,
   });
   const bookingController = buildBookingController(bookingService, {
     auth: config.auth,
@@ -184,7 +188,7 @@ async function start() {
   const adminReservationsConsumer = await initAdminReservationsConsumer();
   const adminReservationsService = buildAdminReservationsService(
     adminReservationsConsumer,
-    { bookingService, roomsService }
+    { bookingService, roomsService, metaCapiService }
   );
   const adminReservationsController = buildAdminReservationsController(
     adminReservationsService

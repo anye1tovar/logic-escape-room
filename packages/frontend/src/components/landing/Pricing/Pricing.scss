@@ -51,6 +51,14 @@
     align-items: center;
   }
 
+  &__eyebrow {
+    margin: 0;
+    color: $secondary-color;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
   &__title {
     margin: 0;
     font-size: 3.8rem;

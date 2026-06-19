@@ -137,6 +137,13 @@
     }
   }
 
+  &__lead-highlight {
+    display: inline;
+    color: $secondary-color;
+    font-weight: 800;
+    text-shadow: 0 0 18px rgba($secondary-color, 0.35);
+  }
+
   &__cta {
     display: flex;
     flex-wrap: wrap;

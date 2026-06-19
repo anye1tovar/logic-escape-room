@@ -1,5 +1,8 @@
 import { useTranslation } from "react-i18next";
+import Button from "../../common/Button";
 import "./Location.scss";
+
+const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
 
 const Location = () => {
   const { t } = useTranslation();
@@ -18,14 +21,26 @@ const Location = () => {
               {t("location.title.highlight", "aventura")}
             </span>
           </h2>
-          <a
-            href="https://maps.app.goo.gl/XC3GgNicYAaekga16"
-            target="_blank"
-            rel="noreferrer"
-            className="location__link"
-          >
+          <div className="location__actions">
+            <Button
+              href={interactiveTourUrl}
+              target="_blank"
+              rel="noreferrer"
+              className="location__button"
+              variant="interactive"
+              pill
+            >
+              {t("location.tourInteractive", "Tour interactivo (video)")}
+            </Button>
+            <a
+              href="https://maps.app.goo.gl/XC3GgNicYAaekga16"
+              target="_blank"
+              rel="noreferrer"
+              className="location__link"
+            >
             {t("location.link", "Abrir en Google Maps ↗")}
-          </a>
+            </a>
+          </div>
         </header>
 
         <div className="location__map">

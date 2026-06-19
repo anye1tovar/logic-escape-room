@@ -16,6 +16,8 @@ async function createBooking({
   date,
   consultCode,
   isFirstTime,
+  marketingConsent,
+  marketingConsentAt,
   reservationSource,
   outOfHours,
 }) {
@@ -26,8 +28,8 @@ async function createBooking({
 
   const result = await db.query(
     `INSERT INTO reservations
-      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, reservation_source, out_of_hours, reprogrammed)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, marketing_consent, marketing_consent_at, reservation_source, out_of_hours, reprogrammed)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
      RETURNING id;`,
     [
       roomId || null,
@@ -43,6 +45,8 @@ async function createBooking({
       Number.isFinite(Number(total)) ? Number(total) : null,
       "PENDING",
       isFirstTimeBool,
+      Boolean(marketingConsent),
+      marketingConsentAt || null,
       reservationSource || "web",
       Boolean(outOfHours),
       false,
@@ -63,6 +67,8 @@ async function createBooking({
     total: Number.isFinite(Number(total)) ? Number(total) : null,
     sendReceipt: Boolean(sendReceipt),
     isFirstTime: isFirstTimeBool,
+    marketingConsent: Boolean(marketingConsent),
+    marketingConsentAt: marketingConsentAt || null,
     date,
     consultCode: consultCode || null,
     createdAt,

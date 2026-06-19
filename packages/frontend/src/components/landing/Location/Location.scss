@@ -57,8 +57,20 @@
     color: $secondary-color;
   }
 
-  &__link {
+  &__actions {
     margin-top: $spacing-xs;
+    display: flex;
+    flex-wrap: wrap;
+    gap: $spacing-sm;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__button {
+    min-width: 13rem;
+  }
+
+  &__link {
     color: $text-light;
     font-weight: 700;
     letter-spacing: 0.02em;

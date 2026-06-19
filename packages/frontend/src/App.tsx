@@ -1,11 +1,14 @@
-import { lazy, Suspense } from "react";
+import { lazy, Suspense, useEffect } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
 import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
+import CookieConsentBanner from "./components/common/CookieConsentBanner";
+import FloatingWhatsAppButton from "./components/common/FloatingWhatsAppButton";
 import Hero from "./components/landing/Hero";
 import Footer from "./components/layout/Footer";
 import Header from "./components/layout/Header";
+import { initMetaPixel, trackMetaEvent } from "./lib/metaPixel";
 import theme from "./theme";
 const Guidelines = lazy(() => import("./components/landing/Guidelines"));
 const Location = lazy(() => import("./components/landing/Location"));
@@ -53,6 +56,91 @@ const SectionFallback = () => (
   </div>
 );
 
+const HashScroll = () => {
+  const { hash, pathname } = useLocation();
+
+  useEffect(() => {
+    if (!hash) return;
+
+    const targetId = decodeURIComponent(hash.slice(1));
+    let attempts = 0;
+    const maxAttempts = 24;
+
+    const scrollToTarget = () => {
+      const target = document.getElementById(targetId);
+
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+        return;
+      }
+
+      attempts += 1;
+      if (attempts < maxAttempts) {
+        window.setTimeout(scrollToTarget, 100);
+      }
+    };
+
+    window.setTimeout(scrollToTarget, 0);
+  }, [hash, pathname]);
+
+  return null;
+};
+
+function inferContactSource(anchor: HTMLAnchorElement) {
+  const explicit = anchor.dataset.contactSource;
+  if (explicit) return explicit;
+  const className = anchor.className.toString();
+  const pathname = window.location.pathname;
+
+  if (className.includes("floating-whatsapp")) return "floating_whatsapp";
+  if (pathname === "/reservar") return "booking";
+  if (pathname === "/consulta-reserva") return "booking_status";
+  if (pathname === "/cafeteria") return "cafeteria";
+  if (className.includes("rooms")) return "rooms";
+  return "whatsapp";
+}
+
+const MarketingTracker = () => {
+  const location = useLocation();
+
+  useEffect(() => {
+    const trackPageView = () => {
+      if (location.pathname.startsWith("/admin")) return;
+      initMetaPixel();
+      trackMetaEvent("PageView");
+    };
+
+    trackPageView();
+    const onConsentChange = () => trackPageView();
+    window.addEventListener("logic:marketing-consent-changed", onConsentChange);
+    return () => {
+      window.removeEventListener(
+        "logic:marketing-consent-changed",
+        onConsentChange
+      );
+    };
+  }, [location.pathname, location.search]);
+
+  useEffect(() => {
+    const onClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest?.("a[href*='wa.me']") as
+        | HTMLAnchorElement
+        | null;
+      if (!anchor || window.location.pathname.startsWith("/admin")) return;
+      trackMetaEvent("Contact", {
+        contact_source: inferContactSource(anchor),
+        destination: "whatsapp",
+      });
+    };
+
+    document.addEventListener("click", onClick, true);
+    return () => document.removeEventListener("click", onClick, true);
+  }, []);
+
+  return null;
+};
+
 function HomeContent() {
   const { t } = useTranslation();
 
@@ -66,11 +154,11 @@ function HomeContent() {
           <Rooms />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
-          <Guidelines />
+          <Pricing />
         </Suspense>
         <AnnouncementBar text={t("topHeader.announcement")} />
         <Suspense fallback={<SectionFallback />}>
-          <Pricing />
+          <Guidelines />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <Opinions />
@@ -89,6 +177,8 @@ function App() {
   return (
     <ThemeProvider theme={theme}>
       <BrowserRouter>
+        <HashScroll />
+        <MarketingTracker />
         <Suspense fallback={<PageFallback />}>
           <Routes>
             <Route path="/" element={<HomeContent />} />
@@ -113,6 +203,8 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
+        <FloatingWhatsAppButton />
+        <CookieConsentBanner />
       </BrowserRouter>
     </ThemeProvider>
   );

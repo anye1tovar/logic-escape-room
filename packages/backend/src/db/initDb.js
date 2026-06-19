@@ -65,6 +65,8 @@ async function initSchema() {
       total INTEGER,
       status TEXT DEFAULT 'PENDING',
       is_first_time BOOLEAN NOT NULL DEFAULT FALSE,
+      marketing_consent BOOLEAN NOT NULL DEFAULT FALSE,
+      marketing_consent_at BIGINT,
       reservation_source TEXT NOT NULL DEFAULT 'web',
       out_of_hours BOOLEAN NOT NULL DEFAULT FALSE,
       reprogrammed BOOLEAN NOT NULL DEFAULT FALSE
@@ -79,6 +81,16 @@ async function initSchema() {
   await pool.query(`
     ALTER TABLE reservations
     ADD COLUMN IF NOT EXISTS reservation_source TEXT NOT NULL DEFAULT 'web';
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS marketing_consent BOOLEAN NOT NULL DEFAULT FALSE;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS marketing_consent_at BIGINT;
   `);
 
   await pool.query(`
