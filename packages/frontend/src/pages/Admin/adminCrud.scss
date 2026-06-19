@@ -18,8 +18,10 @@
 
   &__title {
     margin: 0;
+    font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
     font-size: 2.6rem;
     line-height: 1;
+    letter-spacing: 0;
   }
 
   &__subtitle {
@@ -33,10 +35,113 @@
     background: rgba(255, 255, 255, 0.03);
     box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3);
     overflow: hidden;
+
+    &--accent {
+      border-color: rgba($primary-color, 0.24);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.3),
+        inset 0 1px 0 rgba($primary-color, 0.16);
+    }
+  }
+
+  &__tabs-panel {
+    border-radius: 18px;
+    border: 1px solid rgba($primary-color, 0.24);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 18px 44px rgba(0, 0, 0, 0.26);
+    overflow: hidden;
+  }
+
+  &__tabs {
+    min-height: 56px;
+
+    .MuiTabs-indicator {
+      height: 3px;
+      background: linear-gradient(90deg, $primary-color, $secondary-color);
+    }
+  }
+
+  &__tab {
+    min-height: 56px;
+    color: rgba($text-light, 0.72) !important;
+    font-family: "Nunito", "Segoe UI", sans-serif !important;
+    font-weight: 900 !important;
+    text-transform: none !important;
+
+    &.Mui-selected {
+      color: $primary-color !important;
+      background: rgba($primary-color, 0.1);
+    }
   }
 
   &__panel-inner {
     padding: $spacing-lg;
+  }
+
+  &__section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: $spacing-md;
+
+    @media (max-width: $tablet) {
+      flex-direction: column;
+    }
+  }
+
+  &__section-title {
+    margin: 0;
+    font-family: "Bebas Neue", "Impact", "Arial Narrow", sans-serif;
+    font-size: 1.45rem;
+    font-weight: 400;
+    line-height: 1.1;
+    color: $primary-color;
+    letter-spacing: 0;
+  }
+
+  &__section-copy {
+    margin-top: 0.35rem;
+    opacity: 0.78;
+    line-height: 1.45;
+  }
+
+  &__subsection {
+    padding-top: $spacing-sm;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  &__subsection-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 900;
+  }
+
+  &__meta {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-xs;
+    flex-wrap: wrap;
+  }
+
+  &__table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: $spacing-md;
+    padding: $spacing-md $spacing-lg;
+    border-top: 1px solid rgba(255, 255, 255, 0.08);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.22);
+
+    @media (max-width: $tablet) {
+      flex-direction: column;
+      align-items: stretch;
+    }
+
+    &--controls {
+      justify-content: flex-start;
+      background: rgba(255, 255, 255, 0.02);
+    }
   }
 
   &__grid {
@@ -102,6 +207,11 @@
   &__table--auto {
     table-layout: auto;
     min-width: 1400px;
+  }
+
+  &__table--comfortable {
+    table-layout: auto;
+    min-width: 980px;
   }
 
   &__th,

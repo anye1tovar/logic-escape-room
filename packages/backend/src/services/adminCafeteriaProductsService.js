@@ -11,6 +11,16 @@ function buildAdminCafeteriaProductsService(consumer) {
     return text ? text : null;
   }
 
+  function slugify(value) {
+    return String(value || "")
+      .trim()
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
   function normalizeProductInput(input) {
     const name = String(input?.name || "").trim();
     if (!name) {
@@ -37,7 +47,28 @@ function buildAdminCafeteriaProductsService(consumer) {
           ? 0
           : 1,
       category: normalizeText(input?.category),
+      categoryId: normalizeInt(input?.categoryId ?? input?.category_id),
       image: normalizeText(input?.image),
+    };
+  }
+
+  function normalizeCategoryInput(input) {
+    const name = String(input?.name || "").trim();
+    if (!name) {
+      const err = new Error("name is required");
+      err.status = 400;
+      throw err;
+    }
+
+    return {
+      name,
+      slug: normalizeText(input?.slug) || slugify(name),
+      image: normalizeText(input?.image),
+      sortOrder: normalizeInt(input?.sortOrder ?? input?.sort_order) ?? 0,
+      active:
+        input?.active === 0 || input?.active === false || input?.active === "0"
+          ? 0
+          : 1,
     };
   }
 
@@ -84,7 +115,59 @@ function buildAdminCafeteriaProductsService(consumer) {
     return { ok: true };
   }
 
-  return { listProducts, createProduct, updateProduct, deleteProduct };
+  async function listCategories() {
+    return consumer.listCategories();
+  }
+
+  async function createCategory(input) {
+    const payload = normalizeCategoryInput(input);
+    const created = await consumer.createCategory(payload);
+    return { id: created.id, ...payload };
+  }
+
+  async function updateCategory(id, input) {
+    const categoryId = normalizeInt(id);
+    if (!categoryId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const payload = normalizeCategoryInput(input);
+    const res = await consumer.updateCategory(categoryId, payload);
+    if (!res?.changes) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return { id: categoryId, ...payload };
+  }
+
+  async function deleteCategory(id) {
+    const categoryId = normalizeInt(id);
+    if (!categoryId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const res = await consumer.deleteCategory(categoryId);
+    if (!res?.changes) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return { ok: true };
+  }
+
+  return {
+    listProducts,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    listCategories,
+    createCategory,
+    updateCategory,
+    deleteCategory,
+  };
 }
 
 module.exports = buildAdminCafeteriaProductsService;

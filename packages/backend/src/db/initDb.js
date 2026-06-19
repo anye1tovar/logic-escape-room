@@ -164,6 +164,17 @@ async function initSchema() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS cafeteria_categories (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      slug TEXT NOT NULL UNIQUE,
+      image TEXT,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      active BOOLEAN NOT NULL DEFAULT TRUE
+    );
+  `);
+
+  await pool.query(`
     CREATE TABLE IF NOT EXISTS cafeteria_products (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
@@ -173,6 +184,34 @@ async function initSchema() {
       category TEXT,
       image TEXT
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE cafeteria_products
+    ADD COLUMN IF NOT EXISTS category_id INTEGER REFERENCES cafeteria_categories(id);
+  `);
+
+  await pool.query(`
+    INSERT INTO cafeteria_categories (name, slug, sort_order)
+    SELECT
+      category_name,
+      'legacy-' || md5(lower(category_name)),
+      row_number() OVER (ORDER BY lower(category_name))
+    FROM (
+      SELECT DISTINCT trim(category) AS category_name
+      FROM cafeteria_products
+      WHERE category IS NOT NULL AND trim(category) <> ''
+    ) existing_categories
+    ON CONFLICT (slug) DO NOTHING;
+  `);
+
+  await pool.query(`
+    UPDATE cafeteria_products product
+    SET category_id = category.id
+    FROM cafeteria_categories category
+    WHERE product.category_id IS NULL
+      AND product.category IS NOT NULL
+      AND lower(trim(product.category)) = lower(trim(category.name));
   `);
 }
 

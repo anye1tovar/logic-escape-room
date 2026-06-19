@@ -7,6 +7,8 @@ export type CafeteriaProduct = {
   available?: boolean;
   category?: string | null;
   image?: string | null;
+  categoryImage?: string | null;
+  categorySortOrder?: number | null;
 };
 
 export async function fetchCafeteriaProducts(): Promise<CafeteriaProduct[]> {

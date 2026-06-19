@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
-import Footer from "../../components/layout/Footer";
-import Header from "../../components/layout/Header";
 import {
   fetchCafeteriaProducts,
   type CafeteriaProduct,
@@ -36,12 +34,12 @@ function buildCategoryKey(label: string) {
 export default function CafeteriaMenu() {
   const { t, i18n } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<string>("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<CafeteriaProduct[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [canScrollLeft, setCanScrollLeft] = useState(false);
-  const [canScrollRight, setCanScrollRight] = useState(false);
   const filtersRef = useRef<HTMLDivElement | null>(null);
+  const menuBodyRef = useRef<HTMLDivElement | null>(null);
   const sectionRefs = useRef(new Map<string, HTMLElement>());
   const filterRefs = useRef(new Map<string, HTMLButtonElement>());
 
@@ -65,8 +63,8 @@ export default function CafeteriaMenu() {
         setError(
           t(
             "cafeteria.error",
-            "No pudimos cargar la cafeteria. Intenta de nuevo en unos minutos o escribenos a WhatsApp y te compartimos el menu."
-          )
+            "No pudimos cargar la cafeteria. Intenta de nuevo en unos minutos o escribenos a WhatsApp y te compartimos el menu.",
+          ),
         );
       })
       .finally(() => {
@@ -77,14 +75,16 @@ export default function CafeteriaMenu() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const currency = "COP";
+  const featuredImageSrc = "/img/cafeteria.webp";
+  const logoSrc = "/img/logo-logic-horizontal.webp";
   const whatsappUrl = buildLogicWhatsAppUrl(
     t(
       "cafeteria.whatsappMessage",
-      "Hola, ocurrio un error al cargar la cafeteria en la pagina web. Me compartes el menu disponible por este medio, por favor"
-    )
+      "Hola, ocurrio un error al cargar la cafeteria en la pagina web. Me compartes el menu disponible por este medio, por favor",
+    ),
   );
 
   const locale =
@@ -104,44 +104,33 @@ export default function CafeteriaMenu() {
 
     return Array.from(byLabel.entries()).map(([label, items]) => ({
       key: buildCategoryKey(label),
-      label,
+      label: label || t("cafeteria.uncategorized", "Otros"),
       items,
     }));
   }, [products, t]);
 
-  const featuredImageSrc = "/img/cafeteria.webp";
+  const visibleCategories = useMemo<CafeteriaCategory[]>(() => {
+    const query = searchTerm.trim().toLowerCase();
+    if (!query) return categories;
+
+    return categories
+      .map((category) => ({
+        ...category,
+        items: category.items.filter((item) => {
+          const searchable = [item.name, item.description, item.category]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return searchable.includes(query);
+        }),
+      }))
+      .filter((category) => category.items.length > 0);
+  }, [categories, searchTerm]);
 
   const availableCount = useMemo(
     () => products.filter((product) => product.available !== false).length,
     [products],
   );
-
-  const titleLines = useMemo(() => {
-    const maybeLines = t("cafeteria.titleLines", {
-      returnObjects: true,
-      defaultValue: null,
-    }) as unknown;
-
-    if (
-      Array.isArray(maybeLines) &&
-      maybeLines.every((value) => typeof value === "string")
-    ) {
-      return maybeLines as string[];
-    }
-
-    const title = t("cafeteria.title");
-    const separators = [" & ", " - ", " | ", ": "];
-    for (const separator of separators) {
-      const idx = title.indexOf(separator);
-      if (idx > 0) {
-        const left = title.slice(0, idx).trim();
-        const right = title.slice(idx + separator.length).trim();
-        if (left && right) return [left, right];
-      }
-    }
-
-    return [title];
-  }, [t]);
 
   const registerSectionRef = useCallback(
     (key: string) => (node: HTMLElement | null) => {
@@ -166,17 +155,21 @@ export default function CafeteriaMenu() {
   );
 
   useEffect(() => {
-    if (!categories.length) {
+    if (!visibleCategories.length) {
       setActiveCategory("");
       return;
     }
-    if (!activeCategory || !categories.some((c) => c.key === activeCategory)) {
-      setActiveCategory(categories[0].key);
+    if (
+      !activeCategory ||
+      !visibleCategories.some((category) => category.key === activeCategory)
+    ) {
+      setActiveCategory(visibleCategories[0].key);
     }
-  }, [activeCategory, categories]);
+  }, [activeCategory, visibleCategories]);
 
   useEffect(() => {
-    if (!categories.length) return;
+    if (!visibleCategories.length) return;
+    const scrollRoot = menuBodyRef.current;
 
     const observer = new IntersectionObserver(
       (entries) => {
@@ -189,38 +182,19 @@ export default function CafeteriaMenu() {
         if (key) setActiveCategory(key);
       },
       {
-        rootMargin: "-20% 0px -70% 0px",
+        root: scrollRoot,
+        rootMargin: "-8% 0px -78% 0px",
         threshold: [0, 0.15, 0.4, 0.75],
       },
     );
 
-    categories.forEach((category) => {
+    visibleCategories.forEach((category) => {
       const node = sectionRefs.current.get(category.key);
       if (node) observer.observe(node);
     });
 
     return () => observer.disconnect();
-  }, [categories]);
-
-  useEffect(() => {
-    const container = filtersRef.current;
-    if (!container) return;
-
-    const updateScrollState = () => {
-      const { scrollLeft, scrollWidth, clientWidth } = container;
-      setCanScrollLeft(scrollLeft > 2);
-      setCanScrollRight(scrollLeft + clientWidth < scrollWidth - 2);
-    };
-
-    updateScrollState();
-    container.addEventListener("scroll", updateScrollState, { passive: true });
-    window.addEventListener("resize", updateScrollState);
-
-    return () => {
-      container.removeEventListener("scroll", updateScrollState);
-      window.removeEventListener("resize", updateScrollState);
-    };
-  }, [categories.length]);
+  }, [visibleCategories]);
 
   useEffect(() => {
     if (!activeCategory) return;
@@ -228,142 +202,85 @@ export default function CafeteriaMenu() {
     activeButton?.scrollIntoView({ inline: "center", block: "nearest" });
   }, [activeCategory]);
 
-  const scrollFiltersBy = (delta: number) => {
-    const container = filtersRef.current;
-    if (!container) return;
-    container.scrollBy({ left: delta, behavior: "smooth" });
-  };
-
   const scrollToCategory = (key: string) => {
+    const scrollRoot = menuBodyRef.current;
     const node = sectionRefs.current.get(key);
-    if (!node) return;
-    const filtersHeight = filtersRef.current?.offsetHeight ?? 0;
-    const rootFontSize = Number.parseFloat(
-      getComputedStyle(document.documentElement).fontSize || "16",
-    );
-    const offset = filtersHeight + rootFontSize + 110;
-    const top =
-      node.getBoundingClientRect().top + window.scrollY - Math.max(offset, 0);
-    window.scrollTo({ top, behavior: "smooth" });
+    if (!scrollRoot || !node) return;
+    const scrollRootTop = scrollRoot.getBoundingClientRect().top;
+    const sectionTop = node.getBoundingClientRect().top;
+    const top = sectionTop - scrollRootTop + scrollRoot.scrollTop - 12;
+    scrollRoot.scrollTo({ top: Math.max(top, 0), behavior: "smooth" });
     setActiveCategory(key);
   };
 
   const statusText = useMemo(() => {
-    if (loading) return t("cafeteria.loading", "Cargando menú...");
+    if (loading) return t("cafeteria.loading", "Cargando menu...");
     if (error) return error;
     if (!products.length)
       return t("cafeteria.empty", "No hay productos disponibles.");
+    if (searchTerm && !visibleCategories.length)
+      return t(
+        "cafeteria.search.empty",
+        "No encontramos productos con esa busqueda.",
+      );
     return null;
-  }, [error, loading, products.length, t]);
+  }, [
+    error,
+    loading,
+    products.length,
+    searchTerm,
+    t,
+    visibleCategories.length,
+  ]);
 
   return (
     <div className="cafeteria-menu">
-      <Header />
       <main className="cafeteria-menu__main">
         <div className="cafeteria-menu__container">
-          <div className="cafeteria-menu__header">
-            <div className="cafeteria-menu__title-block">
-              <p className="cafeteria-menu__eyebrow">
-                {t("cafeteria.eyebrow")}
+          <header className="cafeteria-menu__hero">
+            <div className="cafeteria-menu__hero-media">
+              <img
+                className="cafeteria-menu__hero-image"
+                src={featuredImageSrc}
+                alt=""
+                loading="eager"
+                decoding="async"
+              />
+              <a className="cafeteria-menu__home-chip" href="/">
+                {t("cafeteria.homeChip", "Ir a pagina principal")}
+              </a>
+            </div>
+            <div className="cafeteria-menu__brand">
+              <img src={logoSrc} alt={t("header.logo")} />
+              <p>
+                {t(
+                  "cafeteria.shortSubtitle",
+                  "Algo rico para acompañar tu experiencia",
+                )}
               </p>
-              <h1 className="cafeteria-menu__title">
-                {titleLines.map((line, idx) => (
-                  <span
-                    key={`${idx}-${line}`}
-                    className={
-                      idx === titleLines.length - 1
-                        ? "cafeteria-menu__title-accent"
-                        : undefined
-                    }
-                  >
-                    {line}
-                  </span>
-                ))}
-              </h1>
             </div>
-
-            <div className="cafeteria-menu__copy">
-              <p className="cafeteria-menu__subtitle">
-                {t("cafeteria.subtitle")}
-              </p>
-              <div className="cafeteria-menu__highlights">
-                <div className="cafeteria-menu__highlight">
-                  <span className="cafeteria-menu__highlight-value">
-                    {categories.length || "0"}
-                  </span>
-                  <span className="cafeteria-menu__highlight-label">
-                    {t("cafeteria.highlights.categories")}
-                  </span>
-                </div>
-                <div className="cafeteria-menu__highlight">
-                  <span className="cafeteria-menu__highlight-value">
-                    {availableCount || products.length || "0"}
-                  </span>
-                  <span className="cafeteria-menu__highlight-label">
-                    {t("cafeteria.highlights.available")}
-                  </span>
-                </div>
-                <div className="cafeteria-menu__highlight">
-                  <span className="cafeteria-menu__highlight-value">
-                    {t("cafeteria.highlights.fastValue")}
-                  </span>
-                  <span className="cafeteria-menu__highlight-label">
-                    {t("cafeteria.highlights.fastLabel")}
-                  </span>
-                </div>
-              </div>
-              <div className="cafeteria-menu__actions">
-                <button
-                  type="button"
-                  className="cafeteria-menu__action cafeteria-menu__action--primary"
-                  onClick={() => {
-                    if (categories[0]) scrollToCategory(categories[0].key);
-                  }}
-                  disabled={!categories.length}
-                >
-                  {t("cafeteria.actions.browse")}
-                </button>
-              </div>
-            </div>
-
-            <div className="cafeteria-menu__hero-visual" aria-hidden="true">
-              <div className="cafeteria-menu__hero-frame">
-                <img
-                  src={featuredImageSrc}
-                  alt=""
-                  loading="eager"
-                  decoding="async"
-                />
-                <div className="cafeteria-menu__hero-note">
-                  <span className="cafeteria-menu__hero-note-kicker">
-                    {t("cafeteria.heroNote.kicker")}
-                  </span>
-                  <strong>{t("cafeteria.heroNote.title")}</strong>
-                  <p>{t("cafeteria.heroNote.copy")}</p>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="cafeteria-menu__intro">
-            <p>{t("cafeteria.intro")}</p>
-          </div>
+          </header>
 
           <div
             className="cafeteria-menu__filters-wrapper"
             aria-label={t("cafeteria.filters.label")}
           >
-            <button
-              type="button"
-              className="cafeteria-menu__filters-nav cafeteria-menu__filters-nav--left"
-              aria-label={t("cafeteria.filters.scrollLeft", "Ver anteriores")}
-              onClick={() => scrollFiltersBy(-220)}
-              disabled={!canScrollLeft}
-            >
-              {"‹"}
-            </button>
+            <label className="cafeteria-menu__search">
+              <span
+                className="cafeteria-menu__search-icon"
+                aria-hidden="true"
+              />
+              <span className="cafeteria-menu__sr-only">
+                {t("cafeteria.search.label", "Buscar producto")}
+              </span>
+              <input
+                value={searchTerm}
+                onChange={(event) => setSearchTerm(event.target.value)}
+                placeholder={t("cafeteria.search.placeholder", "Buscar")}
+              />
+            </label>
             <div className="cafeteria-menu__filters" ref={filtersRef}>
-              {categories.map((category) => (
+              {visibleCategories.map((category) => (
                 <button
                   key={category.key}
                   ref={registerFilterRef(category.key)}
@@ -380,107 +297,124 @@ export default function CafeteriaMenu() {
                 </button>
               ))}
             </div>
-            <button
-              type="button"
-              className="cafeteria-menu__filters-nav cafeteria-menu__filters-nav--right"
-              aria-label={t("cafeteria.filters.scrollRight", "Ver siguientes")}
-              onClick={() => scrollFiltersBy(220)}
-              disabled={!canScrollRight}
-            >
-              {"›"}
-            </button>
           </div>
 
-          <div className="cafeteria-menu__grid">
-            {statusText && (
-              <section className="cafeteria-menu__section" aria-live="polite">
-                <p>{statusText}</p>
-                {error ? (
-                  <p>
-                    <a
-                      href={whatsappUrl}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {t("cafeteria.whatsappCta", "Escribir por WhatsApp")}
-                    </a>
-                  </p>
-                ) : null}
-              </section>
-            )}
-            {categories.map((section) => (
-              <section
-                key={section.key}
-                className={`cafeteria-menu__section ${
-                  activeCategory === section.key
-                    ? "cafeteria-menu__section--active"
-                    : ""
-                }`}
-                data-category-key={section.key}
-                ref={registerSectionRef(section.key)}
-              >
-                <div className="cafeteria-menu__section-paper">
-                  <header className="cafeteria-menu__section-header">
-                    <div>
-                      <p className="cafeteria-menu__section-kicker">
-                        {t("cafeteria.sectionEyebrow")}
+          <div className="cafeteria-menu__body" ref={menuBodyRef}>
+            <div className="cafeteria-menu__grid">
+              {statusText && (
+                <section className="cafeteria-menu__section" aria-live="polite">
+                  <div className="cafeteria-menu__section-paper">
+                    <p>{statusText}</p>
+                    {error ? (
+                      <p>
+                        <a
+                          href={whatsappUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          {t("cafeteria.whatsappCta", "Escribir por WhatsApp")}
+                        </a>
                       </p>
-                      <h2 className="cafeteria-menu__section-title">
-                        {section.label}
-                      </h2>
-                    </div>
-                    <span className="cafeteria-menu__section-count">
-                      {t("cafeteria.itemsCount", {
-                        count: section.items.length,
-                      })}
-                    </span>
-                  </header>
-                  <div className="cafeteria-menu__cards">
-                    {section.items.map((item) => (
-                      <article
-                        key={item.name}
-                        className={`cafeteria-menu__card ${
-                          item.available === false
-                            ? "cafeteria-menu__card--disabled"
-                            : ""
-                        }`}
-                      >
-                        <div className="cafeteria-menu__content">
-                          <div className="cafeteria-menu__card-top">
-                            <h3 className="cafeteria-menu__item-name">
-                              {item.name}
-                            </h3>
-                            <div className="cafeteria-menu__item-right">
-                              {item.available === false && (
-                                <span className="cafeteria-menu__badge">
-                                  {t("cafeteria.labels.unavailable")}
-                                </span>
-                              )}
-                              <span className="cafeteria-menu__item-price">
-                                {formatCurrency(item.price, currency, locale)}
-                              </span>
-                            </div>
-                          </div>
-                          {item.description && (
-                            <p className="cafeteria-menu__item-desc">
-                              {item.description}
-                            </p>
-                          )}
-                        </div>
-                      </article>
-                    ))}
+                    ) : null}
                   </div>
-                </div>
-              </section>
-            ))}
-          </div>
+                </section>
+              )}
+              {visibleCategories.map((section) => {
+                const sectionTitle =
+                  section.label.trim() || t("cafeteria.uncategorized", "Otros");
+                const sectionImage =
+                  section.items.find((item) => item.categoryImage)
+                    ?.categoryImage || featuredImageSrc;
 
-          <div className="cafeteria-menu__footer-note">
-            <p>{t("cafeteria.availabilityNote")}</p>
+                return (
+                <section
+                  key={section.key}
+                  className={`cafeteria-menu__section ${
+                    activeCategory === section.key
+                      ? "cafeteria-menu__section--active"
+                      : ""
+                  }`}
+                  data-category-key={section.key}
+                  ref={registerSectionRef(section.key)}
+                >
+                  <div className="cafeteria-menu__section-paper">
+                    <header className="cafeteria-menu__section-header">
+                      <div className="cafeteria-menu__section-cover">
+                        <img src={sectionImage} alt="" loading="lazy" />
+                      </div>
+                      <div className="cafeteria-menu__section-heading">
+                        <h2 className="cafeteria-menu__section-title">
+                          {sectionTitle}
+                        </h2>
+                        <p className="cafeteria-menu__section-subtitle">
+                          {t("cafeteria.itemsCount", {
+                            count: section.items.length,
+                          })}
+                        </p>
+                      </div>
+                    </header>
+                    <div className="cafeteria-menu__cards">
+                      {section.items.map((item) => (
+                        <article
+                          key={item.name}
+                          className={`cafeteria-menu__card ${
+                            item.available === false
+                              ? "cafeteria-menu__card--disabled"
+                              : ""
+                          }`}
+                        >
+                          <div
+                            className="cafeteria-menu__thumb"
+                            aria-hidden="true"
+                          >
+                            {item.image ? (
+                              <img src={item.image} alt="" loading="lazy" />
+                            ) : (
+                              <span>{item.name.slice(0, 1)}</span>
+                            )}
+                          </div>
+                          <div className="cafeteria-menu__content">
+                            <div className="cafeteria-menu__card-top">
+                              <h3 className="cafeteria-menu__item-name">
+                                {item.name}
+                              </h3>
+                              <div className="cafeteria-menu__item-right">
+                                {item.available === false && (
+                                  <span className="cafeteria-menu__badge">
+                                    {t("cafeteria.labels.unavailable")}
+                                  </span>
+                                )}
+                                <span className="cafeteria-menu__item-price">
+                                  {formatCurrency(item.price, currency, locale)}
+                                </span>
+                              </div>
+                            </div>
+                            {item.description && (
+                              <p className="cafeteria-menu__item-desc">
+                                {item.description}
+                              </p>
+                            )}
+                          </div>
+                        </article>
+                      ))}
+                    </div>
+                  </div>
+                </section>
+                );
+              })}
+            </div>
+
+            <div className="cafeteria-menu__footer-note">
+              <p>{t("cafeteria.availabilityNote")}</p>
+              <span>
+                {categories.length} {t("cafeteria.highlights.categories")} -{" "}
+                {availableCount || products.length || "0"}{" "}
+                {t("cafeteria.highlights.available")}
+              </span>
+            </div>
           </div>
         </div>
       </main>
-      <Footer />
     </div>
   );
 }
