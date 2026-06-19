@@ -35,7 +35,7 @@ Este repo es un monorepo con:
 - Frontend: Vercel.
 - Backend API: Koyeb.
 - Database: Neon PostgreSQL.
-- Images bucket: Supabase Storage.
+- Imagenes del menu: assets estaticos en `packages/frontend/public/img/menu`.
 
 ## Deploy del Backend (API) en Koyeb
 
@@ -99,5 +99,5 @@ Notas:
 
 ## Pendientes (Infraestructura)
 
-- Configurar `VITE_IMAGES_BASE_URL` en el frontend para servir las imágenes de productos (el backend devuelve solo el nombre de la imagen).
+- Mantener las imagenes del menu en `packages/frontend/public/img/menu/products` y `packages/frontend/public/img/menu/categories`; la BD puede guardar solo el nombre del archivo.
 - (Opcional) Definir un flujo de administración/carga para poblar `cafeteria_products` en la BD.
