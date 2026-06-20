@@ -184,7 +184,7 @@ export default function BookingStepSelection({
   }, []);
 
   const today = useMemo(() => dayjs().startOf("day"), []);
-  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(null);
+  const [selectedDate, setSelectedDate] = useState<Dayjs | null>(today);
   const [outOfHoursEnabled, setOutOfHoursEnabled] = useState(false);
   const [availability, setAvailability] = useState<AvailabilityResponse | null>(
     null
