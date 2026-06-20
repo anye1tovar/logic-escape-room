@@ -1,4 +1,3 @@
-import LocationOnIcon from "@mui/icons-material/LocationOn";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { buildLogicWhatsAppUrl } from "../../../utils/support";
 import "./FloatingWhatsAppButton.scss";
