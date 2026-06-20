@@ -47,6 +47,11 @@ const Header = () => {
     { name: t("header.menu.3"), href: "#pricing", kind: "hash" },
     { name: t("header.menu.4"), href: "#contact", kind: "hash" },
     { name: t("header.menu.5"), href: "/cafeteria", kind: "route" },
+    {
+      name: t("header.checkBooking"),
+      href: "/consulta-reserva",
+      kind: "route",
+    },
   ];
 
   const handleMenuItemClick = (

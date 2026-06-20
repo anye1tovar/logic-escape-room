@@ -399,7 +399,7 @@ export default function BookingStepSelection({
       </header>
 
       <div className="booking-step__content">
-        <div className="booking-form__section">
+        <div className="booking-form__section booking-form__section--selection">
           <h3 className="booking-form__section-title">
             {t("booking.selection.dateSectionTitle")}
           </h3>
@@ -597,7 +597,7 @@ export default function BookingStepSelection({
           </div>
         </div>
 
-        <div className="booking-form__section">
+        <div className="booking-form__section booking-form__section--selection">
           <div className="booking-form__section-head">
             <h3 className="booking-form__section-title">
               {t("booking.selection.roomSectionTitle")}
@@ -752,7 +752,7 @@ export default function BookingStepSelection({
           )}
         </div>
 
-        <div className="booking-form__section">
+        <div className="booking-form__section booking-form__section--selection">
           <h3 className="booking-form__section-title">
             {t("booking.selection.peopleSectionTitle")}
           </h3>

@@ -13,7 +13,7 @@
     padding: $spacing-xl $spacing-lg;
 
     @media (max-width: $mobile) {
-      padding: $spacing-lg $spacing-md;
+      padding: $spacing-sm $spacing-sm;
     }
   }
 
@@ -212,7 +212,7 @@
   }
 
   &__panels {
-    margin-top: $spacing-xl;
+    margin-top: $spacing-sm;
     display: grid;
     gap: $spacing-lg;
   }
@@ -301,6 +301,44 @@
       );
       border-color: rgba(255, 255, 255, 0.12);
     }
+
+    &--selection {
+      padding: 0;
+      border: 0;
+      border-radius: 0;
+      background: transparent;
+      gap: $spacing-sm;
+
+      & + & {
+        margin-top: $spacing-xs;
+        padding-top: $spacing-md;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+
+      .booking-form__section-title {
+        display: flex;
+        align-items: center;
+        gap: $spacing-sm;
+        flex: 1;
+        font-size: 1.45rem;
+        color: rgba($text-light, 0.96);
+
+        &::after {
+          content: "";
+          flex: 1;
+          height: 1px;
+          background: linear-gradient(
+            90deg,
+            rgba(203, 171, 255, 0.36),
+            rgba(255, 255, 255, 0)
+          );
+        }
+      }
+
+      .booking-form__section-head {
+        align-items: center;
+      }
+    }
   }
 
   .booking-form__section-title {
@@ -326,8 +364,11 @@
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: $text-light;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease,
-      box-shadow 0.15s ease, border-color 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease,
+      border-color 0.15s ease;
 
     &:hover {
       transform: translateY(-2px);
@@ -392,7 +433,9 @@
     background: rgba(255, 255, 255, 0.04);
     color: $text-light;
     outline: none;
-    transition: border-color 0.15s ease, background 0.15s ease,
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
       box-shadow 0.15s ease;
 
     &:focus {
@@ -706,8 +749,11 @@
     gap: $spacing-sm;
     align-items: start;
     cursor: pointer;
-    transition: transform 0.15s ease, background 0.15s ease,
-      box-shadow 0.15s ease, border-color 0.15s ease;
+    transition:
+      transform 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease,
+      border-color 0.15s ease;
 
     input {
       margin-top: 4px;
@@ -857,7 +903,9 @@
     border: 1px dashed rgba(255, 255, 255, 0.18);
     cursor: pointer;
     text-align: center;
-    transition: transform 0.15s ease, background 0.15s ease,
+    transition:
+      transform 0.15s ease,
+      background 0.15s ease,
       border-color 0.15s ease;
 
     &:hover {
@@ -918,6 +966,14 @@
     .booking-form__section {
       padding: $spacing-sm;
       gap: $spacing-sm;
+    }
+
+    .booking-form__section--selection {
+      padding: 0;
+
+      & + & {
+        padding-top: $spacing-sm;
+      }
     }
 
     .booking-payment__list {

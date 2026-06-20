@@ -9,13 +9,6 @@ const FloatingWhatsAppButton = () => {
   return (
     <div className="floating-actions" aria-label="Accesos rapidos">
       <a
-        className="floating-actions__button floating-actions__button--location"
-        href="/#location"
-        aria-label="Ver ubicacion de Logic Escape Room"
-      >
-        <LocationOnIcon className="floating-actions__icon" aria-hidden="true" />
-      </a>
-      <a
         className="floating-actions__button floating-actions__button--whatsapp floating-whatsapp"
         href={buildLogicWhatsAppUrl(whatsappMessage)}
         target="_blank"

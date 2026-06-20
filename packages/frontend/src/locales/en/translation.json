@@ -1,6 +1,7 @@
 {
   "header": {
     "menu": ["Home", "Rooms", "About", "Pricing", "Contact", "Cafeteria"],
+    "checkBooking": "Check booking",
     "bookNow": "Book Now",
     "logo": "Logic Escape"
   },

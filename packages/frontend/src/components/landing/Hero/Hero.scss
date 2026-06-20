@@ -162,13 +162,14 @@
 
   &__button {
     @include button-base(
-      $button-font-size-md,
-      $button-font-weight,
+      1.05rem,
+      800,
       999px,
-      0.9rem,
-      1.4rem,
+      0.95rem,
+      1.65rem,
       2px
     );
+    min-height: 3.25rem;
     text-align: center;
 
     &--primary {
@@ -188,17 +189,30 @@
     }
 
     &--interactive {
+      @include button-base(
+        $button-font-size-sm,
+        $button-font-weight,
+        999px,
+        0.72rem,
+        1.05rem,
+        1px
+      );
       @include button-ghost(
         rgba($primary-color, 0.55),
         rgba($primary-color, 0.14)
       );
       background: rgba($primary-color, 0.14);
       color: $text-light;
-      box-shadow: 0 12px 26px rgba($primary-color, 0.25);
+      min-height: 2.65rem;
+      box-shadow: 0 8px 20px rgba($primary-color, 0.2);
 
       &:hover {
         border-color: $secondary-color;
-        box-shadow: 0 14px 32px rgba($secondary-color, 0.25);
+        box-shadow: 0 10px 26px rgba($secondary-color, 0.22);
+      }
+
+      @media (max-width: $mobile) {
+        width: 100%;
       }
     }
 

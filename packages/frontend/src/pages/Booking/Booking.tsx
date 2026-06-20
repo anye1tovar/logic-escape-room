@@ -94,12 +94,6 @@ export default function Booking() {
               <p className="booking__subtitle">
                 {t("booking.page.subtitle")}
               </p>
-              <div className="booking__helper">
-                <span>{t("booking.page.haveCode")}</span>{" "}
-                <a className="booking__helper-link" href="/consulta-reserva">
-                  {t("booking.page.consultLink")}
-                </a>
-              </div>
             </div>
           </header>
 

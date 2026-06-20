@@ -1,6 +1,7 @@
 {
   "header": {
     "menu": ["Inicio", "Salas", "Nosotros", "Precios", "Contacto", "Cafetería"],
+    "checkBooking": "Consultar reserva",
     "bookNow": "Reservar Ahora",
     "logo": "Logic Escape"
   },
@@ -11,16 +12,16 @@
   },
   "hero": {
     "badge": "Experiencia inmersiva en Tunja",
-    "titlePrefix": "Desafía tu mente en",
+    "titlePrefix": "JUEGOS DE ESCAPE",
     "titleHighlights": [
-      "Logic Escape Room",
+      "EN TUNJA",
       "Una aventura única",
       "Un reto inolvidable"
     ],
-    "description": "Sumérgete en una aventura llena de acertijos, luz tenue y suspenso. Reúne a tu equipo, sigue las pistas y demuestra que puedes escapar antes de que el reloj marque cero.",
-    "descriptionHighlight": "¿Tienes lo necesario para escapar en 60 minutos?",
-    "reserve": "Reservar ahora",
-    "viewRooms": "Ver salas disponibles",
+    "description": "Vive 60 minutos de pistas, acertijos y suspenso con tu equipo. Ven en pareja, amigos, familia o celebra tu cumpleaños.",
+    "descriptionHighlight": "¿Lograrán escapar antes de que el tiempo termine?",
+    "reserve": "Ver disponibilidad",
+    "viewRooms": "Ver salas y precios",
     "tourInteractive": "Tour interactivo (video)",
     "stats": {
       "teams": "Equipos victoriosos",
@@ -346,10 +347,10 @@
       "totalValue": "Valor total"
     },
     "page": {
-      "eyebrow": "Reservas",
-      "titleLine1": "Reserva tu",
-      "titleLine2": "Experiencia",
-      "subtitle": "Completa el proceso en 4 pasos: selección, datos, resumen y pago con confirmación.",
+      "eyebrow": "Elige cuándo quieres venir",
+      "titleLine1": "Consulta",
+      "titleLine2": "Disponiblidad",
+      "subtitle": "Elige una fecha y encuentra tu horario ideal.",
       "haveCode": "¿Ya tienes un código?",
       "consultLink": "Consultar estado de reserva",
       "stepperAria": "Flujo de reserva",
@@ -381,7 +382,7 @@
       }
     },
     "selection": {
-      "subtitle": "Elige la experiencia, cuántas personas vienen y el horario disponible.",
+      "subtitle": "Elige la fecha, revisa las salas disponibles y selecciona el horario que prefieras.",
       "dateSectionTitle": "Fecha",
       "selectDateLabel": "Selecciona una fecha",
       "datePlaceholder": "YYYY-MM-DD",
