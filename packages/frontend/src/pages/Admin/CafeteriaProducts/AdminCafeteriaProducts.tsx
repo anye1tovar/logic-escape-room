@@ -92,6 +92,7 @@ export default function AdminCafeteriaProducts() {
   );
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
+  const [productSearch, setProductSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
 
@@ -123,12 +124,22 @@ export default function AdminCafeteriaProducts() {
   }, [categories]);
 
   const filtered = useMemo(() => {
-    if (categoryFilter === "all") return sorted;
-    if (categoryFilter === "__none__") {
-      return sorted.filter((row) => !row.category_id);
-    }
-    return sorted.filter((row) => String(row.category_id || "") === categoryFilter);
-  }, [categoryFilter, sorted]);
+    const search = productSearch.trim().toLocaleLowerCase("es-CO");
+    const byCategory =
+      categoryFilter === "all"
+        ? sorted
+        : categoryFilter === "__none__"
+        ? sorted.filter((row) => !row.category_id)
+        : sorted.filter(
+            (row) => String(row.category_id || "") === categoryFilter
+          );
+
+    if (!search) return byCategory;
+
+    return byCategory.filter((row) =>
+      row.name.toLocaleLowerCase("es-CO").includes(search)
+    );
+  }, [categoryFilter, productSearch, sorted]);
 
   const paginated = useMemo(() => {
     const start = page * rowsPerPage;
@@ -187,7 +198,7 @@ export default function AdminCafeteriaProducts() {
 
   useEffect(() => {
     setPage(0);
-  }, [categoryFilter, rowsPerPage]);
+  }, [categoryFilter, productSearch, rowsPerPage]);
 
   async function create() {
     setStatus({ type: "loading" });
@@ -724,9 +735,19 @@ export default function AdminCafeteriaProducts() {
           </div>
           <div className="admin-crud__meta">
             <Chip label={`${filtered.length} productos`} size="small" />
+            {productSearch.trim() ? (
+              <Chip label={`de ${rows.length} totales`} size="small" />
+            ) : null}
           </div>
         </div>
         <div className="admin-crud__table-header admin-crud__table-header--controls">
+          <TextField
+            label="Buscar producto"
+            placeholder="Nombre del producto"
+            value={productSearch}
+            onChange={(e) => setProductSearch(e.target.value)}
+            size="small"
+          />
           <Select
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
