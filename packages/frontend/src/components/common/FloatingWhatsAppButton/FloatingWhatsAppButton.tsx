@@ -2,7 +2,8 @@ import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import { buildLogicWhatsAppUrl } from "../../../utils/support";
 import "./FloatingWhatsAppButton.scss";
 
-const whatsappMessage = "Hola, me gustaría hacerles una pregunta";
+const whatsappMessage =
+  "Hola, ya vi las salas y precios en la página web, pero tengo una duda. Me puedes ayudar por este medio, por favor?";
 
 const FloatingWhatsAppButton = () => {
   return (

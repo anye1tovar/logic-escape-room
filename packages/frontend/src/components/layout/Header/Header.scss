@@ -139,39 +139,6 @@
     }
   }
 
-  // Language selector (flag buttons)
-  &__lang {
-    display: flex;
-    gap: $spacing-xs;
-    align-items: center;
-
-    &-button {
-      @include button-base(0.9rem, 700, 6px, 6px, 8px);
-      @include button-ghost(rgba(255, 255, 255, 0.06), transparent);
-      line-height: 1;
-
-      &:hover {
-        box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
-      }
-
-      &.is-active {
-        background: rgba(255, 255, 255, 0.06);
-      }
-    }
-
-    &-text {
-      display: block;
-      text-align: center;
-      letter-spacing: 0.06em;
-      color: $text-light;
-    }
-
-    &--mobile {
-      margin: $spacing-md 0;
-      justify-content: flex-start;
-    }
-  }
-
   // Mobile Menu Toggle
   &__menu-toggle {
     display: flex;

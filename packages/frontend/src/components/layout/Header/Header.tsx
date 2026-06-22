@@ -34,7 +34,7 @@ const Header = () => {
     setIsMenuOpen(!isMenuOpen);
   };
 
-  const { t, i18n } = useTranslation();
+  const { t } = useTranslation();
 
   const menuItems: Array<{
     name: string;
@@ -42,7 +42,7 @@ const Header = () => {
     kind: "hash" | "route";
   }> = [
     { name: t("header.menu.0"), href: "#home", kind: "hash" },
-    { name: t("header.menu.1"), href: "#rooms", kind: "hash" },
+    { name: t("header.menu.1"), href: "/salas", kind: "route" },
     { name: t("header.menu.2"), href: "/nosotros", kind: "route" },
     { name: t("header.menu.3"), href: "#pricing", kind: "hash" },
     { name: t("header.menu.4"), href: "#contact", kind: "hash" },
@@ -72,9 +72,6 @@ const Header = () => {
       }, 0);
     }
   };
-  const otherLang =
-    i18n.language && i18n.language.startsWith("en") ? "es" : "en";
-
   const openBooking = () => {
     navigate("/reservar");
   };
@@ -149,23 +146,6 @@ const Header = () => {
             </motion.a>
           ))}
         </nav>
-
-        {/* Language selector: show flag for the OTHER language (click to switch) */}
-        <div className="header__lang">
-          <button
-            type="button"
-            className="header__lang-button"
-            onClick={() => i18n.changeLanguage(otherLang)}
-            aria-label={
-              otherLang === "en" ? "Switch to English" : "Cambiar a español"
-            }
-            title={otherLang === "en" ? "English" : "Español"}
-          >
-            <span className="header__lang-text">
-              {otherLang === "en" ? "EN" : "ES"}
-            </span>
-          </button>
-        </div>
 
         {/* CTA Button */}
         <motion.div
@@ -245,24 +225,6 @@ const Header = () => {
             {item.name}
           </motion.a>
         ))}
-        <div className="header__lang header__lang--mobile">
-          <button
-            type="button"
-            className="header__lang-button"
-            onClick={() => {
-              i18n.changeLanguage(otherLang);
-              setIsMenuOpen(false);
-            }}
-            aria-label={
-              otherLang === "en" ? "Switch to English" : "Cambiar a español"
-            }
-            title={otherLang === "en" ? "English" : "Español"}
-          >
-            <span className="header__lang-text">
-              {otherLang === "en" ? "EN" : "ES"}
-            </span>
-          </button>
-        </div>
         <motion.div
           initial={{ opacity: 0, x: -20 }}
           animate={{

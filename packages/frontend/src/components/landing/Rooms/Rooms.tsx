@@ -175,8 +175,10 @@ const Rooms = () => {
 
         <div className="rooms__copy">
           <p className="rooms__subtitle">
-            <span>{roomsToRender.length}</span> experiencias para elegir según
-            tu equipo, edad y nivel de susto.
+            <span className="rooms__subtitle-text">
+              <span>{roomsToRender.length}</span> experiencias para elegir según
+              tu equipo, edad y nivel de susto.
+            </span>
             <Button
               className="rooms__pricing-link"
               href="#pricing"
