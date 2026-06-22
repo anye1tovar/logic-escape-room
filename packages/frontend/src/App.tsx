@@ -20,6 +20,7 @@ const AboutPage = lazy(() => import("./pages/About/AboutPage"));
 const Booking = lazy(() => import("./pages/Booking/Booking"));
 const BookingStatus = lazy(() => import("./pages/BookingStatus/BookingStatus"));
 const CafeteriaMenu = lazy(() => import("./pages/CafeteriaMenu/CafeteriaMenu"));
+const RoomsDetail = lazy(() => import("./pages/RoomsDetail/RoomsDetail"));
 const Qr = lazy(() => import("./pages/Qr/Qr"));
 const NotFound = lazy(() => import("./pages/NotFound/NotFound"));
 const AdminLogin = lazy(() => import("./pages/AdminLogin/AdminLogin"));
@@ -116,7 +117,7 @@ const MarketingTracker = () => {
     return () => {
       window.removeEventListener(
         "logic:marketing-consent-changed",
-        onConsentChange
+        onConsentChange,
       );
     };
   }, [location.pathname, location.search]);
@@ -124,9 +125,9 @@ const MarketingTracker = () => {
   useEffect(() => {
     const onClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement | null;
-      const anchor = target?.closest?.("a[href*='wa.me']") as
-        | HTMLAnchorElement
-        | null;
+      const anchor = target?.closest?.(
+        "a[href*='wa.me']",
+      ) as HTMLAnchorElement | null;
       if (!anchor || window.location.pathname.startsWith("/admin")) return;
       trackMetaEvent("Contact", {
         contact_source: inferContactSource(anchor),
@@ -183,6 +184,7 @@ function App() {
           <Routes>
             <Route path="/" element={<HomeContent />} />
             <Route path="/nosotros" element={<AboutPage />} />
+            <Route path="/salas" element={<RoomsDetail />} />
             <Route path="/cafeteria" element={<CafeteriaMenu />} />
             <Route path="/qr" element={<Qr />} />
             <Route path="/reservar" element={<Booking />} />

@@ -96,7 +96,7 @@ const normalizeRoom = (room: ApiRoom): RoomCard => {
     status,
     coverImage: normalizeCoverImage(
       room.coverImage || room.cover_image || room.image || room.image_url,
-      slug
+      slug,
     ),
     badge: room.badge,
   };
@@ -120,7 +120,9 @@ const Rooms = () => {
           : [];
         if (mounted) {
           if (normalized.length === 0) {
-            setError(t("rooms.empty", "No hay salas disponibles por el momento."));
+            setError(
+              t("rooms.empty", "No hay salas disponibles por el momento."),
+            );
             setRooms([]);
           } else {
             setRooms(normalized);
@@ -142,15 +144,6 @@ const Rooms = () => {
     };
   }, [t]);
 
-  const difficultyLabel = (value?: number | string) => {
-    if (!value && value !== 0) return t("rooms.difficulty.medium", "Media");
-    if (typeof value === "string") return value;
-    if (value === 1) return t("rooms.difficulty.low", "Baja");
-    if (value === 2) return t("rooms.difficulty.medium", "Media");
-    if (value === 3) return t("rooms.difficulty.high", "Alta");
-    return t("rooms.difficulty.medium", "Media");
-  };
-
   const playersLabel = (room: RoomCard) => {
     if (room.minPlayers && room.maxPlayers)
       return `${room.minPlayers}-${room.maxPlayers}`;
@@ -161,148 +154,151 @@ const Rooms = () => {
   const roomsToRender = rooms;
 
   return (
-    <section className="rooms" id="rooms">
+    <section className="rooms">
       <div className="rooms__glow" />
-      <div className="rooms__header">
-        <motion.div
-          className="rooms__title-block"
-          initial={{ x: -20, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6 }}
-        >
-          <p className="rooms__eyebrow">{t("rooms.eyebrow")}</p>
-          <h2 className="rooms__title">
-            <span>{t("rooms.title.line1")}</span>
-            <span className="rooms__title-accent">
-              {t("rooms.title.line2")}
-            </span>
+
+      <motion.header
+        className="rooms__section-header"
+        initial={{ opacity: 0, y: -20 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true }}
+        transition={{ duration: 0.6 }}
+        id="rooms"
+      >
+        <div className="rooms__title-block">
+          <p className="rooms__eyebrow">Descubre experiencias únicas</p>
+          <h2 className="rooms__main-title">
+            <span className="rooms__main-title--white">SALAS DE</span>
+            <span className="rooms__main-title--purple">ESCAPE</span>
           </h2>
-        </motion.div>
+        </div>
 
-        <motion.div
-          className="rooms__copy"
-          initial={{ x: 20, opacity: 0 }}
-          whileInView={{ x: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.6, delay: 0.1 }}
-        >
-          <p>{t("rooms.lead.primary")}</p>
-          <p className="rooms__quote">{t("rooms.lead.secondary")}</p>
-          {error && (
-            <div className="rooms__error-container">
-              <p className="rooms__notice">{error}</p>
-              <Button
-                href={`https://wa.me/573181278688?text=${encodeURIComponent(
-                  t(
-                    "rooms.whatsappMessage",
-                    "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor"
-                  )
-                )}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="rooms__whatsapp-link"
-                variant="interactive"
-                size="sm"
-                pill
-              >
-                {t("rooms.whatsappCta", "Enviar mensaje al 3181278688")}
-              </Button>
-            </div>
-          )}
-        </motion.div>
-      </div>
+        <div className="rooms__copy">
+          <p className="rooms__subtitle">
+            <span>{roomsToRender.length}</span> experiencias para elegir según
+            tu equipo, edad y nivel de susto.
+            <Button
+              className="rooms__pricing-link"
+              href="#pricing"
+              variant="ghost"
+              size="sm"
+            >
+              Ver precios
+            </Button>
+          </p>
+        </div>
+      </motion.header>
 
-      <div className="rooms__grid">
+      {error && (
+        <div className="rooms__error-container">
+          <p className="rooms__notice">{error}</p>
+          <Button
+            href={`https://wa.me/573181278688?text=${encodeURIComponent(
+              t(
+                "rooms.whatsappMessage",
+                "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor",
+              ),
+            )}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rooms__whatsapp-link"
+            variant="interactive"
+            size="sm"
+            pill
+          >
+            {t("rooms.whatsappCta", "Enviar mensaje al 3181278688")}
+          </Button>
+        </div>
+      )}
+
+      <div className="rooms__cards-grid">
         {roomsToRender.map((room, idx) => (
           <motion.article
             key={room.id}
-            className={`room-card ${room.status === "comingSoon" ? "room-card--soon" : ""
-              }`}
+            className={`room-card-compact ${
+              room.status === "comingSoon" ? "room-card-compact--soon" : ""
+            }`}
             initial={{ opacity: 0, y: 30 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.5, delay: idx * 0.08 }}
           >
-            <div className="room-card__poster">
+            <div className="room-card-compact__image-wrapper">
               {room.coverImage ? (
                 <img
                   src={room.coverImage}
                   alt={room.name}
                   loading="lazy"
                   decoding="async"
+                  className="room-card-compact__image"
                 />
               ) : (
-                <div className="room-card__placeholder">
-                  <span>{room.name}</span>
+                <div className="room-card-compact__placeholder">
+                  {room.name}
                 </div>
-              )}
-              <div className="room-card__overlay" />
-              {room.badge && (
-                <span className="room-card__badge">{room.badge}</span>
               )}
               {room.status === "comingSoon" && (
-                <span className="room-card__status">
+                <div className="room-card-compact__coming-soon">
                   {t("rooms.badges.comingSoon")}
-                </span>
+                </div>
               )}
             </div>
-            <div className="room-card__body">
-              <div className="room-card__title-row">
-                <h3>{room.name}</h3>
+
+            <div className="room-card-compact__content">
+              <h3 className="room-card-compact__title">{room.name}</h3>
+
+              <div className="room-card-compact__meta">
                 {room.theme && (
-                  <span className="room-card__tag">{room.theme}</span>
+                  <span className="room-card-compact__meta-item room-card-compact__meta-item--theme">
+                    {room.theme}
+                  </span>
+                )}
+
+                {playersLabel(room) && (
+                  <span className="room-card-compact__meta-item">
+                    {playersLabel(room)}
+                  </span>
+                )}
+
+                {room.minAge && (
+                  <span className="room-card-compact__meta-item">
+                    +{room.minAge}
+                  </span>
                 )}
               </div>
-              {room.description && (
-                <p className="room-card__description">{room.description}</p>
-              )}
-              <div className="room-card__stats">
-                <div className="room-card__stat">
-                  <span className="label">{t("rooms.labels.difficulty")}</span>
-                  <span className="value">
-                    {difficultyLabel(room.difficulty)}
+
+              <div className="room-card-compact__actions">
+                {room.status === "comingSoon" ? (
+                  <span className="room-card-compact__cta-disabled">
+                    {t("rooms.badges.comingSoon")}
                   </span>
-                </div>
-                <div className="room-card__stat">
-                  <span className="label">{t("rooms.labels.duration")}</span>
-                  <span className="value">
-                    {room.durationMinutes || 60} {t("rooms.labels.minutes")}
-                  </span>
-                </div>
-                <div className="room-card__stat">
-                  <span className="label">{t("rooms.labels.players")}</span>
-                  <span className="value">
-                    {playersLabel(room) || t("rooms.labels.flex")}
-                  </span>
-                </div>
-                <div className="room-card__stat">
-                  <span className="label">{t("rooms.labels.age")}</span>
-                  <span className="value">
-                    {room.minAge ? `+${room.minAge}` : t("rooms.labels.anyAge")}
-                  </span>
-                </div>
-              </div>
-              <div className="room-card__footer">
-                <div className="room-card__cta">
-                  {room.status === "comingSoon" ? (
-                    <span className="room-card__cta--disabled">
-                      {t("rooms.badges.comingSoon")}
-                    </span>
-                  ) : (
+                ) : (
+                  <>
+                    <Button
+                      to={`/salas#${room.name
+                        .toLowerCase()
+                        .normalize("NFD")
+                        .replace(/[\u0300-\u036f]/g, "")
+                        .replace(/[^a-z0-9]+/g, "")}`}
+                      className="room-card-compact__btn room-card-compact__btn--secondary"
+                      size="sm"
+                    >
+                      Ver sala
+                    </Button>
                     <Button
                       to="/reservar"
-                      className="room-card__cta-button"
+                      className="room-card-compact__btn room-card-compact__btn--primary"
                       size="sm"
                     >
                       {t("rooms.actions.book")}
                     </Button>
-                  )}
-                </div>
+                  </>
+                )}
               </div>
             </div>
           </motion.article>
         ))}
+
         {loading && (
           <div className="rooms__loading">
             {t("rooms.loading", "Cargando salas...")}

@@ -17,14 +17,6 @@ html {
   }
 }
 
-[id] {
-  scroll-margin-top: 104px;
-
-  @media (max-width: $tablet) {
-    scroll-margin-top: 96px;
-  }
-}
-
 body {
   font-family: "Nunito", "Segoe UI", sans-serif;
   -webkit-font-smoothing: antialiased;

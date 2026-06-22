@@ -38,13 +38,13 @@ const normalizeRate = (rate: ApiRate): RateItem => ({
 
 const groupRatesFromApi = (
   items: RateItem[],
-  fallbackMeta: RateGroup[]
+  fallbackMeta: RateGroup[],
 ): RateGroup[] => {
   const metaMap = new Map(
     fallbackMeta.map((group) => [
       group.dayType,
       { title: group.title, dayRange: group.dayRange, note: group.note },
-    ])
+    ]),
   );
 
   const grouped: Record<string, RateGroup> = {};
@@ -71,7 +71,7 @@ const groupRatesFromApi = (
   return Object.values(grouped)
     .map((group) => ({
       ...group,
-      items: group.items.sort((a, b) => b.players - a.players),
+      items: group.items.sort((a, b) => a.players - b.players),
     }))
     .sort((a, b) => {
       const aIndex = order.indexOf(a.dayType);
@@ -88,6 +88,7 @@ const groupRatesFromApi = (
 const Pricing = () => {
   const { t, i18n } = useTranslation();
   const [groups, setGroups] = useState<RateGroup[]>([]);
+  const [activeRateGroup, setActiveRateGroup] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -130,6 +131,17 @@ const Pricing = () => {
     };
   }, [t]);
 
+  useEffect(() => {
+    if (!groups.length) {
+      setActiveRateGroup("");
+      return;
+    }
+
+    if (!groups.some((group) => group.dayType === activeRateGroup)) {
+      setActiveRateGroup(groups[0].dayType);
+    }
+  }, [activeRateGroup, groups]);
+
   const leadLines = useMemo(() => {
     const lines = t("pricing.lead", { returnObjects: true }) as
       | string[]
@@ -157,7 +169,7 @@ const Pricing = () => {
   const groupsToRender = groups;
 
   return (
-    <section className="pricing" id="pricing">
+    <section className="pricing">
       <div className="pricing__halo" />
       <div className="pricing__header">
         <motion.div
@@ -166,8 +178,10 @@ const Pricing = () => {
           whileInView={{ x: 0, opacity: 1 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
+          id="pricing"
         >
           <p className="pricing__eyebrow">{t("pricing.eyebrow")}</p>
+
           <h2 className="pricing__title">
             <span>{t("pricing.title.line1")}</span>
             <span className="pricing__title-accent">
@@ -175,7 +189,6 @@ const Pricing = () => {
             </span>
           </h2>
         </motion.div>
-
         <motion.div
           className="pricing__lead"
           initial={{ x: 20, opacity: 0 }}
@@ -198,8 +211,8 @@ const Pricing = () => {
                 href={`https://wa.me/573181278688?text=${encodeURIComponent(
                   t(
                     "pricing.whatsappMessage",
-                    "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor"
-                  )
+                    "Hola, ocurrio un error al obtener los datos en la página web, me puedes dar la información sobre las salas de escape por este medio, por favor",
+                  ),
                 )}`}
                 target="_blank"
                 rel="noopener noreferrer"
@@ -213,11 +226,45 @@ const Pricing = () => {
       </div>
 
       <div className="pricing__layout">
+        {groupsToRender.length > 1 && (
+          <div
+            className="pricing__tabs"
+            role="tablist"
+            aria-label="Seleccionar tipo de tarifa"
+          >
+            {groupsToRender.map((group) => {
+              const selected = group.dayType === activeRateGroup;
+
+              return (
+                <button
+                  key={group.dayType}
+                  type="button"
+                  className={`pricing__tab ${
+                    selected ? "pricing__tab--active" : ""
+                  }`}
+                  role="tab"
+                  aria-selected={selected}
+                  aria-controls={`pricing-panel-${group.dayType}`}
+                  id={`pricing-tab-${group.dayType}`}
+                  onClick={() => setActiveRateGroup(group.dayType)}
+                >
+                  {group.title}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
         <div className="pricing__cards">
           {groupsToRender.map((group, idx) => (
             <motion.article
               key={group.dayType}
-              className="pricing__card"
+              className={`pricing__card ${
+                group.dayType === activeRateGroup ? "pricing__card--active" : ""
+              }`}
+              id={`pricing-panel-${group.dayType}`}
+              role="tabpanel"
+              aria-labelledby={`pricing-tab-${group.dayType}`}
               initial={{ opacity: 0, y: 24 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -250,7 +297,7 @@ const Pricing = () => {
                         {formatGroupTotal(
                           item.players,
                           item.price,
-                          item.currency
+                          item.currency,
                         )}
                       </span>
                     </span>

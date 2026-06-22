@@ -1,0 +1,394 @@
+@use "../../assets/styles/variables" as *;
+
+.rooms-detail-page {
+  min-height: 100vh;
+  background: $dark-bg;
+}
+
+.rooms-detail {
+  position: relative;
+  padding: 4rem $spacing-lg 4rem;
+  background: radial-gradient(
+    circle at 25% 20%,
+    #2a1560 0%,
+    #110a26 45%,
+    #080316 100%
+  );
+  overflow: hidden;
+  color: $text-light;
+
+  @media (max-width: $tablet) {
+    padding: 4rem $spacing-md 3rem;
+  }
+
+  &__glow {
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(
+        circle at 70% 20%,
+        rgba(79, 70, 229, 0.4),
+        transparent 40%
+      ),
+      radial-gradient(
+        circle at 30% 60%,
+        rgba(239, 187, 61, 0.25),
+        transparent 40%
+      );
+    filter: blur(60px);
+    opacity: 0.8;
+    pointer-events: none;
+  }
+
+  &__header {
+    position: relative;
+    display: grid;
+    grid-template-columns: 1.1fr 1fr;
+    gap: $spacing-xl;
+    align-items: center;
+    margin-bottom: $spacing-xl;
+    padding: $spacing-lg;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.06),
+      rgba(255, 255, 255, 0)
+    );
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    z-index: 1;
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+      padding: $spacing-md;
+      gap: $spacing-lg;
+    }
+  }
+
+  &__title-block {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+  }
+
+  &__eyebrow {
+    letter-spacing: 0.12em;
+    font-size: 0.95rem;
+    color: $secondary-color;
+    margin: 0;
+    text-transform: uppercase;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 3.5rem;
+    line-height: 0.95;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xs;
+
+    @media (max-width: $tablet) {
+      font-size: 3rem;
+    }
+  }
+
+  &__title-accent {
+    color: $primary-color;
+    text-shadow: 0 8px 25px rgba(203, 171, 255, 0.35);
+  }
+
+  &__copy {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    color: $text-light;
+    line-height: 1.7;
+  }
+
+  &__quote {
+    font-family: "InterDisplay", "Inter", "Segoe UI", sans-serif;
+    color: $secondary-color;
+    font-size: 1.1rem;
+  }
+
+  &__notice {
+    color: #ffffff;
+    font-size: 1rem;
+    line-height: 1.5;
+  }
+
+  &__error-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    text-align: center;
+    max-width: 500px;
+    margin: 2rem auto;
+    position: relative;
+    z-index: 1;
+  }
+
+  &__whatsapp-link {
+    color: #ffffff;
+    box-shadow: 0 12px 26px rgba($primary-color, 0.25);
+
+    &:hover {
+      border-color: $secondary-color;
+      box-shadow: 0 14px 32px rgba($secondary-color, 0.25);
+    }
+  }
+
+  &__loading {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    color: rgba(255, 255, 255, 0.7);
+    padding: 3rem;
+  }
+
+  &__list {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-xl;
+  }
+}
+
+.room-detail-card {
+  position: relative;
+  scroll-margin-top: 120px;
+  transition: all 0.3s ease;
+
+  &--soon {
+    opacity: 0.85;
+  }
+
+  &__wrapper {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: $spacing-xl;
+    align-items: center;
+    padding: $spacing-lg;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 20px;
+    background: linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.04),
+      rgba(255, 255, 255, 0.01)
+    );
+    box-shadow: 0 15px 40px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(4px);
+    overflow: hidden;
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+      gap: $spacing-lg;
+      padding: $spacing-md;
+    }
+  }
+
+  &__image-container {
+    position: relative;
+    height: 350px;
+    border-radius: 16px;
+    overflow: hidden;
+    background: linear-gradient(135deg, #2a1560 0%, #110a26 100%);
+
+    @media (max-width: $tablet) {
+      height: 280px;
+    }
+  }
+
+  &__image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.6s ease;
+  }
+
+  &:hover &__image {
+    transform: scale(1.05);
+  }
+
+  &__placeholder {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(
+      135deg,
+      rgba(203, 171, 255, 0.1),
+      rgba(239, 187, 61, 0.1)
+    );
+    color: $text-light;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+    padding: $spacing-lg;
+  }
+
+  &__badge {
+    position: absolute;
+    top: $spacing-md;
+    right: $spacing-md;
+    padding: 0.5rem 1rem;
+    background: $secondary-color;
+    color: #000000;
+    font-size: 0.85rem;
+    font-weight: 700;
+    border-radius: 20px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  &__status {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(2px);
+    color: $secondary-color;
+    font-size: 1.2rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    border-radius: 16px;
+  }
+
+  &__content {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-md;
+    padding: $spacing-sm 0;
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-sm;
+    align-items: flex-start;
+  }
+
+  &__title {
+    margin: 0;
+    font-size: 2.5rem;
+    line-height: 1.1;
+    color: $text-light;
+
+    @media (max-width: $tablet) {
+      font-size: 2rem;
+    }
+  }
+
+  &__theme {
+    display: inline-block;
+    padding: 0.5rem 1.2rem;
+    background: rgba($primary-color, 0.15);
+    border: 1px solid rgba($primary-color, 0.3);
+    color: $primary-color;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__description {
+    font-size: 1.05rem;
+    line-height: 1.7;
+    color: rgba($text-light, 0.9);
+    margin: 0;
+  }
+
+  &__features {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: $spacing-md;
+    margin: $spacing-md 0;
+    padding: $spacing-md;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 12px;
+
+    @media (max-width: $mobile) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__feature {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  &__feature-label {
+    font-size: 0.85rem;
+    color: $secondary-color;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  &__feature-value {
+    font-size: 1.1rem;
+    color: $text-light;
+    font-weight: 500;
+  }
+
+  &__footer {
+    display: flex;
+    align-items: center;
+    gap: $spacing-md;
+    margin-top: $spacing-md;
+  }
+
+  &__cta-button {
+    @include button-primary();
+    min-width: 200px;
+
+    @media (max-width: $tablet) {
+      min-width: auto;
+      width: 100%;
+    }
+  }
+
+  &__cta-disabled {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    color: rgba(255, 255, 255, 0.6);
+    font-size: 0.95rem;
+    font-weight: 600;
+    border-radius: 12px;
+    cursor: not-allowed;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+}
+
+// Alternate row layouts
+.room-detail-card:nth-child(even) {
+  .room-detail-card__wrapper {
+    @media (min-width: $tablet + 1px) {
+      grid-template-columns: 1fr 1fr;
+      direction: rtl;
+
+      & > * {
+        direction: ltr;
+      }
+    }
+  }
+}

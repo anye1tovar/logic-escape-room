@@ -128,14 +128,14 @@
     }
   },
   "pricing": {
-    "eyebrow": "VIVE UNA EXPERIENCIA ÉPICA",
+    "eyebrow": "Reúne tu equipo",
     "title": {
       "line1": "NUESTRAS",
       "line2": "TARIFAS"
     },
     "lead": [
-      "Entre más grande sea el grupo, menor es el costo por persona.",
-      "INTRODUCCIÓN PERSONALIZADA + 60 MINUTOS PARA ESCAPAR + SESIÓN DE FOTOS FINAL"
+      "Entre más grande el grupo, menor el valor por persona.",
+      "Incluye 60 minutos de juego, explicación inicial y fotos finales."
     ],
     "weekday": {
       "label": "Entre semana",
