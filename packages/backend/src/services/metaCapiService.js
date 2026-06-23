@@ -35,9 +35,14 @@ function buildMetaCapiService(config = {}) {
 
   function buildUserData({ userData = {}, request = {}, tracking = {} }) {
     return cleanObject({
+      em: hash(userData.email),
       ph: hashPhone(userData.phone),
       fn: hash(userData.firstName),
       ln: hash(userData.lastName),
+      ct: hash(userData.city),
+      st: hash(userData.state),
+      zp: hash(userData.zip),
+      country: hash(userData.country),
       external_id: hash(userData.externalId),
       client_ip_address: request.ip,
       client_user_agent: request.userAgent,

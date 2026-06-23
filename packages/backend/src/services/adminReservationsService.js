@@ -148,7 +148,19 @@ function buildAdminReservationsService(consumer, deps = {}) {
     const event = metaCapiService.buildWebsiteEvent({
       eventName: "Purchase",
       eventId: `purchase.reservation.${reservation.id}`,
-      actionSource: "system_generated",
+      actionSource:
+        String(reservation.reservation_source || "").toLowerCase() === "web"
+          ? "website"
+          : "system_generated",
+      sourceUrl: reservation.tracking_source_url,
+      request: {
+        ip: reservation.tracking_ip,
+        userAgent: reservation.tracking_user_agent,
+      },
+      tracking: {
+        fbp: reservation.tracking_fbp,
+        fbc: reservation.tracking_fbc,
+      },
       userData: {
         phone: reservation.phone,
         firstName: reservation.first_name,

@@ -109,3 +109,28 @@ export function getMetaTrackingPayload(eventIds?: Record<string, string>) {
     sourceUrl: typeof window !== "undefined" ? window.location.href : null,
   };
 }
+
+export async function trackServerMetaEvent(
+  eventName: "Contact" | "Search" | "ViewContent",
+  customData: MetaPixelPayload = {},
+  eventId = generateMetaEventId(eventName.toLowerCase())
+) {
+  if (!PIXEL_ID || !hasMarketingConsent() || !isPublicRoute()) return;
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+
+  try {
+    await fetch(`${apiBase}/api/tracking/meta-event`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        eventName,
+        eventId,
+        sourceUrl: typeof window !== "undefined" ? window.location.href : null,
+        tracking: getMetaTrackingPayload(),
+        customData,
+      }),
+    });
+  } catch (err) {
+    console.error("Failed to send Meta server event", err);
+  }
+}

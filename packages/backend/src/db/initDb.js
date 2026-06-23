@@ -67,6 +67,13 @@ async function initSchema() {
       is_first_time BOOLEAN NOT NULL DEFAULT FALSE,
       marketing_consent BOOLEAN NOT NULL DEFAULT FALSE,
       marketing_consent_at BIGINT,
+      tracking_fbp TEXT,
+      tracking_fbc TEXT,
+      tracking_source_url TEXT,
+      tracking_user_agent TEXT,
+      tracking_ip TEXT,
+      tracking_lead_event_id TEXT,
+      tracking_schedule_event_id TEXT,
       reservation_source TEXT NOT NULL DEFAULT 'web',
       out_of_hours BOOLEAN NOT NULL DEFAULT FALSE,
       reprogrammed BOOLEAN NOT NULL DEFAULT FALSE
@@ -91,6 +98,41 @@ async function initSchema() {
   await pool.query(`
     ALTER TABLE reservations
     ADD COLUMN IF NOT EXISTS marketing_consent_at BIGINT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_fbp TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_fbc TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_source_url TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_user_agent TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_ip TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_lead_event_id TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS tracking_schedule_event_id TEXT;
   `);
 
   await pool.query(`

@@ -8,7 +8,12 @@ import FloatingWhatsAppButton from "./components/common/FloatingWhatsAppButton";
 import Hero from "./components/landing/Hero";
 import Footer from "./components/layout/Footer";
 import Header from "./components/layout/Header";
-import { initMetaPixel, trackMetaEvent } from "./lib/metaPixel";
+import {
+  generateMetaEventId,
+  initMetaPixel,
+  trackMetaEvent,
+  trackServerMetaEvent,
+} from "./lib/metaPixel";
 import theme from "./theme";
 const Guidelines = lazy(() => import("./components/landing/Guidelines"));
 const Location = lazy(() => import("./components/landing/Location"));
@@ -109,6 +114,22 @@ const MarketingTracker = () => {
       if (location.pathname.startsWith("/admin")) return;
       initMetaPixel();
       trackMetaEvent("PageView");
+
+      const viewContentEventId = generateMetaEventId("view-content");
+      const contentName =
+        location.pathname === "/"
+          ? "Home"
+          : location.pathname.replace(/^\/+/, "") || "Home";
+      const viewContentParams = {
+        content_name: contentName,
+        content_category: "site_page",
+      };
+      trackMetaEvent("ViewContent", viewContentParams, viewContentEventId);
+      void trackServerMetaEvent(
+        "ViewContent",
+        viewContentParams,
+        viewContentEventId,
+      );
     };
 
     trackPageView();
@@ -129,10 +150,13 @@ const MarketingTracker = () => {
         "a[href*='wa.me']",
       ) as HTMLAnchorElement | null;
       if (!anchor || window.location.pathname.startsWith("/admin")) return;
-      trackMetaEvent("Contact", {
+      const eventId = generateMetaEventId("contact");
+      const eventParams = {
         contact_source: inferContactSource(anchor),
         destination: "whatsapp",
-      });
+      };
+      trackMetaEvent("Contact", eventParams, eventId);
+      void trackServerMetaEvent("Contact", eventParams, eventId);
     };
 
     document.addEventListener("click", onClick, true);

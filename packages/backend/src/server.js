@@ -72,6 +72,9 @@ const buildAdminCafeteriaProductsService = require("./services/adminCafeteriaPro
 const buildAdminCafeteriaProductsController = require("./controllers/adminCafeteriaProductsController");
 const createAdminCafeteriaProductsRouter = require("./routes/adminCafeteriaProducts");
 const buildMetaCapiService = require("./services/metaCapiService");
+const buildMetaTrackingService = require("./services/metaTrackingService");
+const buildMetaTrackingController = require("./controllers/metaTrackingController");
+const createMetaTrackingRouter = require("./routes/metaTracking");
 
 const initCafeteriaProductsConsumer = require("./consumers/cafeteriaProductsConsumer");
 const buildCafeteriaProductsService = require("./services/cafeteriaProductsService");
@@ -213,7 +216,12 @@ async function start() {
   const adminUsersController = buildAdminUsersController(adminUsersService);
   const adminUsersRouter = createAdminUsersRouter(adminUsersController);
 
+  const metaTrackingService = buildMetaTrackingService(metaCapiService);
+  const metaTrackingController = buildMetaTrackingController(metaTrackingService);
+  const metaTrackingRouter = createMetaTrackingRouter(metaTrackingController);
+
   app.use("/api/bookings", bookingsRouter);
+  app.use("/api/tracking", metaTrackingRouter);
   app.use("/api/rooms", roomsRouter);
   app.use("/api/rates", ratesRouter);
   app.use("/api/cafeteria/products", cafeteriaProductsRouter);

@@ -608,6 +608,18 @@ function buildBookingService(consumer, deps = {}) {
           isFirstTime: Boolean(isFirstTime),
           marketingConsent: trackingConsent.marketing,
           marketingConsentAt: trackingConsent.answeredAtMs,
+          tracking: trackingConsent.marketing
+            ? {
+                fbp: tracking?.fbp,
+                fbc: tracking?.fbc,
+                sourceUrl:
+                  tracking?.sourceUrl || options?.trackingContext?.sourceUrl || "",
+                userAgent: options?.trackingContext?.userAgent || "",
+                ip: options?.trackingContext?.ip || "",
+                leadEventId: tracking?.eventIds?.Lead,
+                scheduleEventId: tracking?.eventIds?.Schedule,
+              }
+            : null,
           reservationSource,
           outOfHours: isOutOfHours,
         });

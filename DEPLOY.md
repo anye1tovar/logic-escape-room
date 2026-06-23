@@ -30,6 +30,11 @@ Este repo es un monorepo con:
 - `META_TEST_EVENT_CODE`: código opcional para probar eventos en Events Manager.
 - `META_CAPI_API_VERSION`: versión opcional de Graph API (default `v20.0`).
 
+Notas de seguridad:
+
+- `META_CAPI_ACCESS_TOKEN` debe existir solo como variable de entorno del backend. No lo pegues en código, documentación, tickets, capturas, logs ni archivos versionados.
+- Si un token real se expone fuera del administrador de secretos del proveedor, rótalo en Meta Events Manager y actualiza la variable de entorno.
+
 ## Infraestructura actual
 
 - Frontend: Vercel.
