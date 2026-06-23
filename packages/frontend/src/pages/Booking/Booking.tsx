@@ -9,6 +9,7 @@ import Header from "../../components/layout/Header";
 import "./Booking.scss";
 import type { BookingStep1Output } from "../../components/booking/BookingStepSelection/BookingStepSelection";
 import type { BookingDetailsFormValues } from "../../components/booking/BookingStepDetails/BookingStepDetails";
+import { trackMetaEvent } from "../../lib/metaPixel";
 
 export default function Booking() {
   const { t } = useTranslation();
@@ -72,6 +73,14 @@ export default function Booking() {
     }
     setActiveStep(step);
   };
+
+  const buildBookingEventParams = (selection: BookingStep1Output) => ({
+    content_name: selection.roomName,
+    content_category: "booking",
+    date: selection.date,
+    booking_time: selection.slotStart,
+    num_items: selection.peopleCount,
+  });
 
   return (
     <div className="booking">
@@ -213,6 +222,10 @@ export default function Booking() {
               )}
               <BookingStepSelection
                 onComplete={(output) => {
+                  trackMetaEvent("AddToCart", {
+                    ...buildBookingEventParams(output),
+                    cart_source: "booking_selection",
+                  });
                   setStep1Data(output);
                   setStep2Data(null);
                   setReservationCode(null);
@@ -241,6 +254,12 @@ export default function Booking() {
               <BookingStepDetails
                 onBack={() => setActiveStep(1)}
                 onComplete={(output) => {
+                  if (step1Data) {
+                    trackMetaEvent("InitiateCheckout", {
+                      ...buildBookingEventParams(step1Data),
+                      checkout_source: "booking_details",
+                    });
+                  }
                   setStep2Data(output);
                   setActiveStep(3);
                 }}

@@ -1,8 +1,9 @@
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import type { BookingDetailsFormValues } from "../BookingStepDetails/BookingStepDetails";
 import type { BookingStep1Output } from "../BookingStepSelection/BookingStepSelection";
 import Button from "../../common/Button";
+import { trackMetaEvent } from "../../../lib/metaPixel";
 
 type BookingStepPaymentProps = {
   className?: string;
@@ -40,6 +41,7 @@ export default function BookingStepPayment({
   selection,
   details,
   reservationCode,
+  quoteTotal,
 }: BookingStepPaymentProps) {
   const { t } = useTranslation();
   const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -49,6 +51,7 @@ export default function BookingStepPayment({
   const [brebCopyState, setBrebCopyState] = useState<
     "idle" | "copied" | "failed"
   >("idle");
+  const trackedPaymentInfoRef = useRef(false);
 
   const consultCode = reservationCode;
 
@@ -71,6 +74,20 @@ export default function BookingStepPayment({
 
   const canShow =
     Boolean(selection) && Boolean(details) && Boolean(consultCode);
+
+  useEffect(() => {
+    if (!canShow || trackedPaymentInfoRef.current) return;
+    trackedPaymentInfoRef.current = true;
+    trackMetaEvent("AddPaymentInfo", {
+      content_name: selection?.roomName,
+      content_category: "booking",
+      currency: "COP",
+      value: typeof quoteTotal === "number" ? quoteTotal : undefined,
+      deposit_value: DEPOSIT_AMOUNT_COP,
+      payment_method: "BRE-B",
+      reservation_code: consultCode,
+    });
+  }, [canShow, consultCode, quoteTotal, selection?.roomName]);
 
   if (!canShow) return null;
 

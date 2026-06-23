@@ -338,6 +338,10 @@ export default function BookingStepSummary({
               };
               trackMetaEvent("Lead", eventParams, leadEventId);
               trackMetaEvent("Schedule", eventParams, scheduleEventId);
+              trackMetaEvent("CompleteRegistration", {
+                ...eventParams,
+                registration_status: "PENDING_RESERVATION",
+              });
 
               onReserved?.({
                 reservationCode,

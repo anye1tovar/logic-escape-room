@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import Button from "../../common/Button";
+import { trackMetaEvent } from "../../../lib/metaPixel";
 import "./Location.scss";
 
 const interactiveTourUrl = "https://view.genially.com/691f2119c3498b2b8303a23d";
@@ -37,6 +38,12 @@ const Location = () => {
               target="_blank"
               rel="noreferrer"
               className="location__link"
+              onClick={() => {
+                trackMetaEvent("FindLocation", {
+                  content_name: "Logic Escape Room Tunja",
+                  search_string: "Google Maps",
+                });
+              }}
             >
             {t("location.link", "Abrir en Google Maps ↗")}
             </a>
