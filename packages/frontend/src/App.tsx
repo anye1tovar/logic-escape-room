@@ -113,7 +113,6 @@ const MarketingTracker = () => {
     const trackPageView = () => {
       if (location.pathname.startsWith("/admin")) return;
       initMetaPixel();
-      trackMetaEvent("PageView");
 
       const viewContentEventId = generateMetaEventId("view-content");
       const contentName =

@@ -53,6 +53,11 @@ export function initMetaPixel() {
     return false;
   }
 
+  if (window.fbq) {
+    isPixelInitialized = true;
+    return true;
+  }
+
   const fbq: MetaPixelFunction = window.fbq || createFbqShim();
 
   if (!window.fbq) {
