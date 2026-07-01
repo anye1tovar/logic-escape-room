@@ -315,6 +315,8 @@ export default function BookingStepSelection({
         const searchParams = {
           search_string: date,
           content_category: "booking_availability",
+          value: 0,
+          currency: "COP",
           date,
           day_type: json.dayType || null,
           rooms_available_count: roomsAvailableCount,

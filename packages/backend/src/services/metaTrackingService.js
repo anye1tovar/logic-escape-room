@@ -15,6 +15,15 @@ function buildMetaTrackingService(metaCapiService) {
       return { skipped: true, reason: "no_consent" };
     }
 
+    const customData = { ...(input.customData || {}) };
+    if (eventName === "Search") {
+      const currency = String(customData.currency || "").trim().toUpperCase();
+      customData.currency = /^[A-Z]{3}$/.test(currency) ? currency : "COP";
+
+      const value = Number(customData.value);
+      customData.value = Number.isFinite(value) && value >= 0 ? value : 0;
+    }
+
     const event = metaCapiService.buildWebsiteEvent({
       eventName,
       eventId: input.eventId,
@@ -28,7 +37,7 @@ function buildMetaTrackingService(metaCapiService) {
         fbc: input?.tracking?.fbc,
       },
       userData: input.userData || {},
-      customData: input.customData || {},
+      customData,
     });
 
     return metaCapiService.sendEvents([event]);
