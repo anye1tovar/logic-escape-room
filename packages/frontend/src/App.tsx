@@ -165,6 +165,13 @@ const MarketingTracker = () => {
   return null;
 };
 
+const PublicFloatingWhatsAppButton = () => {
+  const { pathname } = useLocation();
+  const isAdminRoute = pathname === "/admin" || pathname.startsWith("/admin/");
+
+  return isAdminRoute ? null : <FloatingWhatsAppButton />;
+};
+
 function HomeContent() {
   const { t } = useTranslation();
 
@@ -228,7 +235,7 @@ function App() {
             <Route path="*" element={<NotFound />} />
           </Routes>
         </Suspense>
-        <FloatingWhatsAppButton />
+        <PublicFloatingWhatsAppButton />
         <CookieConsentBanner />
       </BrowserRouter>
     </ThemeProvider>
