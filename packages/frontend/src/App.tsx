@@ -48,6 +48,9 @@ const AdminTiming = lazy(() => import("./pages/Admin/Timing/AdminTiming"));
 const AdminCafeteriaProducts = lazy(
   () => import("./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts"),
 );
+const AdminFinancialAccounts = lazy(
+  () => import("./pages/Admin/FinancialAccounts/AdminFinancialAccounts"),
+);
 const AdminUsers = lazy(() => import("./pages/Admin/Users/AdminUsers"));
 
 const PageFallback = () => (
@@ -226,6 +229,10 @@ function App() {
               <Route path="cronometraje" element={<AdminTiming />} />
               <Route path="precios" element={<AdminRates />} />
               <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
+              <Route
+                path="cuentas-financieras"
+                element={<AdminFinancialAccounts />}
+              />
               <Route path="festivos" element={<AdminHolidays />} />
               <Route path="horarios" element={<AdminOpeningHours />} />
               <Route path="salas" element={<AdminRooms />} />

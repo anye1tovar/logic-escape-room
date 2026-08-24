@@ -255,6 +255,45 @@ async function initSchema() {
       AND product.category IS NOT NULL
       AND lower(trim(product.category)) = lower(trim(category.name));
   `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS financial_accounts (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      type TEXT NOT NULL,
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      available_for_customer_payments BOOLEAN NOT NULL DEFAULT TRUE,
+      reconciliation_enabled BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at BIGINT NOT NULL,
+      created_by INTEGER
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS financial_movements (
+      id SERIAL PRIMARY KEY,
+      financial_account_id INTEGER NOT NULL REFERENCES financial_accounts(id),
+      type TEXT NOT NULL,
+      amount INTEGER NOT NULL,
+      occurred_at BIGINT NOT NULL,
+      description TEXT,
+      source_type TEXT,
+      source_id TEXT,
+      created_by INTEGER,
+      created_at BIGINT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'ACTIVE'
+    );
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS financial_movements_account_occurred_idx
+    ON financial_movements (financial_account_id, occurred_at);
+  `);
+
+  await pool.query(`
+    CREATE INDEX IF NOT EXISTS financial_movements_type_idx
+    ON financial_movements (type);
+  `);
 }
 
 const ready = initSchema().catch((err) => {

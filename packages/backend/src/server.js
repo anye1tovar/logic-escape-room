@@ -19,11 +19,11 @@ const corsOptions =
     : undefined;
 
 // consumers, services, controllers
-const initBookingConsumer = require("./consumers/bookingConsumerSqlite");
+const initBookingConsumer = require("./consumers/bookingConsumer");
 const buildBookingService = require("./services/bookingService");
 const buildBookingController = require("./controllers/bookingController");
 const createBookingsRouter = require("./routes/bookings");
-const initUsersConsumer = require("./consumers/usersConsumerSqlite");
+const initUsersConsumer = require("./consumers/usersConsumer");
 const buildUsersService = require("./services/usersService");
 const buildUsersController = require("./controllers/usersController");
 const createUsersRouter = require("./routes/users");
@@ -32,45 +32,49 @@ const buildAuthController = require("./controllers/authController");
 const createAuthRouter = require("./routes/auth");
 const requireAuth = require("./middleware/requireAuth");
 const db = require("./db/initDb");
-const initAdminUsersConsumer = require("./consumers/adminUsersConsumerSqlite");
+const initAdminUsersConsumer = require("./consumers/adminUsersConsumer");
 const buildAdminUsersService = require("./services/adminUsersService");
 const buildAdminUsersController = require("./controllers/adminUsersController");
 const createAdminUsersRouter = require("./routes/adminUsers");
 
-const initAdminRoomsConsumer = require("./consumers/adminRoomsConsumerSqlite");
+const initAdminRoomsConsumer = require("./consumers/adminRoomsConsumer");
 const buildAdminRoomsService = require("./services/adminRoomsService");
 const buildAdminRoomsController = require("./controllers/adminRoomsController");
 const createAdminRoomsRouter = require("./routes/adminRooms");
 
-const initAdminRatesConsumer = require("./consumers/adminRatesConsumerSqlite");
+const initAdminRatesConsumer = require("./consumers/adminRatesConsumer");
 const buildAdminRatesService = require("./services/adminRatesService");
 const buildAdminRatesController = require("./controllers/adminRatesController");
 const createAdminRatesRouter = require("./routes/adminRates");
 
-const initAdminOpeningHoursConsumer = require("./consumers/adminOpeningHoursConsumerSqlite");
+const initAdminOpeningHoursConsumer = require("./consumers/adminOpeningHoursConsumer");
 const buildAdminOpeningHoursService = require("./services/adminOpeningHoursService");
 const buildAdminOpeningHoursController = require("./controllers/adminOpeningHoursController");
 const createAdminOpeningHoursRouter = require("./routes/adminOpeningHours");
 
-const initAdminHolidaysConsumer = require("./consumers/adminHolidaysConsumerSqlite");
+const initAdminHolidaysConsumer = require("./consumers/adminHolidaysConsumer");
 const buildAdminHolidaysService = require("./services/adminHolidaysService");
 const buildAdminHolidaysController = require("./controllers/adminHolidaysController");
 const createAdminHolidaysRouter = require("./routes/adminHolidays");
 
-const initAdminSettingsConsumer = require("./consumers/adminSettingsConsumerSqlite");
+const initAdminSettingsConsumer = require("./consumers/adminSettingsConsumer");
 const buildAdminSettingsService = require("./services/adminSettingsService");
 const buildAdminSettingsController = require("./controllers/adminSettingsController");
 const createAdminSettingsRouter = require("./routes/adminSettings");
 
-const initAdminReservationsConsumer = require("./consumers/adminReservationsConsumerSqlite");
+const initAdminReservationsConsumer = require("./consumers/adminReservationsConsumer");
 const buildAdminReservationsService = require("./services/adminReservationsService");
 const buildAdminReservationsController = require("./controllers/adminReservationsController");
 const createAdminReservationsRouter = require("./routes/adminReservations");
 
-const initAdminCafeteriaProductsConsumer = require("./consumers/adminCafeteriaProductsConsumerSqlite");
+const initAdminCafeteriaProductsConsumer = require("./consumers/adminCafeteriaProductsConsumer");
 const buildAdminCafeteriaProductsService = require("./services/adminCafeteriaProductsService");
 const buildAdminCafeteriaProductsController = require("./controllers/adminCafeteriaProductsController");
 const createAdminCafeteriaProductsRouter = require("./routes/adminCafeteriaProducts");
+const initAdminFinancialAccountsConsumer = require("./consumers/adminFinancialAccountsConsumer");
+const buildAdminFinancialAccountsService = require("./services/adminFinancialAccountsService");
+const buildAdminFinancialAccountsController = require("./controllers/adminFinancialAccountsController");
+const createAdminFinancialAccountsRouter = require("./routes/adminFinancialAccounts");
 const buildMetaCapiService = require("./services/metaCapiService");
 const buildMetaTrackingService = require("./services/metaTrackingService");
 const buildMetaTrackingController = require("./controllers/metaTrackingController");
@@ -115,13 +119,13 @@ async function start() {
 
   const cafeteriaProductsConsumer = await initCafeteriaProductsConsumer();
   const cafeteriaProductsService = buildCafeteriaProductsService(
-    cafeteriaProductsConsumer
+    cafeteriaProductsConsumer,
   );
   const cafeteriaProductsController = buildCafeteriaProductsController(
-    cafeteriaProductsService
+    cafeteriaProductsService,
   );
   const cafeteriaProductsRouter = createCafeteriaProductsRouter(
-    cafeteriaProductsController
+    cafeteriaProductsController,
   );
 
   // build layers (bookingConsumer is async to initialize)
@@ -165,50 +169,52 @@ async function start() {
 
   const adminOpeningHoursConsumer = await initAdminOpeningHoursConsumer();
   const adminOpeningHoursService = buildAdminOpeningHoursService(
-    adminOpeningHoursConsumer
+    adminOpeningHoursConsumer,
   );
   const adminOpeningHoursController = buildAdminOpeningHoursController(
-    adminOpeningHoursService
+    adminOpeningHoursService,
   );
   const adminOpeningHoursRouter = createAdminOpeningHoursRouter(
-    adminOpeningHoursController
+    adminOpeningHoursController,
   );
 
   const adminHolidaysConsumer = await initAdminHolidaysConsumer();
   const adminHolidaysService = buildAdminHolidaysService(adminHolidaysConsumer);
-  const adminHolidaysController = buildAdminHolidaysController(
-    adminHolidaysService
+  const adminHolidaysController =
+    buildAdminHolidaysController(adminHolidaysService);
+  const adminHolidaysRouter = createAdminHolidaysRouter(
+    adminHolidaysController,
   );
-  const adminHolidaysRouter = createAdminHolidaysRouter(adminHolidaysController);
 
   const adminSettingsConsumer = await initAdminSettingsConsumer();
   const adminSettingsService = buildAdminSettingsService(adminSettingsConsumer);
-  const adminSettingsController = buildAdminSettingsController(
-    adminSettingsService
+  const adminSettingsController =
+    buildAdminSettingsController(adminSettingsService);
+  const adminSettingsRouter = createAdminSettingsRouter(
+    adminSettingsController,
   );
-  const adminSettingsRouter = createAdminSettingsRouter(adminSettingsController);
 
   const adminReservationsConsumer = await initAdminReservationsConsumer();
   const adminReservationsService = buildAdminReservationsService(
     adminReservationsConsumer,
-    { bookingService, roomsService, metaCapiService }
+    { bookingService, roomsService, metaCapiService },
   );
   const adminReservationsController = buildAdminReservationsController(
-    adminReservationsService
+    adminReservationsService,
   );
   const adminReservationsRouter = createAdminReservationsRouter(
-    adminReservationsController
+    adminReservationsController,
   );
 
   const adminCafeteriaProductsConsumer =
     await initAdminCafeteriaProductsConsumer();
   const adminCafeteriaProductsService = buildAdminCafeteriaProductsService(
-    adminCafeteriaProductsConsumer
+    adminCafeteriaProductsConsumer,
   );
   const adminCafeteriaProductsController =
     buildAdminCafeteriaProductsController(adminCafeteriaProductsService);
   const adminCafeteriaProductsRouter = createAdminCafeteriaProductsRouter(
-    adminCafeteriaProductsController
+    adminCafeteriaProductsController,
   );
 
   const adminUsersConsumer = await initAdminUsersConsumer();
@@ -216,8 +222,20 @@ async function start() {
   const adminUsersController = buildAdminUsersController(adminUsersService);
   const adminUsersRouter = createAdminUsersRouter(adminUsersController);
 
+  const adminFinancialAccountsConsumer =
+    await initAdminFinancialAccountsConsumer();
+  const adminFinancialAccountsService = buildAdminFinancialAccountsService(
+    adminFinancialAccountsConsumer,
+  );
+  const adminFinancialAccountsController =
+    buildAdminFinancialAccountsController(adminFinancialAccountsService);
+  const adminFinancialAccountsRouter = createAdminFinancialAccountsRouter(
+    adminFinancialAccountsController,
+  );
+
   const metaTrackingService = buildMetaTrackingService(metaCapiService);
-  const metaTrackingController = buildMetaTrackingController(metaTrackingService);
+  const metaTrackingController =
+    buildMetaTrackingController(metaTrackingService);
   const metaTrackingRouter = createMetaTrackingRouter(metaTrackingController);
 
   app.use("/api/bookings", bookingsRouter);
@@ -235,7 +253,7 @@ async function start() {
       }
       return adminAuth(req, res, next);
     },
-    adminRoomsRouter
+    adminRoomsRouter,
   );
   app.use("/api/admin/rates", adminAuth, adminRatesRouter);
   app.use("/api/admin/opening-hours", adminAuth, adminOpeningHoursRouter);
@@ -244,13 +262,18 @@ async function start() {
   app.use(
     "/api/admin/reservations",
     adminOrGameMasterAuth,
-    adminReservationsRouter
+    adminReservationsRouter,
   );
   app.use("/api/admin/users", adminAuth, adminUsersRouter);
   app.use(
     "/api/admin/cafeteria-products",
     adminOrGameMasterAuth,
-    adminCafeteriaProductsRouter
+    adminCafeteriaProductsRouter,
+  );
+  app.use(
+    "/api/admin/financial-accounts",
+    adminAuth,
+    adminFinancialAccountsRouter,
   );
 
   app.get("/health", (req, res) => res.json({ ok: true }));

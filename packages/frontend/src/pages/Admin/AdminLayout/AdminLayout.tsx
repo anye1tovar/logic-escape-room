@@ -21,6 +21,11 @@ const navItems = [
     label: "Cafeteria",
     roles: ["admin", "game_master"],
   },
+  {
+    to: "/admin/dashboard/cuentas-financieras",
+    label: "Cuentas financieras",
+    roles: ["admin"],
+  },
   { to: "/admin/dashboard/precios", label: "Precios Salas", roles: ["admin"] },
   { to: "/admin/dashboard/festivos", label: "Festivos", roles: ["admin"] },
   {
