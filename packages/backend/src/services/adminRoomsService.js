@@ -17,16 +17,17 @@ function buildAdminRoomsService(consumer) {
       name,
       description: input?.description ?? null,
       theme: input?.theme ?? null,
+      coverImage: input?.coverImage ?? input?.cover_image ?? null,
       videoUrl: input?.videoUrl ?? input?.video_url ?? null,
       minPlayers: normalizeInt(input?.minPlayers ?? input?.min_players),
       maxPlayers: normalizeInt(input?.maxPlayers ?? input?.max_players),
       minAge: normalizeInt(input?.minAge ?? input?.min_age),
-      durationMinutes: normalizeInt(input?.durationMinutes ?? input?.duration_minutes),
+      durationMinutes: normalizeInt(
+        input?.durationMinutes ?? input?.duration_minutes,
+      ),
       difficulty: normalizeInt(input?.difficulty),
       active:
-        input?.active === 0 ||
-        input?.active === false ||
-        input?.active === "0"
+        input?.active === 0 || input?.active === false || input?.active === "0"
           ? 0
           : 1,
     };

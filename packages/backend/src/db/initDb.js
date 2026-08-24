@@ -26,6 +26,11 @@ async function initSchema() {
 
   await pool.query(`
     ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS cover_image TEXT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE rooms
     ADD COLUMN IF NOT EXISTS video_url TEXT;
   `);
 
