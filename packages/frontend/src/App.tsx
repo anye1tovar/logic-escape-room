@@ -15,7 +15,9 @@ import {
   trackServerMetaEvent,
 } from "./lib/metaPixel";
 import theme from "./theme";
-const Guidelines = lazy(() => import("./components/landing/Guidelines"));
+const EscapeRoomIntro = lazy(
+  () => import("./components/landing/EscapeRoomIntro"),
+);
 const Location = lazy(() => import("./components/landing/Location"));
 const Opinions = lazy(() => import("./components/landing/Opinions"));
 const Pricing = lazy(() => import("./components/landing/Pricing"));
@@ -185,15 +187,15 @@ function HomeContent() {
       <AnnouncementBar text={t("topHeader.announcement")} />
       <main>
         <Suspense fallback={<SectionFallback />}>
+          <EscapeRoomIntro />
+        </Suspense>
+        <Suspense fallback={<SectionFallback />}>
           <Rooms />
         </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <Pricing />
         </Suspense>
         <AnnouncementBar text={t("topHeader.announcement")} />
-        <Suspense fallback={<SectionFallback />}>
-          <Guidelines />
-        </Suspense>
         <Suspense fallback={<SectionFallback />}>
           <Opinions />
         </Suspense>

@@ -25,6 +25,8 @@ type ApiRoom = {
   image_url?: string;
   coverImage?: string;
   cover_image?: string;
+  videoUrl?: string;
+  video_url?: string;
   status?: string;
   badge?: string;
   active?: number;
@@ -42,6 +44,7 @@ type RoomDetail = {
   difficulty?: number | string;
   status?: "active" | "comingSoon";
   coverImage?: string;
+  videoUrl?: string;
   badge?: string;
   slug: string;
 };
@@ -72,6 +75,33 @@ const normalizeName = (value: string) =>
     .replace(/[^a-z0-9]+/g, "")
     .replace(/^-+|-+$/g, "");
 
+const normalizeYoutubeEmbedUrl = (value: string | undefined) => {
+  if (!value) return undefined;
+  const raw = value.trim();
+  if (!raw) return undefined;
+
+  try {
+    const url = new URL(raw);
+    if (url.hostname.includes("youtube.com")) {
+      if (url.pathname.startsWith("/embed/")) return raw;
+      if (url.pathname.startsWith("/shorts/")) {
+        const id = url.pathname.split("/").filter(Boolean)[1];
+        return id ? `https://www.youtube.com/embed/${id}` : undefined;
+      }
+      const id = url.searchParams.get("v");
+      return id ? `https://www.youtube.com/embed/${id}` : raw;
+    }
+    if (url.hostname === "youtu.be") {
+      const id = url.pathname.split("/").filter(Boolean)[0];
+      return id ? `https://www.youtube.com/embed/${id}` : undefined;
+    }
+  } catch {
+    return undefined;
+  }
+
+  return raw;
+};
+
 const normalizeRoom = (room: ApiRoom): RoomDetail => {
   const safeName = room.name || "Sala misteriosa";
   const slug = normalizeName(safeName);
@@ -101,6 +131,7 @@ const normalizeRoom = (room: ApiRoom): RoomDetail => {
       room.coverImage || room.cover_image || room.image || room.image_url,
       slug,
     ),
+    videoUrl: normalizeYoutubeEmbedUrl(room.videoUrl || room.video_url),
     badge: room.badge,
     slug,
   };
@@ -322,6 +353,18 @@ export default function RoomsDetail() {
                           </span>
                         </div>
                       </div>
+
+                      {room.videoUrl && (
+                        <div className="room-detail-card__video">
+                          <iframe
+                            src={room.videoUrl}
+                            title={`${t("rooms.videoTitle")} ${room.name}`}
+                            loading="lazy"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                            allowFullScreen
+                          />
+                        </div>
+                      )}
 
                       <div className="room-detail-card__footer">
                         {room.status === "comingSoon" ? (

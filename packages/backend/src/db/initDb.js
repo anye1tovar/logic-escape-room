@@ -19,8 +19,14 @@ async function initSchema() {
       duration_minutes INTEGER,
       difficulty INTEGER,
       active BOOLEAN NOT NULL DEFAULT TRUE,
-      cover_image TEXT
+      cover_image TEXT,
+      video_url TEXT
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE rooms
+    ADD COLUMN IF NOT EXISTS video_url TEXT;
   `);
 
   await pool.query(`

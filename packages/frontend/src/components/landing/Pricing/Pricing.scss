@@ -2,7 +2,7 @@
 
 .pricing {
   position: relative;
-  padding: 5rem $spacing-lg 4.5rem;
+  padding: 3.5rem $spacing-lg 4rem;
   background:
     radial-gradient(
       circle at 18% 18%,
@@ -37,11 +37,11 @@
   &__header {
     position: relative;
     display: grid;
-    grid-template-columns: 1.1fr 1fr;
-    gap: $spacing-xl;
+    grid-template-columns: 0.95fr 1fr;
+    gap: $spacing-lg;
     align-items: center;
-    padding: $spacing-lg;
-    border-radius: 20px;
+    padding: $spacing-md $spacing-lg;
+    border-radius: 14px;
     border: 1px solid rgba(255, 255, 255, 0.06);
     background: linear-gradient(
       135deg,
@@ -49,11 +49,11 @@
       rgba(255, 255, 255, 0)
     );
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
-    margin-bottom: $spacing-xl;
+    margin-bottom: $spacing-lg;
 
     @media (max-width: $tablet) {
       grid-template-columns: 1fr;
-      gap: $spacing-lg;
+      gap: $spacing-sm;
       padding: $spacing-md;
       margin-bottom: $spacing-md;
     }
@@ -62,26 +62,27 @@
   &__title-block {
     display: flex;
     flex-direction: column;
-    gap: $spacing-sm;
+    gap: $spacing-xs;
   }
 
   &__eyebrow {
     margin: 0;
     color: $secondary-color;
     letter-spacing: 0.12em;
-    font-size: 0.95rem;
+    font-size: 0.82rem;
   }
 
   &__title {
     margin: 0;
-    font-size: 3.5rem;
-    line-height: 0.95;
+    font-size: clamp(2.4rem, 4vw, 3.1rem);
+    line-height: 0.92;
     display: flex;
-    flex-direction: column;
-    gap: $spacing-xs;
+    flex-wrap: wrap;
+    column-gap: 0.28em;
+    row-gap: 0.1em;
 
     @media (max-width: $tablet) {
-      font-size: 3rem;
+      font-size: 2.5rem;
     }
   }
 
@@ -92,7 +93,7 @@
 
   &__lead {
     color: $text-light;
-    line-height: 1.7;
+    line-height: 1.45;
     display: flex;
     flex-direction: column;
     gap: $spacing-sm;
@@ -100,7 +101,7 @@
 
   &__lead-highlight {
     margin: 0;
-    font-size: 1.15rem;
+    font-size: 1rem;
     color: $secondary-color;
   }
 

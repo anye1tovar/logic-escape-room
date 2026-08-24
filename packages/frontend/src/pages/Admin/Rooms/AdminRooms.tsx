@@ -34,6 +34,7 @@ type RoomRow = {
   duration_minutes: number | null;
   difficulty: number | null;
   active: number | null;
+  video_url: string | null;
 };
 
 type FormState = {
@@ -46,6 +47,7 @@ type FormState = {
   durationMinutes: string;
   difficulty: string;
   active: "1" | "0";
+  videoUrl: string;
 };
 
 export default function AdminRooms() {
@@ -67,6 +69,7 @@ export default function AdminRooms() {
     durationMinutes: "",
     difficulty: "",
     active: "1",
+    videoUrl: "",
   });
   const [confirmDeleteId, setConfirmDeleteId] = useState<number | null>(null);
 
@@ -102,9 +105,10 @@ export default function AdminRooms() {
           durationMinutes: form.durationMinutes ? Number(form.durationMinutes) : null,
           difficulty: form.difficulty ? Number(form.difficulty) : null,
           active: form.active === "1" ? 1 : 0,
+          videoUrl: form.videoUrl || null,
         },
       });
-      setForm((s) => ({ ...s, name: "" }));
+      setForm((s) => ({ ...s, name: "", videoUrl: "" }));
       setStatus({ type: "success", message: "Sala creada." });
       await load();
     } catch {
@@ -127,6 +131,7 @@ export default function AdminRooms() {
           durationMinutes: row.duration_minutes,
           difficulty: row.difficulty,
           active: row.active ?? 1,
+          videoUrl: row.video_url,
         },
       });
       setStatus({ type: "success", message: "Sala actualizada." });
@@ -198,6 +203,14 @@ export default function AdminRooms() {
             label="Descripción"
             value={form.description}
             onChange={(e) => setForm((s) => ({ ...s, description: e.target.value }))}
+            size="small"
+            fullWidth
+          />
+          <TextField
+            label="Video YouTube"
+            value={form.videoUrl}
+            onChange={(e) => setForm((s) => ({ ...s, videoUrl: e.target.value }))}
+            placeholder="https://youtube.com/shorts/..."
             size="small"
             fullWidth
           />
@@ -281,6 +294,7 @@ export default function AdminRooms() {
                 <TableCell>Activa</TableCell>
                 <TableCell>Min/Max</TableCell>
                 <TableCell>Duración</TableCell>
+                <TableCell>Video</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
@@ -369,6 +383,22 @@ export default function AdminRooms() {
                     />
                   </TableCell>
                   <TableCell>
+                    <TextField
+                      value={r.video_url ?? ""}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === r.id
+                              ? { ...x, video_url: e.target.value || null }
+                              : x
+                          )
+                        )
+                      }
+                      placeholder="https://youtube.com/..."
+                      size="small"
+                    />
+                  </TableCell>
+                  <TableCell>
                     <Stack direction="row" spacing={1}>
                       <Button
                         variant="contained"
@@ -391,7 +421,7 @@ export default function AdminRooms() {
               ))}
               {sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>Sin registros.</TableCell>
+                  <TableCell colSpan={6}>Sin registros.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

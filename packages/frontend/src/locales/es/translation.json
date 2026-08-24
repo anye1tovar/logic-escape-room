@@ -2,12 +2,12 @@
   "header": {
     "menu": ["Inicio", "Salas", "Nosotros", "Precios", "Contacto", "Cafetería"],
     "checkBooking": "Consultar reserva",
-    "bookNow": "Reservar Ahora",
+    "bookNow": "Reservar",
     "logo": "Logic Escape"
   },
   "topHeader": {
     "announcement": "Explora nuestras salas de escape y vive una aventura donde cada detalle importa. Encuentra códigos, resuelve acertijos y demuestra tu ingenio... ¿Listo para escapar?",
-    "bookNow": "Reservar ahora",
+    "bookNow": "Reservar",
     "closeAria": "Cerrar anuncio"
   },
   "hero": {
@@ -18,10 +18,11 @@
       "Una aventura única",
       "Un reto inolvidable"
     ],
-    "description": "Vive 60 minutos de pistas, acertijos y suspenso con tu equipo. Ven en pareja, amigos, familia o celebra tu cumpleaños.",
-    "descriptionHighlight": "¿Lograrán escapar antes de que el tiempo termine?",
+    "description": "Cruza la puerta, despierta tu curiosidad y vive una aventura que solo se entiende cuando el reloj empieza a correr.",
+    "descriptionHighlight": "",
     "reserve": "Ver disponibilidad",
-    "viewRooms": "Ver salas y precios",
+    "viewRooms": "Explora los juegos",
+    "whatIsEscapeRoom": "¿Qué es un escape room?",
     "tourInteractive": "Tour interactivo (video)",
     "stats": {
       "teams": "Equipos victoriosos",
@@ -38,6 +39,12 @@
       "60 minutos para escapar",
       "Sesión de fotos final"
     ]
+  },
+  "escapeIntro": {
+    "eyebrow": "Antes de entrar",
+    "title": "¿Qué es un escape room?",
+    "copy": "Es una experiencia inmersiva en vivo: tu equipo entra a una sala temática, encuentra pistas, resuelve enigmas y toma decisiones bajo presión para completar la misión antes de que el tiempo se agote.",
+    "videoTitle": "Video explicativo de escape room"
   },
   "guidelines": {
     "title": "Debes tener en cuenta",
@@ -83,8 +90,10 @@
       "anyAge": "Todas las edades"
     },
     "actions": {
-      "book": "Reservar"
+      "book": "Reservar",
+      "explore": "Explorar"
     },
+    "videoTitle": "Video de la sala",
     "loading": "Cargando salas...",
     "loadError": "No pudimos cargar las salas. Por favor intenta en unos minutos. Mientras solucionamos el error, escríbenos al WhatsApp para darte la información.",
     "whatsappCta": "Contactanos directamente",
@@ -117,7 +126,7 @@
   },
   "opinions": {
     "eyebrow": "Testimonios",
-    "title": "Opiniones de nuestros usuarios",
+    "title": "Opiniones",
     "lead": "Historias reales de grupos que ya vivieron la experiencia Logic.",
     "actions": {
       "viewAll": "Ver todas en Google Reviews ↗",
@@ -134,7 +143,6 @@
       "line2": "TARIFAS"
     },
     "lead": [
-      "Entre más grande el grupo, menor el valor por persona.",
       "Incluye 60 minutos de juego, explicación inicial y fotos finales."
     ],
     "weekday": {
@@ -348,8 +356,8 @@
     },
     "page": {
       "eyebrow": "Elige cuándo quieres venir",
-      "titleLine1": "Consulta",
-      "titleLine2": "Disponiblidad",
+      "titleLine1": "Ver disponibilidad",
+      "titleLine2": "y reservar",
       "subtitle": "Elige una fecha y encuentra tu horario ideal.",
       "haveCode": "¿Ya tienes un código?",
       "consultLink": "Consultar estado de reserva",
@@ -365,7 +373,7 @@
     },
     "steps": {
       "selection": {
-        "title": "Selección",
+        "title": "Elige sala y hora",
         "desc": "Sala, fecha y hora"
       },
       "details": {

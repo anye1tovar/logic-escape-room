@@ -2,7 +2,7 @@
 
 .opinions {
   position: relative;
-  padding: 5.5rem $spacing-lg;
+  padding: 3.5rem $spacing-lg 4rem;
   background: radial-gradient(
       circle at 12% 12%,
       rgba(239, 187, 61, 0.12),
@@ -42,13 +42,13 @@
     margin: 0 auto;
     display: flex;
     flex-direction: column;
-    gap: $spacing-xl;
+    gap: $spacing-lg;
   }
 
   &__header {
     display: flex;
     flex-direction: column;
-    gap: $spacing-sm;
+    gap: $spacing-xs;
     align-items: center;
     text-align: center;
   }
@@ -57,19 +57,24 @@
     margin: 0;
     color: $secondary-color;
     letter-spacing: 0.12em;
+    font-size: 0.82rem;
     font-weight: 800;
+    text-transform: uppercase;
   }
 
   h2 {
     margin: 0;
-    letter-spacing: 0.04em;
+    font-size: clamp(2.4rem, 4vw, 3.1rem);
+    line-height: 0.92;
+    letter-spacing: 0;
   }
 
   &__lead {
     margin: 0;
     max-width: 780px;
-    font-family: "Indie Flower", "Comic Sans MS", "Segoe UI", cursive;
-
+    font-family: "Nunito", "Segoe UI", sans-serif;
+    font-size: 1rem;
+    line-height: 1.45;
     color: rgba(255, 255, 255, 0.9);
   }
 

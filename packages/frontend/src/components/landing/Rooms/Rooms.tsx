@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import PersonRoundedIcon from "@mui/icons-material/PersonRounded";
 import { fetchRooms } from "../../../api/rooms";
 import "./Rooms.scss";
 import Button from "../../common/Button";
@@ -258,6 +259,10 @@ const Rooms = () => {
 
                 {playersLabel(room) && (
                   <span className="room-card-compact__meta-item">
+                    <PersonRoundedIcon
+                      className="room-card-compact__meta-icon"
+                      aria-hidden="true"
+                    />
                     {playersLabel(room)}
                   </span>
                 )}
@@ -285,7 +290,7 @@ const Rooms = () => {
                       className="room-card-compact__btn room-card-compact__btn--secondary"
                       size="sm"
                     >
-                      Ver sala
+                      {t("rooms.actions.explore")}
                     </Button>
                     <Button
                       to="/reservar"

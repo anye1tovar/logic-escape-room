@@ -402,16 +402,10 @@ export default function BookingStepSelection({
         <h2 className="booking-step__title">
           1. {t("booking.steps.selection.title")}
         </h2>
-        <p className="booking-step__subtitle">
-          {t("booking.selection.subtitle")}
-        </p>
       </header>
 
       <div className="booking-step__content">
         <div className="booking-form__section booking-form__section--selection">
-          <h3 className="booking-form__section-title">
-            {t("booking.selection.dateSectionTitle")}
-          </h3>
           <div className="booking-form__field">
             <span className="booking-form__label">
               {t("booking.selection.selectDateLabel")}

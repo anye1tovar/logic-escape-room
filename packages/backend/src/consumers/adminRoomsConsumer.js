@@ -7,13 +7,14 @@ async function listRooms() {
 
 async function createRoom(payload) {
   const result = await db.query(
-    `INSERT INTO rooms (name, description, theme, min_players, max_players, min_age, duration_minutes, difficulty, active)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+    `INSERT INTO rooms (name, description, theme, video_url, min_players, max_players, min_age, duration_minutes, difficulty, active)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
      RETURNING id;`,
     [
       payload.name,
       payload.description ?? null,
       payload.theme ?? null,
+      payload.videoUrl ?? null,
       payload.minPlayers ?? null,
       payload.maxPlayers ?? null,
       payload.minAge ?? null,
@@ -28,12 +29,13 @@ async function createRoom(payload) {
 async function updateRoom(id, payload) {
   const result = await db.query(
     `UPDATE rooms
-     SET name = $1, description = $2, theme = $3, min_players = $4, max_players = $5, min_age = $6, duration_minutes = $7, difficulty = $8, active = $9
-     WHERE id = $10;`,
+     SET name = $1, description = $2, theme = $3, video_url = $4, min_players = $5, max_players = $6, min_age = $7, duration_minutes = $8, difficulty = $9, active = $10
+     WHERE id = $11;`,
     [
       payload.name,
       payload.description ?? null,
       payload.theme ?? null,
+      payload.videoUrl ?? null,
       payload.minPlayers ?? null,
       payload.maxPlayers ?? null,
       payload.minAge ?? null,

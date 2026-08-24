@@ -197,12 +197,7 @@ const Pricing = () => {
           transition={{ duration: 0.6, delay: 0.1 }}
         >
           {leadLines.map((line, idx) => (
-            <p
-              key={`${line}-${idx}`}
-              className={idx === 0 ? "pricing__lead-highlight" : undefined}
-            >
-              {line}
-            </p>
+            <p key={`${line}-${idx}`}>{line}</p>
           ))}
           {error && (
             <div className="pricing__error-container">

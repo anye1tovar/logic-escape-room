@@ -1,18 +1,12 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
 import "./Hero.scss";
-import { useNavigate } from "react-router-dom";
 import Button from "../../common/Button";
 
 const heroBackground = "/landing/logic-escape-room-hero.webp";
 
 const Hero = () => {
   const { t } = useTranslation();
-  const navigate = useNavigate();
-  const openBooking = () => {
-    navigate("/reservar");
-  };
-
   const titleHighlights = t("hero.titleHighlights", {
     returnObjects: true,
   }) as string[];
@@ -20,8 +14,6 @@ const Hero = () => {
     Array.isArray(titleHighlights) && titleHighlights.length > 0
       ? titleHighlights[0]
       : t("hero.titlePrefix");
-  const leadHighlight = t("hero.descriptionHighlight");
-  const leadParts = t("hero.description").split(leadHighlight);
 
   return (
     <section className="hero" id="home">
@@ -57,10 +49,7 @@ const Hero = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 1, delay: 0.35, ease: "easeOut" }}
           >
-            {leadParts[0]}
-            <br />
-            <span className="hero__lead-highlight">{leadHighlight}</span>
-            {leadParts[1]}
+            {t("hero.description")}
           </motion.p>
 
           <motion.div
@@ -70,20 +59,20 @@ const Hero = () => {
             transition={{ duration: 0.9, delay: 0.45 }}
           >
             <Button
-              className="hero__button"
-              variant="sun"
-              pill
-              onClick={() => openBooking()}
-            >
-              {t("hero.reserve")}
-            </Button>
-            <Button
               href="#rooms"
-              className="hero__button--interactive"
-              variant="interactive"
+              className="hero__button hero__button--featured"
+              variant="sun"
               pill
             >
               {t("hero.viewRooms")}
+            </Button>
+            <Button
+              href="#what-is-escape-room"
+              className="hero__button hero__button--secondary"
+              variant="interactive"
+              pill
+            >
+              {t("hero.whatIsEscapeRoom")}
             </Button>
           </motion.div>
         </motion.div>

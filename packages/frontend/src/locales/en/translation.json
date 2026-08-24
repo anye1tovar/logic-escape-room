@@ -18,10 +18,11 @@
       "A Unique Adventure",
       "An Unforgettable Challenge"
     ],
-    "description": "Immerse yourself in a world of puzzles, mysteries and teamwork.",
-    "descriptionHighlight": "Do you have what it takes to escape in 60 minutes?",
+    "description": "Step through the door, follow your curiosity, and live an adventure that only makes sense once the clock starts running.",
+    "descriptionHighlight": "",
     "reserve": "Reserve Now",
-    "viewRooms": "View Rooms",
+    "viewRooms": "Explore the games",
+    "whatIsEscapeRoom": "What is an escape room?",
     "tourInteractive": "Interactive tour (video)",
     "stats": {
       "teams": "Teams Escaped",
@@ -38,6 +39,12 @@
       "60 minutes to escape",
       "Final photo session"
     ]
+  },
+  "escapeIntro": {
+    "eyebrow": "Before you enter",
+    "title": "What is an escape room?",
+    "copy": "It is a live immersive experience: your team enters a themed room, finds clues, solves puzzles, and makes decisions under pressure to complete the mission before time runs out.",
+    "videoTitle": "Escape room explainer video"
   },
   "guidelines": {
     "title": "Things you must know",
@@ -90,8 +97,10 @@
       "anyAge": "All ages"
     },
     "actions": {
-      "book": "Book now"
+      "book": "Book now",
+      "explore": "Explore"
     },
+    "videoTitle": "Room video",
     "loading": "Loading rooms...",
     "loadError": "We couldn't load the rooms. Showing our favorites.",
     "emptyFallback": "Showing our favorites.",
@@ -351,8 +360,8 @@
     },
     "page": {
       "eyebrow": "Bookings",
-      "titleLine1": "Book your",
-      "titleLine2": "Experience",
+      "titleLine1": "Check availability",
+      "titleLine2": "and book",
       "subtitle": "Complete the process in 4 steps: selection, details, summary, and payment with confirmation.",
       "haveCode": "Already have a code?",
       "consultLink": "Check booking status",
@@ -368,7 +377,7 @@
     },
     "steps": {
       "selection": {
-        "title": "Selection",
+        "title": "Pick room and time",
         "desc": "Room, date and time"
       },
       "details": {

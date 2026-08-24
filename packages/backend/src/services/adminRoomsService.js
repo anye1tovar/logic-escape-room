@@ -17,6 +17,7 @@ function buildAdminRoomsService(consumer) {
       name,
       description: input?.description ?? null,
       theme: input?.theme ?? null,
+      videoUrl: input?.videoUrl ?? input?.video_url ?? null,
       minPlayers: normalizeInt(input?.minPlayers ?? input?.min_players),
       maxPlayers: normalizeInt(input?.maxPlayers ?? input?.max_players),
       minAge: normalizeInt(input?.minAge ?? input?.min_age),
@@ -78,4 +79,3 @@ function buildAdminRoomsService(consumer) {
 }
 
 module.exports = buildAdminRoomsService;
-

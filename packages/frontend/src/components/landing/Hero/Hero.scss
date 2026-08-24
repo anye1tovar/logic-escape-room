@@ -1,10 +1,12 @@
-@use "sass:color";
 @use "../../../assets/styles/variables.scss" as *;
 
 .hero {
   position: relative;
   overflow: hidden;
-  padding: calc(6rem + 56px) $spacing-xl 5rem;
+  min-height: 100svh;
+  display: flex;
+  align-items: center;
+  padding: calc(5rem + 56px) $spacing-xl 5rem;
   background:
     radial-gradient(
       circle at 20% 20%,
@@ -34,11 +36,13 @@
   }
 
   @media (max-width: $tablet) {
-    padding: calc(5rem + 48px) $spacing-lg 4rem;
+    min-height: 92svh;
+    padding: calc(5.5rem + 48px) $spacing-lg 4.25rem;
   }
 
   @media (max-width: $mobile) {
-    padding: calc(4rem + 40px) $spacing-md 3rem;
+    min-height: 94svh;
+    padding: calc(5.25rem + 40px) $spacing-md 3.75rem;
   }
 
   &__grid {
@@ -49,6 +53,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
+    flex: 1;
 
     @media (max-width: $mobile) {
       gap: $spacing-md;
@@ -150,6 +155,7 @@
     gap: $spacing-sm;
     align-items: center;
     justify-content: center;
+    width: min(680px, 100%);
 
     @media (max-width: $tablet) {
       justify-content: center;
@@ -170,40 +176,31 @@
       2px
     );
     min-height: 3.25rem;
+    flex: 0 0 auto;
     text-align: center;
+    white-space: nowrap;
 
-    &--primary {
-      @include button-primary(
-        $text-dark,
-        $secondary-color,
-        color.adjust($secondary-color, $lightness: 12%)
-      );
-    }
-
-    &--ghost {
-      @include button-ghost(rgba($text-light, 0.2), transparent);
+    &--featured {
+      box-shadow:
+        0 14px 34px rgba($secondary-color, 0.28),
+        0 0 0 1px rgba(255, 255, 255, 0.08) inset;
 
       &:hover {
-        border-color: $primary-color;
+        transform: translateY(-3px);
+        box-shadow:
+          0 18px 42px rgba($secondary-color, 0.34),
+          0 0 0 1px rgba(255, 255, 255, 0.12) inset;
       }
     }
 
-    &--interactive {
-      @include button-base(
-        $button-font-size-sm,
-        $button-font-weight,
-        999px,
-        0.72rem,
-        1.05rem,
-        1px
-      );
+    &--secondary {
       @include button-ghost(
         rgba($primary-color, 0.55),
         rgba($primary-color, 0.14)
       );
       background: rgba($primary-color, 0.14);
       color: $text-light;
-      min-height: 2.65rem;
+      min-height: 3.25rem;
       box-shadow: 0 8px 20px rgba($primary-color, 0.2);
 
       &:hover {
@@ -212,12 +209,12 @@
       }
 
       @media (max-width: $mobile) {
-        width: 100%;
+        max-width: 100%;
       }
     }
 
     @media (max-width: $mobile) {
-      width: 100%;
+      max-width: 100%;
     }
   }
 
