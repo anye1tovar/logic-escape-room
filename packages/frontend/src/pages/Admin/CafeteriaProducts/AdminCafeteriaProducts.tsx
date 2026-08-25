@@ -1057,6 +1057,9 @@ function ProductForm({
         label="Imagen (nombre de archivo)"
         value={form.image}
         onChange={(e) =>
+          setForm((s) => ({ ...s, image: e.target.value }))
+        }
+        onBlur={(e) =>
           setForm((s) => ({ ...s, image: fileNameOnly(e.target.value) }))
         }
         placeholder="Aromatica.webp"
@@ -1111,6 +1114,9 @@ function CategoryForm({
           label="Imagen de categoria (nombre de archivo)"
           value={form.image}
           onChange={(e) =>
+            setForm((s) => ({ ...s, image: e.target.value }))
+          }
+          onBlur={(e) =>
             setForm((s) => ({ ...s, image: fileNameOnly(e.target.value) }))
           }
           placeholder="bebidas-calientes.webp"

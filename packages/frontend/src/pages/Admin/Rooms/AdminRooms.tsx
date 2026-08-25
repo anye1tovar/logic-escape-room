@@ -503,6 +503,9 @@ function RoomForm({
           label="Imagen (nombre de archivo)"
           value={form.coverImage}
           onChange={(e) =>
+            setForm((s) => ({ ...s, coverImage: e.target.value }))
+          }
+          onBlur={(e) =>
             setForm((s) => ({ ...s, coverImage: fileNameOnly(e.target.value) }))
           }
           placeholder="portal.webp"
