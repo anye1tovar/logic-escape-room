@@ -11,6 +11,13 @@ function buildAdminCafeteriaProductsService(consumer) {
     return text ? text : null;
   }
 
+  function normalizeTime(value) {
+    const text = normalizeText(value);
+    if (!text) return null;
+    const match = text.match(/^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/);
+    return match ? `${match[1]}:${match[2]}` : null;
+  }
+
   function slugify(value) {
     return String(value || "")
       .trim()
@@ -158,6 +165,77 @@ function buildAdminCafeteriaProductsService(consumer) {
     return { ok: true };
   }
 
+  async function listPromotions() {
+    return consumer.listPromotions();
+  }
+
+  async function createPromotion(input) {
+    const name = String(input?.name || "").trim();
+    const promotionalPrice = normalizeInt(input?.promotionalPrice);
+    const rawItems = Array.isArray(input?.items) ? input.items : [];
+    const items = rawItems.map((item) => ({
+      productId: normalizeInt(item?.productId),
+      quantity: normalizeInt(item?.quantity) ?? 1,
+    }));
+    const productIds = items.map((item) => item.productId);
+    const uniqueProductIds = new Set(productIds);
+    const rawDaysOfWeek = Array.isArray(input?.daysOfWeek)
+      ? input.daysOfWeek
+      : [];
+    const daysOfWeek = rawDaysOfWeek.map((day) => normalizeInt(day));
+    const uniqueDaysOfWeek = new Set(daysOfWeek);
+    const startsTime = normalizeTime(input?.startsTime);
+    const endsTime = normalizeTime(input?.endsTime);
+    const hasRawTime =
+      normalizeText(input?.startsTime) != null ||
+      normalizeText(input?.endsTime) != null;
+    if (
+      !name ||
+      promotionalPrice == null ||
+      promotionalPrice < 0 ||
+      !items.length ||
+      items.some((item) => !item.productId || item.quantity <= 0) ||
+      uniqueProductIds.size !== productIds.length ||
+      daysOfWeek.some((day) => day == null || day < 0 || day > 6) ||
+      uniqueDaysOfWeek.size !== daysOfWeek.length ||
+      (hasRawTime && (!startsTime || !endsTime)) ||
+      (startsTime && endsTime && startsTime >= endsTime)
+    ) {
+      const err = new Error("name, promotionalPrice and items are required");
+      err.status = 400;
+      throw err;
+    }
+    return consumer.createPromotion({
+      name,
+      description: normalizeText(input?.description),
+      promotionalPrice,
+      active: input?.active === false || input?.active === 0 ? 0 : 1,
+      startsAt: normalizeText(input?.startsAt),
+      endsAt: normalizeText(input?.endsAt),
+      daysOfWeek,
+      startsTime,
+      endsTime,
+      sortOrder: normalizeInt(input?.sortOrder) ?? 0,
+      items,
+    });
+  }
+
+  async function deletePromotion(id) {
+    const promotionId = normalizeInt(id);
+    if (!promotionId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const res = await consumer.deletePromotion(promotionId);
+    if (!res?.changes) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return { ok: true };
+  }
+
   return {
     listProducts,
     createProduct,
@@ -167,6 +245,9 @@ function buildAdminCafeteriaProductsService(consumer) {
     createCategory,
     updateCategory,
     deleteCategory,
+    listPromotions,
+    createPromotion,
+    deletePromotion,
   };
 }
 

@@ -50,6 +50,9 @@ const AdminTiming = lazy(() => import("./pages/Admin/Timing/AdminTiming"));
 const AdminCafeteriaProducts = lazy(
   () => import("./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts"),
 );
+const AdminCafeteriaPromotions = lazy(
+  () => import("./pages/Admin/CafeteriaPromotions/AdminCafeteriaPromotions"),
+);
 const AdminFinancialAccounts = lazy(
   () => import("./pages/Admin/FinancialAccounts/AdminFinancialAccounts"),
 );
@@ -231,6 +234,10 @@ function App() {
               <Route path="cronometraje" element={<AdminTiming />} />
               <Route path="precios" element={<AdminRates />} />
               <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
+              <Route
+                path="cafeteria/promociones"
+                element={<AdminCafeteriaPromotions />}
+              />
               <Route
                 path="cuentas-financieras"
                 element={<AdminFinancialAccounts />}

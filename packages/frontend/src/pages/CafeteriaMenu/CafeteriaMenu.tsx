@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import {
+  fetchCafeteriaPromotions,
   fetchCafeteriaProducts,
+  type CafeteriaPromotion,
   type CafeteriaProduct,
 } from "../../api/cafeteria";
 import { buildLogicWhatsAppUrl } from "../../utils/support";
@@ -11,6 +13,7 @@ type CafeteriaCategory = {
   key: string;
   label: string;
   items: CafeteriaProduct[];
+  promotions?: CafeteriaPromotion[];
 };
 
 function formatCurrency(value: number, currency: string, locale: string) {
@@ -31,11 +34,35 @@ function buildCategoryKey(label: string) {
   );
 }
 
+function countPromotionUnits(items: CafeteriaPromotion["items"]) {
+  return items.reduce((total, item) => total + item.quantity, 0);
+}
+
+function formatPromotionItems(items: CafeteriaPromotion["items"]) {
+  return items.map((item) => `${item.quantity}x ${item.name}`).join(", ");
+}
+
+function formatPromotionSchedule(promotion: CafeteriaPromotion) {
+  const dayLabels = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+  const days = promotion.daysOfWeek?.length
+    ? promotion.daysOfWeek
+        .map((day) => dayLabels[day])
+        .filter(Boolean)
+        .join(", ")
+    : "";
+  const hours =
+    promotion.startsTime || promotion.endsTime
+      ? `${promotion.startsTime || "00:00"} - ${promotion.endsTime || "23:59"}`
+      : "";
+  return [days, hours].filter(Boolean).join(" ");
+}
+
 export default function CafeteriaMenu() {
   const { t, i18n } = useTranslation();
   const [activeCategory, setActiveCategory] = useState<string>("");
   const [searchTerm, setSearchTerm] = useState("");
   const [products, setProducts] = useState<CafeteriaProduct[]>([]);
+  const [promotions, setPromotions] = useState<CafeteriaPromotion[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const filtersRef = useRef<HTMLDivElement | null>(null);
@@ -52,10 +79,11 @@ export default function CafeteriaMenu() {
     setLoading(true);
     setError(null);
 
-    fetchCafeteriaProducts()
-      .then((rows) => {
+    Promise.all([fetchCafeteriaProducts(), fetchCafeteriaPromotions()])
+      .then(([rows, promotionRows]) => {
         if (cancelled) return;
         setProducts(Array.isArray(rows) ? rows : []);
+        setPromotions(Array.isArray(promotionRows) ? promotionRows : []);
       })
       .catch((err: unknown) => {
         if (cancelled) return;
@@ -102,12 +130,24 @@ export default function CafeteriaMenu() {
       byLabel.set(label, list);
     }
 
-    return Array.from(byLabel.entries()).map(([label, items]) => ({
-      key: buildCategoryKey(label),
-      label: label || t("cafeteria.uncategorized", "Otros"),
-      items,
-    }));
-  }, [products, t]);
+    const productCategories = Array.from(byLabel.entries()).map(
+      ([label, items]) => ({
+        key: buildCategoryKey(label),
+        label: label || t("cafeteria.uncategorized", "Otros"),
+        items,
+      }),
+    );
+    if (!promotions.length) return productCategories;
+    return [
+      {
+        key: "promociones",
+        label: t("cafeteria.promotions.title", "Promociones"),
+        items: [],
+        promotions,
+      },
+      ...productCategories,
+    ];
+  }, [products, promotions, t]);
 
   const visibleCategories = useMemo<CafeteriaCategory[]>(() => {
     const query = searchTerm.trim().toLowerCase();
@@ -123,8 +163,18 @@ export default function CafeteriaMenu() {
             .toLowerCase();
           return searchable.includes(query);
         }),
+        promotions: category.promotions?.filter((promotion) => {
+          const searchable = [promotion.name, promotion.description]
+            .filter(Boolean)
+            .join(" ")
+            .toLowerCase();
+          return searchable.includes(query);
+        }),
       }))
-      .filter((category) => category.items.length > 0);
+      .filter(
+        (category) =>
+          category.items.length > 0 || (category.promotions?.length ?? 0) > 0,
+      );
   }, [categories, searchTerm]);
 
   const availableCount = useMemo(
@@ -327,79 +377,179 @@ export default function CafeteriaMenu() {
                     ?.categoryImage || featuredImageSrc;
 
                 return (
-                <section
-                  key={section.key}
-                  className={`cafeteria-menu__section ${
-                    activeCategory === section.key
-                      ? "cafeteria-menu__section--active"
-                      : ""
-                  }`}
-                  data-category-key={section.key}
-                  ref={registerSectionRef(section.key)}
-                >
-                  <div className="cafeteria-menu__section-paper">
-                    <header className="cafeteria-menu__section-header">
-                      <div className="cafeteria-menu__section-cover">
-                        <img src={sectionImage} alt="" loading="lazy" />
-                      </div>
-                      <div className="cafeteria-menu__section-heading">
-                        <h2 className="cafeteria-menu__section-title">
-                          {sectionTitle}
-                        </h2>
-                        <p className="cafeteria-menu__section-subtitle">
-                          {t("cafeteria.itemsCount", {
-                            count: section.items.length,
-                          })}
-                        </p>
-                      </div>
-                    </header>
-                    <div className="cafeteria-menu__cards">
-                      {section.items.map((item) => (
-                        <article
-                          key={item.name}
-                          className={`cafeteria-menu__card ${
-                            item.available === false
-                              ? "cafeteria-menu__card--disabled"
-                              : ""
-                          }`}
-                        >
-                          <div
-                            className="cafeteria-menu__thumb"
-                            aria-hidden="true"
+                  <section
+                    key={section.key}
+                    className={`cafeteria-menu__section ${
+                      activeCategory === section.key
+                        ? "cafeteria-menu__section--active"
+                        : ""
+                    }`}
+                    data-category-key={section.key}
+                    ref={registerSectionRef(section.key)}
+                  >
+                    <div className="cafeteria-menu__section-paper">
+                      <header className="cafeteria-menu__section-header">
+                        <div className="cafeteria-menu__section-cover">
+                          <img src={sectionImage} alt="" loading="lazy" />
+                        </div>
+                        <div className="cafeteria-menu__section-heading">
+                          <h2 className="cafeteria-menu__section-title">
+                            {sectionTitle}
+                          </h2>
+                          <p className="cafeteria-menu__section-subtitle">
+                            {section.promotions
+                              ? t(
+                                  "cafeteria.promotions.subtitle",
+                                  "Ofertas especiales",
+                                )
+                              : t("cafeteria.itemsCount", {
+                                  count: section.items.length,
+                                })}
+                          </p>
+                        </div>
+                      </header>
+                      <div className="cafeteria-menu__cards">
+                        {section.promotions?.map((promotion) => (
+                          <article
+                            key={promotion.id}
+                            className="cafeteria-menu__card cafeteria-menu__card--promotion"
                           >
-                            {item.image ? (
-                              <img src={item.image} alt="" loading="lazy" />
-                            ) : (
-                              <span>{item.name.slice(0, 1)}</span>
-                            )}
-                          </div>
-                          <div className="cafeteria-menu__content">
-                            <div className="cafeteria-menu__card-top">
-                              <h3 className="cafeteria-menu__item-name">
-                                {item.name}
-                              </h3>
-                              <div className="cafeteria-menu__item-right">
-                                {item.available === false && (
-                                  <span className="cafeteria-menu__badge">
-                                    {t("cafeteria.labels.unavailable")}
-                                  </span>
+                            <div
+                              className="cafeteria-menu__promotion-collage"
+                              aria-hidden="true"
+                            >
+                              {promotion.items
+                                .slice(0, 4)
+                                .map((item) =>
+                                  item.image ? (
+                                    <img
+                                      key={item.name}
+                                      src={item.image}
+                                      alt=""
+                                      loading="lazy"
+                                    />
+                                  ) : null,
                                 )}
-                                <span className="cafeteria-menu__item-price">
-                                  {formatCurrency(item.price, currency, locale)}
-                                </span>
-                              </div>
                             </div>
-                            {item.description && (
-                              <p className="cafeteria-menu__item-desc">
-                                {item.description}
-                              </p>
-                            )}
-                          </div>
-                        </article>
-                      ))}
+                            <div className="cafeteria-menu__content">
+                              <div className="cafeteria-menu__card-top">
+                                <h3 className="cafeteria-menu__item-name">
+                                  {promotion.name}
+                                </h3>
+                                <div className="cafeteria-menu__item-right">
+                                  {promotion.originalPrice >
+                                  promotion.promotionalPrice ? (
+                                    <span className="cafeteria-menu__item-old-price">
+                                      {formatCurrency(
+                                        promotion.originalPrice,
+                                        currency,
+                                        locale,
+                                      )}
+                                    </span>
+                                  ) : null}
+                                  <span className="cafeteria-menu__item-price">
+                                    {formatCurrency(
+                                      promotion.promotionalPrice,
+                                      currency,
+                                      locale,
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                              {promotion.items.length > 0 ? (
+	                                <div className="cafeteria-menu__chips">
+	                                  <span className="cafeteria-menu__badge">
+	                                    {t("cafeteria.promotions.includes", {
+	                                      count: countPromotionUnits(
+	                                        promotion.items,
+	                                      ),
+	                                      items: formatPromotionItems(
+	                                        promotion.items,
+	                                      ),
+	                                      defaultValue: `Incluye ${formatPromotionItems(promotion.items)}`,
+	                                    })}
+	                                  </span>
+                                  {promotion.originalPrice >
+                                  promotion.promotionalPrice ? (
+                                    <span className="cafeteria-menu__badge cafeteria-menu__badge--accent">
+                                      {t("cafeteria.promotions.savings", {
+                                        value: formatCurrency(
+                                          promotion.originalPrice -
+                                            promotion.promotionalPrice,
+                                          currency,
+                                          locale,
+                                        ),
+                                        defaultValue: `Ahorras ${formatCurrency(promotion.originalPrice - promotion.promotionalPrice, currency, locale)}`,
+                                      })}
+                                    </span>
+                                  ) : null}
+	                                  {promotion.startsTime ||
+	                                  promotion.endsTime ||
+	                                  promotion.daysOfWeek?.length ? (
+	                                    <span className="cafeteria-menu__badge">
+	                                      {formatPromotionSchedule(promotion)}
+	                                    </span>
+	                                  ) : null}
+                                </div>
+                              ) : null}
+                              {promotion.description ? (
+                                <p className="cafeteria-menu__item-desc">
+                                  {promotion.description}
+                                </p>
+                              ) : null}
+                            </div>
+                          </article>
+                        ))}
+                        {section.items.map((item) => (
+                          <article
+                            key={item.name}
+                            className={`cafeteria-menu__card ${
+                              item.available === false
+                                ? "cafeteria-menu__card--disabled"
+                                : ""
+                            }`}
+                          >
+                            <div
+                              className="cafeteria-menu__thumb"
+                              aria-hidden="true"
+                            >
+                              {item.image ? (
+                                <img src={item.image} alt="" loading="lazy" />
+                              ) : (
+                                <span>{item.name.slice(0, 1)}</span>
+                              )}
+                            </div>
+                            <div className="cafeteria-menu__content">
+                              <div className="cafeteria-menu__card-top">
+                                <h3 className="cafeteria-menu__item-name">
+                                  {item.name}
+                                </h3>
+                                <div className="cafeteria-menu__item-right">
+                                  {item.available === false && (
+                                    <span className="cafeteria-menu__badge">
+                                      {t("cafeteria.labels.unavailable")}
+                                    </span>
+                                  )}
+                                  <span className="cafeteria-menu__item-price">
+                                    {formatCurrency(
+                                      item.price,
+                                      currency,
+                                      locale,
+                                    )}
+                                  </span>
+                                </div>
+                              </div>
+                              {item.description && (
+                                <p className="cafeteria-menu__item-desc">
+                                  {item.description}
+                                </p>
+                              )}
+                            </div>
+                          </article>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                </section>
+                  </section>
                 );
               })}
             </div>

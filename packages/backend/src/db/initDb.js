@@ -245,6 +245,38 @@ async function initSchema() {
   `);
 
   await pool.query(`
+    CREATE TABLE IF NOT EXISTS cafeteria_promotions (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      description TEXT,
+      promotional_price INTEGER NOT NULL,
+      active BOOLEAN NOT NULL DEFAULT TRUE,
+      starts_at DATE,
+      ends_at DATE,
+      days_of_week INTEGER[] NOT NULL DEFAULT '{}',
+      starts_time TIME,
+      ends_time TIME,
+      sort_order INTEGER NOT NULL DEFAULT 0
+    );
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS cafeteria_promotion_items (
+      promotion_id INTEGER NOT NULL REFERENCES cafeteria_promotions(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES cafeteria_products(id) ON DELETE RESTRICT,
+      quantity INTEGER NOT NULL DEFAULT 1 CHECK (quantity > 0),
+      PRIMARY KEY (promotion_id, product_id)
+    );
+  `);
+
+  await pool.query(`
+    ALTER TABLE cafeteria_promotions
+    ADD COLUMN IF NOT EXISTS days_of_week INTEGER[] NOT NULL DEFAULT '{}';
+    ALTER TABLE cafeteria_promotions ADD COLUMN IF NOT EXISTS starts_time TIME;
+    ALTER TABLE cafeteria_promotions ADD COLUMN IF NOT EXISTS ends_time TIME;
+  `);
+
+  await pool.query(`
     INSERT INTO cafeteria_categories (name, slug, sort_order)
     SELECT
       category_name,

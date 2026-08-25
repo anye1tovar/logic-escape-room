@@ -71,6 +71,30 @@ function buildAdminCafeteriaProductsController(service) {
     }
   }
 
+  async function listPromotions(req, res) {
+    try {
+      res.json(await service.listPromotions());
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+  async function createPromotion(req, res) {
+    try {
+      res.status(201).json(await service.createPromotion(req.body));
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function deletePromotion(req, res) {
+    try {
+      res.json(await service.deletePromotion(req.params.id));
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   return {
     listProducts,
     createProduct,
@@ -80,6 +104,9 @@ function buildAdminCafeteriaProductsController(service) {
     createCategory,
     updateCategory,
     deleteCategory,
+    listPromotions,
+    createPromotion,
+    deletePromotion,
   };
 }
 

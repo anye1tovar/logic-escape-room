@@ -2,6 +2,9 @@ const express = require("express");
 
 function createAdminCafeteriaProductsRouter(controller) {
   const router = express.Router();
+  router.get("/promotions", controller.listPromotions);
+  router.post("/promotions", controller.createPromotion);
+  router.delete("/promotions/:id", controller.deletePromotion);
   router.get("/categories", controller.listCategories);
   router.post("/categories", controller.createCategory);
   router.put("/categories/:id", controller.updateCategory);

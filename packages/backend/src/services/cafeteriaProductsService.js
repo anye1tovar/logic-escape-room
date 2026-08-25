@@ -3,8 +3,11 @@ function buildCafeteriaProductsService(consumer) {
     return consumer.listProducts();
   }
 
-  return { listProducts };
+  async function listPromotions() {
+    return consumer.listPromotions();
+  }
+
+  return { listProducts, listPromotions };
 }
 
 module.exports = buildCafeteriaProductsService;
-

@@ -8,8 +8,16 @@ function buildCafeteriaProductsController(service) {
     }
   }
 
-  return { listProducts };
+  async function listPromotions(req, res) {
+    try {
+      const promotions = await service.listPromotions();
+      res.json(promotions);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+
+  return { listProducts, listPromotions };
 }
 
 module.exports = buildCafeteriaProductsController;
-

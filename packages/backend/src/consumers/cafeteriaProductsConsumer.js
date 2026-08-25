@@ -19,7 +19,7 @@ async function listProducts() {
         category.sort_order ASC NULLS LAST,
         COALESCE(category.name, product.category, '') ASC,
         product.name ASC;
-    `
+    `,
   );
   return (result.rows || []).map((row) => ({
     ...row,
@@ -27,6 +27,41 @@ async function listProducts() {
   }));
 }
 
+async function listPromotions() {
+  const result = await db.query(`
+    SELECT
+      promotion.id,
+      promotion.name,
+      promotion.description,
+      promotion.promotional_price AS "promotionalPrice",
+      promotion.starts_at AS "startsAt",
+      promotion.ends_at AS "endsAt",
+      promotion.days_of_week AS "daysOfWeek",
+      promotion.starts_time AS "startsTime",
+      promotion.ends_time AS "endsTime",
+      COALESCE(SUM(item.quantity * product.price), 0)::INTEGER AS "originalPrice",
+      COALESCE(
+        JSON_AGG(
+          JSON_BUILD_OBJECT(
+            'name', product.name,
+            'image', product.image,
+            'quantity', item.quantity
+          ) ORDER BY product.name
+        ) FILTER (WHERE product.id IS NOT NULL),
+        '[]'::json
+      ) AS items
+    FROM cafeteria_promotions promotion
+    JOIN cafeteria_promotion_items item ON item.promotion_id = promotion.id
+    JOIN cafeteria_products product ON product.id = item.product_id
+    WHERE promotion.active = TRUE
+    GROUP BY promotion.id
+    HAVING COUNT(product.id) > 0
+      AND BOOL_AND(product.available = TRUE)
+    ORDER BY promotion.sort_order ASC, promotion.name ASC;
+  `);
+  return result.rows || [];
+}
+
 module.exports = async function initCafeteriaProductsConsumer() {
-  return { listProducts };
+  return { listProducts, listPromotions };
 };
