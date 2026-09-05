@@ -1,4 +1,12 @@
 function buildAdminCafeteriaProductsService(consumer) {
+  const INVENTORY_MOVEMENT_TYPES = new Set([
+    "INITIAL_STOCK",
+    "PURCHASE",
+    "WASTE",
+    "ADJUSTMENT_POSITIVE",
+    "ADJUSTMENT_NEGATIVE",
+  ]);
+
   function normalizeInt(value) {
     if (value == null || value === "") return null;
     const num = Number(value);
@@ -9,6 +17,65 @@ function buildAdminCafeteriaProductsService(consumer) {
     if (value == null) return null;
     const text = String(value).trim();
     return text ? text : null;
+  }
+
+  function normalizeBoolean(value, fallback = false) {
+    if (value == null) return fallback;
+    const raw = String(value).trim().toLowerCase();
+    if (["1", "true", "yes", "y", "si"].includes(raw)) return true;
+    if (["0", "false", "no", "n"].includes(raw)) return false;
+    return fallback;
+  }
+
+  function normalizeTimestampDate(value, endOfDay = false) {
+    const text = normalizeText(value);
+    if (!text) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      const err = new Error("date must be YYYY-MM-DD");
+      err.status = 400;
+      throw err;
+    }
+    const time = endOfDay ? "23:59:59.999" : "00:00:00";
+    const ms = Date.parse(`${text}T${time}-05:00`);
+    if (!Number.isFinite(ms)) {
+      const err = new Error("Invalid date");
+      err.status = 400;
+      throw err;
+    }
+    return ms;
+  }
+
+  function normalizeInventoryFilters(input = {}) {
+    const type = normalizeText(input?.type);
+    if (type && ![
+      "INITIAL_STOCK",
+      "PURCHASE",
+      "SALE",
+      "COURTESY",
+      "WASTE",
+      "ADJUSTMENT_POSITIVE",
+      "ADJUSTMENT_NEGATIVE",
+      "REVERSAL",
+      "WASTE_EXPIRED",
+    ].includes(type)) {
+      const err = new Error("Invalid inventory movement type");
+      err.status = 400;
+      throw err;
+    }
+    const limit = Math.min(Math.max(normalizeInt(input?.limit) || 20, 1), 100);
+    const offset = Math.max(normalizeInt(input?.offset) || 0, 0);
+    const dateFromMs = normalizeTimestampDate(input?.dateFrom);
+    const dateToMs = normalizeTimestampDate(input?.dateTo, true);
+    if (dateFromMs != null && dateToMs != null && dateFromMs > dateToMs) {
+      const err = new Error("dateFrom must be <= dateTo");
+      err.status = 400;
+      throw err;
+    }
+    return { type, limit, offset, dateFromMs, dateToMs };
+  }
+
+  function normalizeUserId(user) {
+    return normalizeInt(user?.id ?? user?.sub);
   }
 
   function normalizeTime(value) {
@@ -43,6 +110,18 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
 
+    const trackExpiration = normalizeBoolean(
+      input?.trackExpiration ?? input?.track_expiration,
+      false,
+    );
+    const initialStock = Math.max(0, normalizeInt(input?.initialStock) || 0);
+    const expirationDate = normalizeDate(input?.expirationDate);
+    if (trackExpiration && initialStock > 0 && !expirationDate) {
+      const err = new Error("expirationDate is required for initial stock");
+      err.status = 400;
+      throw err;
+    }
+
     return {
       name,
       price,
@@ -56,6 +135,116 @@ function buildAdminCafeteriaProductsService(consumer) {
       category: normalizeText(input?.category),
       categoryId: normalizeInt(input?.categoryId ?? input?.category_id),
       image: normalizeText(input?.image),
+      trackInventory: normalizeBoolean(
+        input?.trackInventory ?? input?.track_inventory,
+        false,
+      ),
+      minimumStock: normalizeInt(input?.minimumStock ?? input?.minimum_stock),
+      unit: normalizeText(input?.unit) || "unidad",
+      initialStock,
+      trackExpiration,
+      expirationAlertDays:
+        normalizeInt(input?.expirationAlertDays ?? input?.expiration_alert_days) ?? 30,
+      criticalExpirationAlertDays:
+        normalizeInt(
+          input?.criticalExpirationAlertDays ??
+            input?.critical_expiration_alert_days,
+        ) ?? 7,
+      expirationDate,
+      lotNumber: normalizeText(input?.lotNumber ?? input?.lot_number),
+    };
+  }
+
+  function normalizeDate(value) {
+    const text = normalizeText(value);
+    if (!text) return null;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+      const err = new Error("date must be YYYY-MM-DD");
+      err.status = 400;
+      throw err;
+    }
+    return text;
+  }
+
+  function normalizeInventoryMovementInput(input, context = {}) {
+    const type = String(input?.type || "").trim().toUpperCase();
+    if (!INVENTORY_MOVEMENT_TYPES.has(type)) {
+      const err = new Error("Invalid inventory movement type");
+      err.status = 400;
+      throw err;
+    }
+    const quantity = normalizeInt(input?.quantity);
+    if (!quantity || quantity <= 0) {
+      const err = new Error("quantity is required");
+      err.status = 400;
+      throw err;
+    }
+    const negativeTypes = new Set(["WASTE", "ADJUSTMENT_NEGATIVE"]);
+    const reason = normalizeText(input?.reason);
+    if (["WASTE", "ADJUSTMENT_POSITIVE", "ADJUSTMENT_NEGATIVE"].includes(type) && !reason) {
+      const err = new Error("reason is required");
+      err.status = 400;
+      throw err;
+    }
+    return {
+      type,
+      quantityDelta: negativeTypes.has(type) ? -quantity : quantity,
+      occurredAt: Date.now(),
+      sourceType: "MANUAL_INVENTORY",
+      sourceId: null,
+      reason,
+      expirationDate: normalizeDate(input?.expirationDate ?? input?.expiration_date),
+      lotNumber: normalizeText(input?.lotNumber ?? input?.lot_number),
+      purchaseId: normalizeText(input?.purchaseId ?? input?.purchase_id),
+      createdBy: normalizeUserId(context?.user),
+      createdAt: Date.now(),
+    };
+  }
+
+  async function normalizePhysicalCountInput(productId, input, context = {}) {
+    const realCount = normalizeInt(input?.realCount ?? input?.real_count);
+    if (realCount == null || realCount < 0) {
+      const err = new Error("realCount is required");
+      err.status = 400;
+      throw err;
+    }
+    const reason = normalizeText(input?.reason);
+    if (!reason) {
+      const err = new Error("reason is required");
+      err.status = 400;
+      throw err;
+    }
+    const product = await consumer.getProductStock(productId);
+    if (!product) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    if (
+      product.track_expiration === true ||
+      product.track_expiration === 1 ||
+      product.track_expiration === "1"
+    ) {
+      const err = new Error("Physical count is not available for batched products");
+      err.status = 409;
+      throw err;
+    }
+    const currentStock = Number(product.current_stock || 0);
+    const diff = realCount - currentStock;
+    if (diff === 0) {
+      const err = new Error("Physical count matches current stock");
+      err.status = 409;
+      throw err;
+    }
+    return {
+      type: diff > 0 ? "ADJUSTMENT_POSITIVE" : "ADJUSTMENT_NEGATIVE",
+      quantityDelta: diff,
+      occurredAt: Date.now(),
+      sourceType: "PHYSICAL_COUNT",
+      sourceId: null,
+      reason,
+      createdBy: normalizeUserId(context?.user),
+      createdAt: Date.now(),
     };
   }
 
@@ -83,8 +272,12 @@ function buildAdminCafeteriaProductsService(consumer) {
     return consumer.listProducts();
   }
 
-  async function createProduct(input) {
-    const payload = normalizeProductInput(input);
+  async function createProduct(input, context = {}) {
+    const payload = {
+      ...normalizeProductInput(input),
+      createdAt: Date.now(),
+      createdBy: normalizeUserId(context?.user),
+    };
     const created = await consumer.createProduct(payload);
     return { id: created.id, ...payload };
   }
@@ -120,6 +313,93 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
     return { ok: true };
+  }
+
+  async function listInventoryMovements(id, filtersInput = {}) {
+    const productId = normalizeInt(id);
+    if (!productId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const product = await consumer.getProductStock(productId);
+    if (!product) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return consumer.listInventoryMovements(
+      productId,
+      normalizeInventoryFilters(filtersInput),
+    );
+  }
+
+  async function createInventoryMovement(id, input, context = {}) {
+    const productId = normalizeInt(id);
+    if (!productId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const product = await consumer.getProductStock(productId);
+    if (!product) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    const payload = {
+      productId,
+      ...normalizeInventoryMovementInput(input, context),
+    };
+    const tracksExpiration =
+      product.track_expiration === true ||
+      product.track_expiration === 1 ||
+      product.track_expiration === "1";
+    if (tracksExpiration && payload.quantityDelta > 0 && !payload.expirationDate) {
+      const err = new Error("expirationDate is required");
+      err.status = 400;
+      throw err;
+    }
+    return consumer.createInventoryMovement(payload);
+  }
+
+  async function setPhysicalCount(id, input, context = {}) {
+    const productId = normalizeInt(id);
+    if (!productId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const payload = {
+      productId,
+      ...(await normalizePhysicalCountInput(productId, input, context)),
+    };
+    return consumer.createInventoryMovement(payload);
+  }
+
+  async function listInventoryBatches(id) {
+    const productId = normalizeInt(id);
+    if (!productId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    return consumer.listInventoryBatches(productId);
+  }
+
+  async function writeOffExpiredBatches(id, input = {}, context = {}) {
+    const productId = normalizeInt(id);
+    if (!productId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    return consumer.writeOffExpiredBatches({
+      productId,
+      reason: normalizeText(input?.reason) || "Baja por vencimiento",
+      createdBy: normalizeUserId(context?.user),
+      createdAt: Date.now(),
+    });
   }
 
   async function listCategories() {
@@ -241,6 +521,11 @@ function buildAdminCafeteriaProductsService(consumer) {
     createProduct,
     updateProduct,
     deleteProduct,
+    listInventoryMovements,
+    createInventoryMovement,
+    setPhysicalCount,
+    listInventoryBatches,
+    writeOffExpiredBatches,
     listCategories,
     createCategory,
     updateCategory,

@@ -29,6 +29,7 @@ type UserRow = {
   name: string | null;
   role: "admin" | "game_master";
   active: boolean | number | string;
+  can_create_courtesy: boolean | number | string;
   created_at: number | string;
 };
 
@@ -38,6 +39,7 @@ type FormState = {
   role: "admin" | "game_master";
   password: string;
   active: "1" | "0";
+  canCreateCourtesy: "1" | "0";
 };
 
 type ResetState = {
@@ -71,6 +73,7 @@ export default function AdminUsers() {
     role: "admin",
     password: "",
     active: "1",
+    canCreateCourtesy: "0",
   });
 
   const [resetDialog, setResetDialog] = useState<ResetState | null>(null);
@@ -86,6 +89,7 @@ export default function AdminUsers() {
       const normalized = data.map((row) => ({
         ...row,
         active: normalizeActive(row.active),
+        can_create_courtesy: normalizeActive(row.can_create_courtesy),
       }));
       setRows(normalized);
       setStatus({ type: "idle" });
@@ -117,6 +121,7 @@ export default function AdminUsers() {
           role: form.role,
           password: form.password,
           active: form.active === "1",
+          canCreateCourtesy: form.canCreateCourtesy === "1",
         },
       });
       setForm((prev) => ({ ...prev, email: "", name: "", password: "" }));
@@ -136,6 +141,7 @@ export default function AdminUsers() {
           name: row.name ?? null,
           role: row.role,
           active: normalizeActive(row.active),
+          canCreateCourtesy: normalizeActive(row.can_create_courtesy),
         },
       });
       setStatus({ type: "success", message: "Usuario actualizado." });
@@ -259,6 +265,20 @@ export default function AdminUsers() {
               <MenuItem value="1">Activo</MenuItem>
               <MenuItem value="0">Inactivo</MenuItem>
             </Select>
+            <Select
+              value={form.canCreateCourtesy}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  canCreateCourtesy: e.target.value as FormState["canCreateCourtesy"],
+                }))
+              }
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="0">Sin cortesias</MenuItem>
+              <MenuItem value="1">Puede crear cortesias</MenuItem>
+            </Select>
           </div>
 
           <div className="admin-crud__actions">
@@ -282,6 +302,7 @@ export default function AdminUsers() {
                 <TableCell>Nombre</TableCell>
                 <TableCell>Rol</TableCell>
                 <TableCell>Estado</TableCell>
+                <TableCell>Cortesias</TableCell>
                 <TableCell>Creado</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
@@ -342,6 +363,27 @@ export default function AdminUsers() {
                       <MenuItem value="0">Inactivo</MenuItem>
                     </Select>
                   </TableCell>
+                  <TableCell>
+                    <Select
+                      value={normalizeActive(row.can_create_courtesy) ? "1" : "0"}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.id === row.id
+                              ? {
+                                  ...x,
+                                  can_create_courtesy: e.target.value === "1",
+                                }
+                              : x
+                          )
+                        )
+                      }
+                      size="small"
+                    >
+                      <MenuItem value="0">No</MenuItem>
+                      <MenuItem value="1">Si</MenuItem>
+                    </Select>
+                  </TableCell>
                   <TableCell>{formatCreatedAt(row.created_at)}</TableCell>
                   <TableCell>
                     <Stack direction="row" spacing={1}>
@@ -371,7 +413,7 @@ export default function AdminUsers() {
               ))}
               {sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={6}>Sin registros.</TableCell>
+                  <TableCell colSpan={7}>Sin registros.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

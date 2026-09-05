@@ -20,6 +20,10 @@ function parseActive(input, fallback) {
   return fallback;
 }
 
+function parseBoolean(input, fallback) {
+  return parseActive(input, fallback);
+}
+
 function normalizeName(input, fallback) {
   if (input == null) return fallback;
   const value = String(input).trim();
@@ -77,6 +81,7 @@ function buildAdminUsersService(consumer) {
       name,
       role,
       active,
+      canCreateCourtesy: parseBoolean(input?.canCreateCourtesy, false),
       createdAt,
     });
   }
@@ -98,8 +103,14 @@ function buildAdminUsersService(consumer) {
         : user.active === 1 || user.active === true || user.active === "1";
 
     const name = normalizeName(input?.name, user.name ?? null);
+    const canCreateCourtesy =
+      input?.canCreateCourtesy != null
+        ? parseBoolean(input.canCreateCourtesy, false)
+        : user.can_create_courtesy === 1 ||
+          user.can_create_courtesy === true ||
+          user.can_create_courtesy === "1";
 
-    return consumer.updateUser(id, { name, role, active });
+    return consumer.updateUser(id, { name, role, active, canCreateCourtesy });
   }
 
   async function resetPassword(id, input) {

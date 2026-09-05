@@ -75,6 +75,46 @@ const initAdminFinancialAccountsConsumer = require("./consumers/adminFinancialAc
 const buildAdminFinancialAccountsService = require("./services/adminFinancialAccountsService");
 const buildAdminFinancialAccountsController = require("./controllers/adminFinancialAccountsController");
 const createAdminFinancialAccountsRouter = require("./routes/adminFinancialAccounts");
+const initAdminVisitAccountsConsumer = require("./consumers/adminVisitAccountsConsumer");
+const buildAdminVisitAccountsService = require("./services/adminVisitAccountsService");
+const buildAdminVisitAccountsController = require("./controllers/adminVisitAccountsController");
+const createAdminVisitAccountsRouter = require("./routes/adminVisitAccounts");
+const initAdminInventoryPurchasesConsumer = require("./consumers/adminInventoryPurchasesConsumer");
+const buildAdminInventoryPurchasesService = require("./services/adminInventoryPurchasesService");
+const buildAdminInventoryPurchasesController = require("./controllers/adminInventoryPurchasesController");
+const createAdminInventoryPurchasesRouter = require("./routes/adminInventoryPurchases");
+const initAdminDailyClosesConsumer = require("./consumers/adminDailyClosesConsumer");
+const buildAdminDailyClosesService = require("./services/adminDailyClosesService");
+const buildAdminDailyClosesController = require("./controllers/adminDailyClosesController");
+const createAdminDailyClosesRouter = require("./routes/adminDailyCloses");
+const initAdminReportsConsumer = require("./consumers/adminReportsConsumer");
+const buildAdminReportsService = require("./services/adminReportsService");
+const buildAdminReportsController = require("./controllers/adminReportsController");
+const createAdminReportsRouter = require("./routes/adminReports");
+const initAdminCostAllocationRulesConsumer = require("./consumers/adminCostAllocationRulesConsumer");
+const buildAdminCostAllocationRulesService = require("./services/adminCostAllocationRulesService");
+const buildAdminCostAllocationRulesController = require("./controllers/adminCostAllocationRulesController");
+const createAdminCostAllocationRulesRouter = require("./routes/adminCostAllocationRules");
+const initAdminIncomeStatementConsumer = require("./consumers/adminIncomeStatementConsumer");
+const buildAdminIncomeStatementService = require("./services/adminIncomeStatementService");
+const buildAdminIncomeStatementController = require("./controllers/adminIncomeStatementController");
+const createAdminIncomeStatementRouter = require("./routes/adminIncomeStatement");
+const initAdminFinancialDashboardConsumer = require("./consumers/adminFinancialDashboardConsumer");
+const buildAdminFinancialDashboardService = require("./services/adminFinancialDashboardService");
+const buildAdminFinancialDashboardController = require("./controllers/adminFinancialDashboardController");
+const createAdminFinancialDashboardRouter = require("./routes/adminFinancialDashboard");
+const initAdminSuppliesConsumer = require("./consumers/adminSuppliesConsumer");
+const buildAdminSuppliesService = require("./services/adminSuppliesService");
+const buildAdminSuppliesController = require("./controllers/adminSuppliesController");
+const createAdminSuppliesRouter = require("./routes/adminSupplies");
+const initAdminSupplyPurchasesConsumer = require("./consumers/adminSupplyPurchasesConsumer");
+const buildAdminSupplyPurchasesService = require("./services/adminSupplyPurchasesService");
+const buildAdminSupplyPurchasesController = require("./controllers/adminSupplyPurchasesController");
+const createAdminSupplyPurchasesRouter = require("./routes/adminSupplyPurchases");
+const initAdminRecipesConsumer = require("./consumers/adminRecipesConsumer");
+const buildAdminRecipesService = require("./services/adminRecipesService");
+const buildAdminRecipesController = require("./controllers/adminRecipesController");
+const createAdminRecipesRouter = require("./routes/adminRecipes");
 const buildMetaCapiService = require("./services/metaCapiService");
 const buildMetaTrackingService = require("./services/metaTrackingService");
 const buildMetaTrackingController = require("./controllers/metaTrackingController");
@@ -233,6 +273,100 @@ async function start() {
     adminFinancialAccountsController,
   );
 
+  const adminVisitAccountsConsumer = await initAdminVisitAccountsConsumer();
+  const adminVisitAccountsService = buildAdminVisitAccountsService(
+    adminVisitAccountsConsumer,
+  );
+  const adminVisitAccountsController = buildAdminVisitAccountsController(
+    adminVisitAccountsService,
+  );
+  const adminVisitAccountsRouter = createAdminVisitAccountsRouter(
+    adminVisitAccountsController,
+  );
+
+  const adminInventoryPurchasesConsumer =
+    await initAdminInventoryPurchasesConsumer();
+  const adminInventoryPurchasesService = buildAdminInventoryPurchasesService(
+    adminInventoryPurchasesConsumer,
+  );
+  const adminInventoryPurchasesController =
+    buildAdminInventoryPurchasesController(adminInventoryPurchasesService);
+  const adminInventoryPurchasesRouter = createAdminInventoryPurchasesRouter(
+    adminInventoryPurchasesController,
+  );
+
+  const adminDailyClosesConsumer = await initAdminDailyClosesConsumer();
+  const adminDailyClosesService = buildAdminDailyClosesService(
+    adminDailyClosesConsumer,
+  );
+  const adminDailyClosesController =
+    buildAdminDailyClosesController(adminDailyClosesService);
+  const adminDailyClosesRouter = createAdminDailyClosesRouter(
+    adminDailyClosesController,
+  );
+
+  const adminReportsConsumer = await initAdminReportsConsumer();
+  const adminReportsService = buildAdminReportsService(adminReportsConsumer);
+  const adminReportsController =
+    buildAdminReportsController(adminReportsService);
+  const adminReportsRouter = createAdminReportsRouter(adminReportsController);
+
+  const adminCostAllocationRulesConsumer =
+    await initAdminCostAllocationRulesConsumer();
+  const adminCostAllocationRulesService = buildAdminCostAllocationRulesService(
+    adminCostAllocationRulesConsumer,
+  );
+  const adminCostAllocationRulesController =
+    buildAdminCostAllocationRulesController(adminCostAllocationRulesService);
+  const adminCostAllocationRulesRouter = createAdminCostAllocationRulesRouter(
+    adminCostAllocationRulesController,
+  );
+
+  const adminIncomeStatementConsumer = await initAdminIncomeStatementConsumer();
+  const adminIncomeStatementService = buildAdminIncomeStatementService(
+    adminIncomeStatementConsumer,
+  );
+  const adminIncomeStatementController = buildAdminIncomeStatementController(
+    adminIncomeStatementService,
+  );
+  const adminIncomeStatementRouter = createAdminIncomeStatementRouter(
+    adminIncomeStatementController,
+  );
+
+  const adminFinancialDashboardConsumer =
+    await initAdminFinancialDashboardConsumer();
+  const adminFinancialDashboardService = buildAdminFinancialDashboardService(
+    adminIncomeStatementConsumer,
+    adminFinancialDashboardConsumer,
+  );
+  const adminFinancialDashboardController =
+    buildAdminFinancialDashboardController(adminFinancialDashboardService);
+  const adminFinancialDashboardRouter = createAdminFinancialDashboardRouter(
+    adminFinancialDashboardController,
+  );
+
+  const adminSuppliesConsumer = await initAdminSuppliesConsumer();
+  const adminSuppliesService = buildAdminSuppliesService(adminSuppliesConsumer);
+  const adminSuppliesController =
+    buildAdminSuppliesController(adminSuppliesService);
+  const adminSuppliesRouter = createAdminSuppliesRouter(adminSuppliesController);
+
+  const adminSupplyPurchasesConsumer =
+    await initAdminSupplyPurchasesConsumer();
+  const adminSupplyPurchasesService = buildAdminSupplyPurchasesService(
+    adminSupplyPurchasesConsumer,
+  );
+  const adminSupplyPurchasesController =
+    buildAdminSupplyPurchasesController(adminSupplyPurchasesService);
+  const adminSupplyPurchasesRouter = createAdminSupplyPurchasesRouter(
+    adminSupplyPurchasesController,
+  );
+
+  const adminRecipesConsumer = await initAdminRecipesConsumer();
+  const adminRecipesService = buildAdminRecipesService(adminRecipesConsumer);
+  const adminRecipesController = buildAdminRecipesController(adminRecipesService);
+  const adminRecipesRouter = createAdminRecipesRouter(adminRecipesController);
+
   const metaTrackingService = buildMetaTrackingService(metaCapiService);
   const metaTrackingController =
     buildMetaTrackingController(metaTrackingService);
@@ -272,9 +406,75 @@ async function start() {
   );
   app.use(
     "/api/admin/financial-accounts",
-    adminAuth,
+    (req, res, next) => {
+      const gameMasterPaths = [
+        "/operation-accounts",
+        "/expenses",
+        "/owner-contributions",
+        "/transfers",
+      ];
+      const gameMasterPathPrefixes = [
+        "/expenses/",
+        "/owner-contributions/",
+        "/transfers/",
+      ];
+      if (
+        gameMasterPaths.includes(req.path) ||
+        gameMasterPathPrefixes.some((prefix) => req.path.startsWith(prefix))
+      ) {
+        return adminOrGameMasterAuth(req, res, next);
+      }
+      return adminAuth(req, res, next);
+    },
     adminFinancialAccountsRouter,
   );
+  app.use(
+    "/api/admin/visit-accounts",
+    adminOrGameMasterAuth,
+    adminVisitAccountsRouter,
+  );
+  app.use(
+    "/api/admin/inventory-purchases",
+    adminOrGameMasterAuth,
+    adminInventoryPurchasesRouter,
+  );
+  app.use(
+    "/api/admin/daily-closes",
+    adminOrGameMasterAuth,
+    adminDailyClosesRouter,
+  );
+  app.use("/api/admin/reports", adminAuth, adminReportsRouter);
+  app.use(
+    "/api/admin/cost-allocation-rules",
+    adminAuth,
+    adminCostAllocationRulesRouter,
+  );
+  app.use(
+    "/api/admin/income-statement",
+    adminAuth,
+    adminIncomeStatementRouter,
+  );
+  app.use(
+    "/api/admin/financial-dashboard",
+    adminAuth,
+    adminFinancialDashboardRouter,
+  );
+  app.use(
+    "/api/admin/supplies",
+    (req, res, next) => {
+      if (req.method === "GET" && req.path === "/") {
+        return adminOrGameMasterAuth(req, res, next);
+      }
+      return adminAuth(req, res, next);
+    },
+    adminSuppliesRouter,
+  );
+  app.use(
+    "/api/admin/supply-purchases",
+    adminOrGameMasterAuth,
+    adminSupplyPurchasesRouter,
+  );
+  app.use("/api/admin/recipes", adminAuth, adminRecipesRouter);
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 

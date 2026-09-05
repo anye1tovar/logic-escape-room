@@ -1,0 +1,171 @@
+@use "../../../assets/styles/variables" as *;
+
+.financial-dashboard {
+  &__filters {
+    display: grid;
+    grid-template-columns:
+      minmax(150px, 0.7fr)
+      minmax(220px, 0.9fr)
+      minmax(340px, 1.35fr)
+      minmax(220px, 0.75fr);
+    gap: $spacing-md;
+    align-items: center;
+
+    @media (max-width: 1450px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: $tablet) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__area-toggle {
+    width: 100%;
+    min-height: 40px;
+    min-width: 0;
+
+    @media (max-width: 1450px) {
+      grid-column: 1 / -1;
+    }
+
+    .MuiToggleButton-root {
+      flex: 1;
+      min-width: 82px;
+      color: rgba($text-light, 0.76);
+      font-weight: 900;
+      letter-spacing: 0;
+
+      &.Mui-selected {
+        color: $text-light;
+        background: rgba($primary-color, 0.24);
+      }
+    }
+  }
+
+  &__compare-toggle {
+    display: flex;
+    min-width: 0;
+    margin-left: 0;
+    margin-right: 0;
+    align-self: stretch;
+
+    @media (max-width: 1450px) {
+      grid-column: 1 / -1;
+    }
+
+    .MuiSwitch-root {
+      flex: 0 0 auto;
+    }
+
+    .MuiFormControlLabel-label {
+      line-height: 1.25;
+      overflow-wrap: anywhere;
+    }
+  }
+
+  &__metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: $spacing-md;
+
+    @media (max-width: 1200px) {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    @media (max-width: 900px) {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    @media (max-width: 560px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__metric {
+    min-width: 0;
+    min-height: 126px;
+    padding: $spacing-md;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.03);
+  }
+
+  &__metric-value {
+    margin-top: 5px;
+    font-size: 1.3rem;
+    font-weight: 900;
+    overflow-wrap: anywhere;
+  }
+
+  &__change {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 24px;
+    margin-top: 8px;
+    color: rgba($text-light, 0.66);
+    font-size: 0.82rem;
+    font-weight: 800;
+
+    &--positive { color: #79d488; }
+    &--negative { color: #ff929d; }
+  }
+
+  &__alert-list {
+    display: flex;
+    justify-content: flex-end;
+    gap: $spacing-sm;
+    flex-wrap: wrap;
+  }
+
+  &__chart-grid,
+  &__ranking-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: $spacing-md;
+
+    @media (max-width: 1050px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__chart-panel {
+    min-width: 0;
+    padding: $spacing-lg;
+  }
+
+  &__chart {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 330px;
+    margin-top: $spacing-md;
+
+    @media (max-width: 560px) {
+      height: 290px;
+    }
+  }
+
+  &__ranking-chart {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 270px;
+    margin-top: $spacing-md;
+  }
+
+  &__detail-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1.3fr) minmax(320px, 0.7fr);
+    gap: $spacing-md;
+
+    @media (max-width: 1050px) {
+      grid-template-columns: 1fr;
+    }
+  }
+
+  &__inline-chip {
+    margin-left: 8px;
+  }
+}

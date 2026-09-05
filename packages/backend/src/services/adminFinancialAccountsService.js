@@ -8,6 +8,34 @@ const MOVEMENT_TYPES = new Set([
   "OWNER_CONTRIBUTION",
   "ADJUSTMENT",
 ]);
+const EXPENSE_CATEGORIES = new Set([
+  "RENT",
+  "UTILITIES",
+  "SUPPLIES",
+  "MAINTENANCE",
+  "PAYROLL",
+  "MARKETING",
+  "COMMISSIONS",
+  "OWNER_REIMBURSEMENT",
+  "TAXES",
+  "OTHER",
+]);
+const EXPENSE_COST_CENTERS = new Set([
+  "ROOMS",
+  "CAFETERIA",
+  "ADMINISTRATION",
+  "MARKETING",
+  "MIXED",
+]);
+const EXPENSE_COST_CENTERS_WITH_UNASSIGNED = new Set([
+  ...EXPENSE_COST_CENTERS,
+  "UNASSIGNED",
+]);
+const EXPENSE_SOURCE_TYPES = new Set([
+  "FINANCIAL_ACCOUNT",
+  "OWNER_PERSONAL_FUNDS",
+]);
+const CONTRIBUTION_KINDS = new Set(["REIMBURSABLE", "NON_REIMBURSABLE"]);
 
 function badRequest(message) {
   const err = new Error(message);
@@ -32,8 +60,14 @@ function normalizeBoolean(value, fallback) {
 
 function normalizeText(value, { required = false } = {}) {
   const text = String(value ?? "").trim();
-  if (!text && required) throw badRequest("name is required");
+  if (!text && required) throw badRequest("text is required");
   return text || null;
+}
+
+function normalizeRequiredText(value, fieldName) {
+  const text = normalizeText(value);
+  if (!text) throw badRequest(`${fieldName} is required`);
+  return text;
 }
 
 function normalizeAccountType(value) {
@@ -56,6 +90,10 @@ function normalizeTimestamp(value, fallback) {
     throw badRequest("timestamp must be a positive number");
   }
   return Math.trunc(parsed);
+}
+
+function normalizeUserId(user) {
+  return normalizeInt(user?.id ?? user?.sub, { allowNull: true });
 }
 
 function dateToStartMs(value) {
@@ -105,7 +143,7 @@ function normalizeAccountInput(input, context = {}) {
       input?.initialBalanceNotes ?? input?.initial_balance_notes
     ),
     createdAt: Date.now(),
-    createdBy: normalizeInt(context?.user?.id, { allowNull: true }),
+    createdBy: normalizeUserId(context?.user),
   };
 }
 
@@ -129,6 +167,194 @@ function normalizeId(value) {
   const id = normalizeInt(value, { allowNull: true });
   if (!id || id <= 0) throw badRequest("id is required");
   return id;
+}
+
+function normalizePositiveMoney(value, fieldName = "amount") {
+  const amount = normalizeInt(value, { allowNull: true });
+  if (!amount || amount <= 0) throw badRequest(`${fieldName} is required`);
+  return amount;
+}
+
+function normalizeEnum(value, allowed, fieldName) {
+  const normalized = String(value || "").trim().toUpperCase();
+  if (!allowed.has(normalized)) throw badRequest(`Invalid ${fieldName}`);
+  return normalized;
+}
+
+function normalizeOccurredAt(input) {
+  return normalizeTimestamp(input?.occurredAt ?? input?.occurred_at, Date.now());
+}
+
+function normalizeExpenseAllocations(input, totalAmount) {
+  const allocations = Array.isArray(input?.allocations) ? input.allocations : [];
+  if (allocations.length === 0) throw badRequest("allocations are required");
+  const normalized = allocations.map((allocation) => {
+    const sourceType = normalizeEnum(
+      allocation?.sourceType ?? allocation?.source_type,
+      EXPENSE_SOURCE_TYPES,
+      "sourceType"
+    );
+    const amount = normalizePositiveMoney(allocation?.amount);
+    const financialAccountId =
+      sourceType === "FINANCIAL_ACCOUNT"
+        ? normalizeId(
+            allocation?.financialAccountId ?? allocation?.financial_account_id
+          )
+        : null;
+    const ownerName =
+      sourceType === "OWNER_PERSONAL_FUNDS"
+        ? normalizeRequiredText(allocation?.ownerName ?? allocation?.owner_name, "ownerName")
+        : normalizeText(allocation?.ownerName ?? allocation?.owner_name);
+    const contributionKind =
+      sourceType === "OWNER_PERSONAL_FUNDS"
+        ? normalizeEnum(
+            allocation?.contributionKind ?? allocation?.contribution_kind,
+            CONTRIBUTION_KINDS,
+            "contributionKind"
+          )
+        : null;
+
+    return {
+      sourceType,
+      financialAccountId,
+      ownerName,
+      contributionKind,
+      amount,
+    };
+  });
+  const sum = normalized.reduce((acc, allocation) => acc + allocation.amount, 0);
+  if (sum !== totalAmount) {
+    throw badRequest("Expense allocation total must match expense total");
+  }
+  return normalized;
+}
+
+function normalizeExpenseInput(input, context = {}) {
+  const totalAmount = normalizePositiveMoney(input?.totalAmount ?? input?.total_amount);
+  const costCenter = normalizeEnum(
+    input?.costCenter ?? input?.cost_center,
+    EXPENSE_COST_CENTERS,
+    "costCenter"
+  );
+  const requestedAllocationSource = String(
+    input?.allocationSource ?? input?.allocation_source ?? "MANUAL"
+  ).trim().toUpperCase();
+  if (
+    costCenter === "MIXED" &&
+    !["MANUAL", "RULE"].includes(requestedAllocationSource)
+  ) {
+    throw badRequest("Invalid allocationSource");
+  }
+  const allocationSource =
+    costCenter === "MIXED" ? requestedAllocationSource : "DIRECT";
+  const allocationMode =
+    costCenter === "MIXED" && allocationSource === "MANUAL"
+      ? "PERCENTAGE"
+      : costCenter === "MIXED"
+        ? "PENDING"
+        : "DIRECT";
+  const percentages = {
+    rooms: 0,
+    cafeteria: 0,
+    admin: 0,
+  };
+  if (allocationSource === "MANUAL" && costCenter === "MIXED") {
+    percentages.rooms = Number(
+      input?.allocationPercentageRooms ?? input?.allocation_percentage_rooms ?? 0
+    );
+    percentages.cafeteria = Number(
+      input?.allocationPercentageCafeteria ??
+        input?.allocation_percentage_cafeteria ??
+        0
+    );
+    percentages.admin = Number(
+      input?.allocationPercentageAdmin ?? input?.allocation_percentage_admin ?? 0
+    );
+    const values = Object.values(percentages);
+    if (values.some((value) => !Number.isFinite(value) || value < 0 || value > 100)) {
+      throw badRequest("Expense percentages must be between 0 and 100");
+    }
+    const totalPercentage = values.reduce((sum, value) => sum + value, 0);
+    if (Math.abs(totalPercentage - 100) > 0.001) {
+      throw badRequest("Mixed expense percentages must add up to 100");
+    }
+  }
+  return {
+    category: normalizeEnum(input?.category, EXPENSE_CATEGORIES, "category"),
+    costCenter,
+    allocationMode,
+    allocationSource,
+    allocationPercentageRooms:
+      allocationMode === "PERCENTAGE" ? percentages.rooms : null,
+    allocationPercentageCafeteria:
+      allocationMode === "PERCENTAGE" ? percentages.cafeteria : null,
+    allocationPercentageAdmin:
+      allocationMode === "PERCENTAGE" ? percentages.admin : null,
+    description: normalizeRequiredText(input?.description, "description"),
+    totalAmount,
+    occurredAt: normalizeOccurredAt(input),
+    notes: null,
+    allocations: normalizeExpenseAllocations(input, totalAmount),
+    createdBy: normalizeUserId(context?.user),
+    createdAt: Date.now(),
+  };
+}
+
+function normalizeOwnerContributionInput(input, context = {}) {
+  const description = normalizeRequiredText(
+    input?.description ?? input?.notes,
+    "description"
+  );
+  return {
+    financialAccountId: normalizeId(
+      input?.financialAccountId ?? input?.financial_account_id
+    ),
+    ownerName: normalizeRequiredText(input?.ownerName ?? input?.owner_name, "ownerName"),
+    contributionKind: normalizeEnum(
+      input?.contributionKind ?? input?.contribution_kind,
+      CONTRIBUTION_KINDS,
+      "contributionKind"
+    ),
+    amount: normalizePositiveMoney(input?.amount),
+    occurredAt: normalizeOccurredAt(input),
+    notes: description,
+    description,
+    createdBy: normalizeUserId(context?.user),
+    createdAt: Date.now(),
+  };
+}
+
+function normalizeTransferInput(input, context = {}) {
+  const description = normalizeRequiredText(
+    input?.description ?? input?.notes,
+    "description"
+  );
+  const fromFinancialAccountId = normalizeId(
+    input?.fromFinancialAccountId ?? input?.from_financial_account_id
+  );
+  const toFinancialAccountId = normalizeId(
+    input?.toFinancialAccountId ?? input?.to_financial_account_id
+  );
+  if (fromFinancialAccountId === toFinancialAccountId) {
+    throw badRequest("Transfer source and target must be different");
+  }
+  return {
+    fromFinancialAccountId,
+    toFinancialAccountId,
+    amount: normalizePositiveMoney(input?.amount),
+    occurredAt: normalizeOccurredAt(input),
+    notes: description,
+    description,
+    createdBy: normalizeUserId(context?.user),
+    createdAt: Date.now(),
+  };
+}
+
+function normalizeVoidInput(context = {}) {
+  return {
+    createdBy: normalizeUserId(context?.user),
+    createdAt: Date.now(),
+  };
 }
 
 function buildAdminFinancialAccountsService(consumer) {
@@ -175,11 +401,98 @@ function buildAdminFinancialAccountsService(consumer) {
     });
   }
 
+  async function createExpense(input, context = {}) {
+    return consumer.createExpense(normalizeExpenseInput(input, context));
+  }
+
+  async function updateExpense(id, input, context = {}) {
+    return consumer.updateExpense(
+      normalizeId(id),
+      normalizeExpenseInput(input, context)
+    );
+  }
+
+  async function voidExpense(id, context = {}) {
+    return consumer.voidExpense(normalizeId(id), normalizeVoidInput(context));
+  }
+
+  async function listExpenses(input = {}) {
+    const rawCategory = String(input?.category || "").trim().toUpperCase();
+    const rawCostCenter = String(
+      input?.costCenter ?? input?.cost_center ?? ""
+    ).trim().toUpperCase();
+    if (rawCategory && !EXPENSE_CATEGORIES.has(rawCategory)) {
+      throw badRequest("Invalid category");
+    }
+    if (rawCostCenter && !EXPENSE_COST_CENTERS_WITH_UNASSIGNED.has(rawCostCenter)) {
+      throw badRequest("Invalid costCenter");
+    }
+    return consumer.listExpenses({
+      category: rawCategory || null,
+      costCenter: rawCostCenter || null,
+    });
+  }
+
+  async function createOwnerContribution(input, context = {}) {
+    return consumer.createOwnerContribution(
+      normalizeOwnerContributionInput(input, context)
+    );
+  }
+
+  async function updateOwnerContribution(id, input, context = {}) {
+    return consumer.updateOwnerContribution(
+      normalizeId(id),
+      normalizeOwnerContributionInput(input, context)
+    );
+  }
+
+  async function voidOwnerContribution(id, context = {}) {
+    return consumer.voidOwnerContribution(
+      normalizeId(id),
+      normalizeVoidInput(context)
+    );
+  }
+
+  async function listOwnerContributions() {
+    return consumer.listOwnerContributions();
+  }
+
+  async function createTransfer(input, context = {}) {
+    return consumer.createTransfer(normalizeTransferInput(input, context));
+  }
+
+  async function updateTransfer(id, input, context = {}) {
+    return consumer.updateTransfer(
+      normalizeId(id),
+      normalizeTransferInput(input, context)
+    );
+  }
+
+  async function voidTransfer(id, context = {}) {
+    return consumer.voidTransfer(normalizeId(id), normalizeVoidInput(context));
+  }
+
+  async function listTransfers() {
+    return consumer.listTransfers();
+  }
+
   return {
     listAccounts,
     createAccount,
     updateAccount,
     listMovements,
+    createExpense,
+    updateExpense,
+    voidExpense,
+    listExpenses,
+    createOwnerContribution,
+    updateOwnerContribution,
+    voidOwnerContribution,
+    listOwnerContributions,
+    createTransfer,
+    updateTransfer,
+    voidTransfer,
+    listTransfers,
   };
 }
 

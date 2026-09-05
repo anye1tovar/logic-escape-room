@@ -1,7 +1,13 @@
 import { lazy, Suspense, useEffect } from "react";
 import { ThemeProvider } from "@mui/material/styles";
 import { useTranslation } from "react-i18next";
-import { BrowserRouter, Route, Routes, useLocation } from "react-router-dom";
+import {
+  BrowserRouter,
+  Navigate,
+  Route,
+  Routes,
+  useLocation,
+} from "react-router-dom";
 import AnnouncementBar from "./components/common/AnnouncementBar/AnnouncementBar";
 import CookieConsentBanner from "./components/common/CookieConsentBanner";
 import FloatingWhatsAppButton from "./components/common/FloatingWhatsAppButton";
@@ -46,6 +52,9 @@ const AdminSettings = lazy(
 const AdminReservations = lazy(
   () => import("./pages/Admin/Reservations/AdminReservations"),
 );
+const AdminVisitAccounts = lazy(
+  () => import("./pages/Admin/VisitAccounts/AdminVisitAccounts"),
+);
 const AdminTiming = lazy(() => import("./pages/Admin/Timing/AdminTiming"));
 const AdminCafeteriaProducts = lazy(
   () => import("./pages/Admin/CafeteriaProducts/AdminCafeteriaProducts"),
@@ -53,8 +62,32 @@ const AdminCafeteriaProducts = lazy(
 const AdminCafeteriaPromotions = lazy(
   () => import("./pages/Admin/CafeteriaPromotions/AdminCafeteriaPromotions"),
 );
+const AdminInventoryPurchases = lazy(
+  () => import("./pages/Admin/InventoryPurchases/AdminInventoryPurchases"),
+);
 const AdminFinancialAccounts = lazy(
   () => import("./pages/Admin/FinancialAccounts/AdminFinancialAccounts"),
+);
+const AdminFinancialMovements = lazy(
+  () => import("./pages/Admin/FinancialMovements/AdminFinancialMovements"),
+);
+const AdminDailyCloses = lazy(
+  () => import("./pages/Admin/DailyCloses/AdminDailyCloses"),
+);
+const AdminReports = lazy(() => import("./pages/Admin/Reports/AdminReports"));
+const AdminSupplies = lazy(() => import("./pages/Admin/Supplies/AdminSupplies"));
+const AdminSupplyPurchases = lazy(
+  () => import("./pages/Admin/SupplyPurchases/AdminSupplyPurchases"),
+);
+const AdminRecipes = lazy(() => import("./pages/Admin/Recipes/AdminRecipes"));
+const AdminCafeteriaProfit = lazy(
+  () => import("./pages/Admin/CafeteriaProfit/AdminCafeteriaProfit"),
+);
+const AdminCostAllocationRules = lazy(
+  () => import("./pages/Admin/CostAllocationRules/AdminCostAllocationRules"),
+);
+const AdminFinancialDashboard = lazy(
+  () => import("./pages/Admin/FinancialDashboard/AdminFinancialDashboard"),
 );
 const AdminUsers = lazy(() => import("./pages/Admin/Users/AdminUsers"));
 
@@ -231,6 +264,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminLayout />}>
               <Route index element={<AdminReservations />} />
               <Route path="reservas" element={<AdminReservations />} />
+              <Route path="cuentas" element={<AdminVisitAccounts />} />
               <Route path="cronometraje" element={<AdminTiming />} />
               <Route path="precios" element={<AdminRates />} />
               <Route path="cafeteria" element={<AdminCafeteriaProducts />} />
@@ -239,8 +273,75 @@ function App() {
                 element={<AdminCafeteriaPromotions />}
               />
               <Route
+                path="cafeteria/compras"
+                element={<AdminInventoryPurchases />}
+              />
+              <Route path="cafeteria/insumos" element={<AdminSupplies />} />
+              <Route
+                path="cafeteria/compras-insumos"
+                element={<AdminSupplyPurchases />}
+              />
+              <Route path="cafeteria/recetas" element={<AdminRecipes />} />
+              <Route
+                path="cafeteria/ganancia"
+                element={
+                  <Navigate
+                    to="/admin/dashboard/reportes/estrategia-comercial"
+                    replace
+                  />
+                }
+              />
+              <Route
                 path="cuentas-financieras"
                 element={<AdminFinancialAccounts />}
+              />
+              <Route
+                path="movimientos-financieros"
+                element={<AdminFinancialMovements />}
+              />
+              <Route path="cierres" element={<AdminDailyCloses />} />
+              <Route
+                path="reglas-reparto"
+                element={<AdminCostAllocationRules />}
+              />
+              <Route
+                path="estado-resultados"
+                element={
+                  <Navigate
+                    to="/admin/dashboard/reportes/salud-negocio"
+                    replace
+                  />
+                }
+              />
+              <Route
+                path="dashboard-financiero"
+                element={
+                  <Navigate
+                    to="/admin/dashboard/reportes/salud-negocio"
+                    replace
+                  />
+                }
+              />
+              <Route
+                path="reportes"
+                element={
+                  <Navigate
+                    to="/admin/dashboard/reportes/salud-negocio"
+                    replace
+                  />
+                }
+              />
+              <Route
+                path="reportes/salud-negocio"
+                element={<AdminFinancialDashboard />}
+              />
+              <Route
+                path="reportes/estrategia-comercial"
+                element={<AdminCafeteriaProfit />}
+              />
+              <Route
+                path="reportes/auditoria-exportaciones"
+                element={<AdminReports />}
               />
               <Route path="festivos" element={<AdminHolidays />} />
               <Route path="horarios" element={<AdminOpeningHours />} />

@@ -1,5 +1,61 @@
 const db = require("../db/initDb");
 
+const RESERVATION_FIELDS = `
+  id,
+  room_id,
+  date,
+  start_time,
+  end_time,
+  actual_duration_ms,
+  timer_start_ms,
+  timer_end_ms,
+  consult_code,
+  first_name,
+  last_name,
+  phone,
+  players,
+  notes,
+  total,
+  status,
+  is_first_time,
+  marketing_consent,
+  marketing_consent_at,
+  reservation_source,
+  out_of_hours,
+  reprogrammed,
+  COALESCE((
+    SELECT SUM(payment.amount)
+    FROM reservation_payments payment
+    WHERE payment.reservation_id = reservations.id
+      AND payment.status = 'CONFIRMED'
+  ), 0) AS total_paid,
+  GREATEST(
+    COALESCE(total, 0) - COALESCE((
+      SELECT SUM(payment.amount)
+      FROM reservation_payments payment
+      WHERE payment.reservation_id = reservations.id
+        AND payment.status = 'CONFIRMED'
+    ), 0),
+    0
+  ) AS pending_amount,
+  (
+    SELECT visit.id
+    FROM visit_accounts visit
+    WHERE visit.reservation_id = reservations.id
+      AND visit.status IN ('OPEN', 'PARTIALLY_PAID', 'PAID')
+    ORDER BY visit.opened_at DESC
+    LIMIT 1
+  ) AS active_visit_account_id,
+  (
+    SELECT visit.status
+    FROM visit_accounts visit
+    WHERE visit.reservation_id = reservations.id
+      AND visit.status IN ('OPEN', 'PARTIALLY_PAID', 'PAID')
+    ORDER BY visit.opened_at DESC
+    LIMIT 1
+  ) AS active_visit_account_status
+`;
+
 function buildWhere(filters) {
   const where = [];
   const params = [];
@@ -61,7 +117,7 @@ async function listReservationsPage(input) {
   const limitIndex = params.length + 1;
   const offsetIndex = params.length + 2;
   const listSql =
-    `SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, marketing_consent, marketing_consent_at, reservation_source, out_of_hours, reprogrammed FROM reservations${whereSql}` +
+    `SELECT ${RESERVATION_FIELDS} FROM reservations${whereSql}` +
     ` ORDER BY date ASC, start_time ASC, id ASC LIMIT $${limitIndex} OFFSET $${offsetIndex};`;
 
   const listResult = await db.query(listSql, [...params, safeSize, offset]);
@@ -75,8 +131,7 @@ async function listReservations(filters) {
     dateFrom: filters?.dateFrom ?? filters?.from ?? filters?.date,
     dateTo: filters?.dateTo ?? filters?.to ?? filters?.date,
   });
-  let sql =
-    "SELECT id, room_id, date, start_time, end_time, actual_duration_ms, timer_start_ms, timer_end_ms, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, marketing_consent, marketing_consent_at, reservation_source, out_of_hours, reprogrammed FROM reservations";
+  let sql = `SELECT ${RESERVATION_FIELDS} FROM reservations`;
   if (where.length) sql += ` WHERE ${where.join(" AND ")}`;
   sql += " ORDER BY date ASC, start_time ASC, id ASC;";
 
@@ -133,10 +188,193 @@ async function updateReservation(id, payload) {
 
 async function getReservationById(id) {
   const result = await db.query(
-    "SELECT * FROM reservations WHERE id = $1;",
+    `SELECT ${RESERVATION_FIELDS} FROM reservations WHERE id = $1;`,
     [id]
   );
   return result.rows[0] || null;
+}
+
+async function getFinancialAccountForPayment(id) {
+  const result = await db.query(
+    `SELECT *
+     FROM financial_accounts
+     WHERE id = $1
+     LIMIT 1;`,
+    [id]
+  );
+  return result.rows[0] || null;
+}
+
+async function createReservationPayment(payload) {
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const paymentResult = await client.query(
+      `
+        INSERT INTO reservation_payments (
+          reservation_id,
+          amount,
+          financial_account_id,
+          paid_at,
+          notes,
+          created_by,
+          created_at,
+          status
+        )
+        VALUES ($1, $2, $3, $4, $5, $6, $7, 'CONFIRMED')
+        RETURNING *;
+      `,
+      [
+        payload.reservationId,
+        payload.amount,
+        payload.financialAccountId,
+        payload.paidAt,
+        payload.notes,
+        payload.createdBy,
+        payload.createdAt,
+      ]
+    );
+    const payment = paymentResult.rows[0];
+
+    const movementResult = await client.query(
+      `
+        INSERT INTO financial_movements (
+          financial_account_id,
+          type,
+          amount,
+          occurred_at,
+          description,
+          source_type,
+          source_id,
+          created_by,
+          created_at,
+          status
+        )
+        VALUES ($1, 'INCOME', $2, $3, $4, 'RESERVATION_PAYMENT', $5, $6, $7, 'ACTIVE')
+        RETURNING id;
+      `,
+      [
+        payload.financialAccountId,
+        payload.amount,
+        payload.paidAt,
+        payload.notes || `Abono reserva #${payload.reservationId}`,
+        String(payment.id),
+        payload.createdBy,
+        payload.createdAt,
+      ]
+    );
+    const movementId = movementResult.rows[0]?.id ?? null;
+
+    const updatedPaymentResult = await client.query(
+      `
+        UPDATE reservation_payments
+        SET financial_movement_id = $1
+        WHERE id = $2
+        RETURNING *;
+      `,
+      [movementId, payment.id]
+    );
+
+    await client.query("COMMIT");
+    return updatedPaymentResult.rows[0] || payment;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
+async function listReservationPayments(reservationId) {
+  const result = await db.query(
+    `
+      SELECT
+        payment.*,
+        account.name AS financial_account_name,
+        account.type AS financial_account_type,
+        creator.name AS created_by_name,
+        voider.name AS voided_by_name
+      FROM reservation_payments payment
+      LEFT JOIN financial_accounts account
+        ON account.id = payment.financial_account_id
+      LEFT JOIN users creator
+        ON creator.id = payment.created_by
+      LEFT JOIN users voider
+        ON voider.id = payment.voided_by
+      WHERE payment.reservation_id = $1
+      ORDER BY payment.paid_at DESC, payment.id DESC;
+    `,
+    [reservationId]
+  );
+  return result.rows || [];
+}
+
+async function getReservationPaymentById(reservationId, paymentId) {
+  const result = await db.query(
+    `
+      SELECT *
+      FROM reservation_payments
+      WHERE reservation_id = $1
+        AND id = $2
+      LIMIT 1;
+    `,
+    [reservationId, paymentId]
+  );
+  return result.rows[0] || null;
+}
+
+async function voidReservationPayment(payload) {
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const paymentResult = await client.query(
+      `
+        UPDATE reservation_payments
+        SET
+          status = 'VOIDED',
+          voided_at = $1,
+          voided_by = $2,
+          void_reason = $3
+        WHERE id = $4
+          AND reservation_id = $5
+          AND status = 'CONFIRMED'
+        RETURNING *;
+      `,
+      [
+        payload.voidedAt,
+        payload.voidedBy,
+        payload.reason,
+        payload.paymentId,
+        payload.reservationId,
+      ]
+    );
+    const payment = paymentResult.rows[0] || null;
+    if (!payment) {
+      await client.query("ROLLBACK");
+      return null;
+    }
+
+    if (payment.financial_movement_id) {
+      await client.query(
+        `
+          UPDATE financial_movements
+          SET
+            status = 'VOIDED',
+            description = COALESCE(description, '') || $1
+          WHERE id = $2;
+        `,
+        [` | Anulado: ${payload.reason}`, payment.financial_movement_id]
+      );
+    }
+
+    await client.query("COMMIT");
+    return payment;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function createReservationChange(payload) {
@@ -202,6 +440,11 @@ module.exports = async function initConsumer() {
     updateReservation,
     deleteReservation,
     getReservationById,
+    getFinancialAccountForPayment,
+    createReservationPayment,
+    listReservationPayments,
+    getReservationPaymentById,
+    voidReservationPayment,
     createReservationChange,
     setReservationTimerStart,
     setReservationTimerEnd,

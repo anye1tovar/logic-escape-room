@@ -47,10 +47,19 @@ function buildAuthService(usersConsumer, opts) {
       email: user.email,
       name: user.name || null,
       role: user.role || "admin",
+      canCreateCourtesy:
+        user.can_create_courtesy === true ||
+        user.can_create_courtesy === 1 ||
+        user.can_create_courtesy === "1",
     };
 
     const token = createToken(
-      { sub: String(user.id), email: user.email, role: publicUser.role },
+      {
+        sub: String(user.id),
+        email: user.email,
+        role: publicUser.role,
+        canCreateCourtesy: publicUser.canCreateCourtesy,
+      },
       { secret: opts?.secret, ttlSeconds: opts?.tokenTtlSeconds }
     );
 
@@ -63,4 +72,3 @@ function buildAuthService(usersConsumer, opts) {
 }
 
 module.exports = buildAuthService;
-

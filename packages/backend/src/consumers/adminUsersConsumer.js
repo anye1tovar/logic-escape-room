@@ -25,16 +25,16 @@ async function getUserById(id) {
 
 async function listUsers() {
   const result = await db.query(
-    "SELECT id, email, name, role, active, created_at FROM users ORDER BY id DESC;"
+    "SELECT id, email, name, role, active, can_create_courtesy, created_at FROM users ORDER BY id DESC;"
   );
   return result.rows || [];
 }
 
 async function createUser(payload) {
   const result = await db.query(
-    `INSERT INTO users (email, password_hash, password_salt, name, role, active, created_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     RETURNING id, email, name, role, active, created_at;`,
+    `INSERT INTO users (email, password_hash, password_salt, name, role, active, can_create_courtesy, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+     RETURNING id, email, name, role, active, can_create_courtesy, created_at;`,
     [
       payload.email,
       payload.passwordHash,
@@ -42,6 +42,7 @@ async function createUser(payload) {
       payload.name ?? null,
       payload.role,
       payload.active ?? true,
+      payload.canCreateCourtesy ?? false,
       payload.createdAt,
     ]
   );
@@ -51,10 +52,16 @@ async function createUser(payload) {
 async function updateUser(id, payload) {
   const result = await db.query(
     `UPDATE users
-     SET name = $1, role = $2, active = $3
-     WHERE id = $4
-     RETURNING id, email, name, role, active, created_at;`,
-    [payload.name ?? null, payload.role, payload.active ?? true, id]
+     SET name = $1, role = $2, active = $3, can_create_courtesy = $4
+     WHERE id = $5
+     RETURNING id, email, name, role, active, can_create_courtesy, created_at;`,
+    [
+      payload.name ?? null,
+      payload.role,
+      payload.active ?? true,
+      payload.canCreateCourtesy ?? false,
+      id,
+    ]
   );
   return result.rows[0] || null;
 }

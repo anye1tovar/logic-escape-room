@@ -10,7 +10,7 @@ function buildAdminCafeteriaProductsController(service) {
 
   async function createProduct(req, res) {
     try {
-      const created = await service.createProduct(req.body);
+      const created = await service.createProduct(req.body, { user: req.user });
       res.status(201).json(created);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });
@@ -30,6 +30,64 @@ function buildAdminCafeteriaProductsController(service) {
     try {
       const result = await service.deleteProduct(req.params.id);
       res.json(result);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function listInventoryMovements(req, res) {
+    try {
+      const movements = await service.listInventoryMovements(
+        req.params.id,
+        req.query,
+      );
+      res.json(movements);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function createInventoryMovement(req, res) {
+    try {
+      const movement = await service.createInventoryMovement(
+        req.params.id,
+        req.body,
+        { user: req.user },
+      );
+      res.status(201).json(movement);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function setPhysicalCount(req, res) {
+    try {
+      const movement = await service.setPhysicalCount(req.params.id, req.body, {
+        user: req.user,
+      });
+      res.status(201).json(movement);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function listInventoryBatches(req, res) {
+    try {
+      const batches = await service.listInventoryBatches(req.params.id);
+      res.json(batches);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function writeOffExpiredBatches(req, res) {
+    try {
+      const movements = await service.writeOffExpiredBatches(
+        req.params.id,
+        req.body,
+        { user: req.user },
+      );
+      res.status(201).json(movements);
     } catch (err) {
       res.status(err.status || 500).json({ error: err.message });
     }
@@ -100,6 +158,11 @@ function buildAdminCafeteriaProductsController(service) {
     createProduct,
     updateProduct,
     deleteProduct,
+    listInventoryMovements,
+    createInventoryMovement,
+    setPhysicalCount,
+    listInventoryBatches,
+    writeOffExpiredBatches,
     listCategories,
     createCategory,
     updateCategory,

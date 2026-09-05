@@ -9,6 +9,7 @@ import {
 } from "@mui/material";
 import { useTheme } from "@mui/material/styles";
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet";
+import AssessmentIcon from "@mui/icons-material/Assessment";
 import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
@@ -41,6 +42,11 @@ const navGroups: NavGroup[] = [
         roles: ["admin", "game_master"],
       },
       {
+        to: "/admin/dashboard/cuentas",
+        label: "Cuentas / visitas",
+        roles: ["admin", "game_master"],
+      },
+      {
         to: "/admin/dashboard/cronometraje",
         label: "Cronometraje",
         roles: ["admin", "game_master"],
@@ -62,6 +68,26 @@ const navGroups: NavGroup[] = [
         label: "Promociones",
         roles: ["admin", "game_master"],
       },
+      {
+        to: "/admin/dashboard/cafeteria/compras",
+        label: "Compras de productos para venta",
+        roles: ["admin", "game_master"],
+      },
+      {
+        to: "/admin/dashboard/cafeteria/insumos",
+        label: "Insumos",
+        roles: ["admin"],
+      },
+      {
+        to: "/admin/dashboard/cafeteria/compras-insumos",
+        label: "Compras de materias primas",
+        roles: ["admin", "game_master"],
+      },
+      {
+        to: "/admin/dashboard/cafeteria/recetas",
+        label: "Recetas",
+        roles: ["admin"],
+      },
     ],
   },
   {
@@ -72,6 +98,43 @@ const navGroups: NavGroup[] = [
       {
         to: "/admin/dashboard/cuentas-financieras",
         label: "Cuentas financieras",
+        roles: ["admin"],
+      },
+      {
+        to: "/admin/dashboard/movimientos-financieros",
+        label: "Movimientos financieros",
+        roles: ["admin", "game_master"],
+      },
+      {
+        to: "/admin/dashboard/cierres",
+        label: "Cierre diario",
+        roles: ["admin", "game_master"],
+      },
+      {
+        to: "/admin/dashboard/reglas-reparto",
+        label: "Reglas de reparto",
+        roles: ["admin"],
+      },
+    ],
+  },
+  {
+    id: "reports",
+    label: "Reportes",
+    icon: AssessmentIcon,
+    items: [
+      {
+        to: "/admin/dashboard/reportes/salud-negocio",
+        label: "Salud del negocio",
+        roles: ["admin"],
+      },
+      {
+        to: "/admin/dashboard/reportes/estrategia-comercial",
+        label: "Estrategia comercial",
+        roles: ["admin"],
+      },
+      {
+        to: "/admin/dashboard/reportes/auditoria-exportaciones",
+        label: "Auditoria y exportaciones",
         roles: ["admin"],
       },
     ],

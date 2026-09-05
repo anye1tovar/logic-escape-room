@@ -43,6 +43,16 @@ type ProductRow = {
   category_id: number | null;
   category: string | null;
   image: string | null;
+  track_inventory: boolean | number | string;
+  minimum_stock: number | null;
+  unit: string | null;
+  current_stock: number | string;
+  physical_stock?: number | string;
+  sellable_stock?: number | string;
+  nearest_expiration_date?: string | null;
+  track_expiration: boolean | number | string;
+  expiration_alert_days: number | string;
+  critical_expiration_alert_days: number | string;
 };
 
 type CategoryRow = {
@@ -61,6 +71,59 @@ type ProductFormState = {
   available: "1" | "0";
   categoryId: string;
   image: string;
+  trackInventory: "1" | "0";
+  minimumStock: string;
+  unit: string;
+  initialStock: string;
+  trackExpiration: "1" | "0";
+  expirationAlertDays: string;
+  criticalExpirationAlertDays: string;
+  expirationDate: string;
+  lotNumber: string;
+};
+
+type InventoryMovementRow = {
+  id: number;
+  product_id: number;
+  type: string;
+  quantity_delta: number | string;
+  occurred_at: number | string;
+  source_type: string | null;
+  source_id: string | null;
+  reason: string | null;
+  created_by_name: string | null;
+  expiration_date?: string | null;
+  lot_number?: string | null;
+};
+
+type InventoryBatchRow = {
+  id: number;
+  product_id: number;
+  received_quantity: number | string;
+  current_quantity: number | string;
+  expiration_date: string;
+  lot_number: string | null;
+  status: string;
+};
+
+type InventoryMovementResponse = {
+  rows: InventoryMovementRow[];
+  total: number;
+};
+
+type InventoryFormState = {
+  type: "PURCHASE" | "WASTE" | "ADJUSTMENT_POSITIVE" | "ADJUSTMENT_NEGATIVE";
+  quantity: string;
+  reason: string;
+  realCount: string;
+  expirationDate: string;
+  lotNumber: string;
+};
+
+type InventoryFilters = {
+  type: string;
+  dateFrom: string;
+  dateTo: string;
 };
 
 type CategoryFormState = {
@@ -78,6 +141,36 @@ const emptyProductForm: ProductFormState = {
   available: "1",
   categoryId: "",
   image: "",
+  trackInventory: "0",
+  minimumStock: "",
+  unit: "unidad",
+  initialStock: "0",
+  trackExpiration: "0",
+  expirationAlertDays: "30",
+  criticalExpirationAlertDays: "7",
+  expirationDate: "",
+  lotNumber: "",
+};
+
+const inventoryTypeLabels: Record<string, string> = {
+  INITIAL_STOCK: "Stock inicial",
+  PURCHASE: "Compra",
+  SALE: "Venta",
+  COURTESY: "Cortesia",
+  WASTE: "Merma",
+  ADJUSTMENT_POSITIVE: "Ajuste positivo",
+  ADJUSTMENT_NEGATIVE: "Ajuste negativo",
+  REVERSAL: "Reversion",
+  WASTE_EXPIRED: "Baja por vencimiento",
+};
+
+const emptyInventoryForm: InventoryFormState = {
+  type: "PURCHASE",
+  quantity: "",
+  reason: "",
+  realCount: "",
+  expirationDate: "",
+  lotNumber: "",
 };
 
 const emptyCategoryForm: CategoryFormState = {
@@ -102,6 +195,26 @@ function toProductForm(row: ProductRow): ProductFormState {
     available: String(row.available ?? 1) === "0" ? "0" : "1",
     categoryId: row.category_id == null ? "" : String(row.category_id),
     image: fileNameOnly(row.image),
+    trackInventory:
+      row.track_inventory === true ||
+      row.track_inventory === 1 ||
+      row.track_inventory === "1"
+        ? "1"
+        : "0",
+    minimumStock:
+      row.minimum_stock == null ? "" : String(row.minimum_stock),
+    unit: row.unit || "unidad",
+    initialStock: "0",
+    trackExpiration:
+      row.track_expiration === true ||
+      row.track_expiration === 1 ||
+      row.track_expiration === "1"
+        ? "1"
+        : "0",
+    expirationAlertDays: String(row.expiration_alert_days ?? 30),
+    criticalExpirationAlertDays: String(row.critical_expiration_alert_days ?? 7),
+    expirationDate: "",
+    lotNumber: "",
   };
 }
 
@@ -124,6 +237,15 @@ function productPayload(form: ProductFormState) {
     available: form.available === "1" ? 1 : 0,
     categoryId: form.categoryId ? Number(form.categoryId) : null,
     image: fileNameOnly(form.image) || null,
+    trackInventory: form.trackInventory === "1",
+    minimumStock: form.minimumStock ? Number(form.minimumStock) : null,
+    unit: form.unit || "unidad",
+    initialStock: Number(form.initialStock || 0),
+    trackExpiration: form.trackExpiration === "1",
+    expirationAlertDays: Number(form.expirationAlertDays || 30),
+    criticalExpirationAlertDays: Number(form.criticalExpirationAlertDays || 7),
+    expirationDate: form.expirationDate || null,
+    lotNumber: form.lotNumber || null,
   };
 }
 
@@ -158,6 +280,58 @@ function buildPublicImagePath(
     : `${publicBase}/`;
   const normalizedPath = basePath.replace(/^\/+|\/+$/g, "");
   return `${normalizedBase}${normalizedPath}/${encodeURIComponent(fileName)}`;
+}
+
+function formatDateTime(value: number | string) {
+  const timestamp = Number(value);
+  if (!Number.isFinite(timestamp)) return "";
+  return new Date(timestamp).toLocaleString("es-CO");
+}
+
+function isTrackingInventory(product: ProductRow) {
+  return (
+    product.track_inventory === true ||
+    product.track_inventory === 1 ||
+    product.track_inventory === "1"
+  );
+}
+
+function currentStock(product: ProductRow) {
+  return Number(product.current_stock || 0);
+}
+
+function sellableStock(product: ProductRow) {
+  if (!isTrackingExpiration(product)) {
+    return currentStock(product);
+  }
+  return Number(product.sellable_stock ?? 0);
+}
+
+function isTrackingExpiration(product: ProductRow) {
+  return (
+    product.track_expiration === true ||
+    product.track_expiration === 1 ||
+    product.track_expiration === "1"
+  );
+}
+
+function expirationStatus(product: ProductRow) {
+  if (!isTrackingExpiration(product) || !product.nearest_expiration_date) {
+    return null;
+  }
+  const today = new Date();
+  const expires = new Date(`${product.nearest_expiration_date}T00:00:00-05:00`);
+  const days = Math.ceil(
+    (expires.getTime() - today.getTime()) / (24 * 60 * 60 * 1000),
+  );
+  if (days < 0) return { label: "Vencido", color: "error" as const };
+  if (days <= Number(product.critical_expiration_alert_days || 7)) {
+    return { label: "Vence critico", color: "error" as const };
+  }
+  if (days <= Number(product.expiration_alert_days || 30)) {
+    return { label: "Proximo a vencer", color: "warning" as const };
+  }
+  return { label: "Vigente", color: "success" as const };
 }
 
 export default function AdminCafeteriaProducts() {
@@ -195,6 +369,25 @@ export default function AdminCafeteriaProducts() {
   const [productSearch, setProductSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [inventoryProduct, setInventoryProduct] = useState<ProductRow | null>(
+    null,
+  );
+  const [inventoryMovements, setInventoryMovements] = useState<
+    InventoryMovementRow[]
+  >([]);
+  const [inventoryBatches, setInventoryBatches] = useState<InventoryBatchRow[]>(
+    [],
+  );
+  const [inventoryTotal, setInventoryTotal] = useState(0);
+  const [inventoryPage, setInventoryPage] = useState(0);
+  const [inventoryRowsPerPage, setInventoryRowsPerPage] = useState(20);
+  const [inventoryFilters, setInventoryFilters] = useState<InventoryFilters>({
+    type: "",
+    dateFrom: "",
+    dateTo: "",
+  });
+  const [inventoryForm, setInventoryForm] =
+    useState<InventoryFormState>(emptyInventoryForm);
 
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => {
@@ -274,7 +467,12 @@ export default function AdminCafeteriaProducts() {
   const canCreate =
     form.name.trim().length > 0 &&
     form.price.trim().length > 0 &&
-    Number.isFinite(Number(form.price));
+    Number.isFinite(Number(form.price)) &&
+    (form.trackInventory === "0" ||
+      (Number(form.initialStock || 0) >= 0 &&
+        (form.trackExpiration === "0" ||
+          Number(form.initialStock || 0) === 0 ||
+          form.expirationDate)));
   const canCreateCategory = categoryForm.name.trim().length > 0;
   const confirmDeleteProduct =
     rows.find((row) => row.id === confirmDeleteProductId) || null;
@@ -300,6 +498,7 @@ export default function AdminCafeteriaProducts() {
               : Number(row.available) === 1
                 ? 1
                 : 0,
+          current_stock: Number(row.current_stock || 0),
         })),
       );
       setCategories(
@@ -427,6 +626,185 @@ export default function AdminCafeteriaProducts() {
     setEditingProduct(row);
     setEditProductForm(nextForm);
     setSavedProductForm(nextForm);
+  }
+
+  async function openInventory(product: ProductRow) {
+    setInventoryProduct(product);
+    setInventoryForm(emptyInventoryForm);
+    setInventoryPage(0);
+    setInventoryFilters({ type: "", dateFrom: "", dateTo: "" });
+    await loadInventoryMovements(product, {
+      page: 0,
+      rowsPerPage: inventoryRowsPerPage,
+      filters: { type: "", dateFrom: "", dateTo: "" },
+    });
+    await loadInventoryBatches(product);
+  }
+
+  async function loadInventoryBatches(product = inventoryProduct) {
+    if (!product || !isTrackingExpiration(product)) {
+      setInventoryBatches([]);
+      return;
+    }
+    try {
+      const batches = await adminRequest<InventoryBatchRow[]>(
+        `/api/admin/cafeteria-products/${product.id}/inventory-batches`,
+      );
+      setInventoryBatches(batches || []);
+    } catch {
+      setStatus({
+        type: "error",
+        message: "No se pudieron cargar los lotes.",
+      });
+    }
+  }
+
+  async function loadInventoryMovements(
+    product = inventoryProduct,
+    options: {
+      page?: number;
+      rowsPerPage?: number;
+      filters?: InventoryFilters;
+    } = {},
+  ) {
+    if (!product) return;
+    const nextPage = options.page ?? inventoryPage;
+    const nextRowsPerPage = options.rowsPerPage ?? inventoryRowsPerPage;
+    const nextFilters = options.filters ?? inventoryFilters;
+    try {
+      const params = new URLSearchParams({
+        limit: String(nextRowsPerPage),
+        offset: String(nextPage * nextRowsPerPage),
+      });
+      if (nextFilters.type) params.set("type", nextFilters.type);
+      if (nextFilters.dateFrom) params.set("dateFrom", nextFilters.dateFrom);
+      if (nextFilters.dateTo) params.set("dateTo", nextFilters.dateTo);
+      const data = await adminRequest<InventoryMovementResponse>(
+        `/api/admin/cafeteria-products/${
+          product.id
+        }/inventory-movements?${params.toString()}`,
+      );
+      setInventoryMovements(data.rows || []);
+      setInventoryTotal(Number(data.total || 0));
+    } catch {
+      setStatus({
+        type: "error",
+        message: "No se pudieron cargar los movimientos de inventario.",
+      });
+    }
+  }
+
+  async function createInventoryMovement() {
+    if (!inventoryProduct) return;
+    const quantityDelta = ["WASTE", "ADJUSTMENT_NEGATIVE"].includes(
+      inventoryForm.type,
+    )
+      ? -Number(inventoryForm.quantity || 0)
+      : Number(inventoryForm.quantity || 0);
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(
+        `/api/admin/cafeteria-products/${inventoryProduct.id}/inventory-movements`,
+        {
+          method: "POST",
+          body: {
+            type: inventoryForm.type,
+            quantity: Number(inventoryForm.quantity || 0),
+            reason: inventoryForm.reason,
+            expirationDate: inventoryForm.expirationDate || null,
+            lotNumber: inventoryForm.lotNumber || null,
+          },
+        },
+      );
+      setInventoryProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              current_stock: currentStock(prev) + quantityDelta,
+            }
+          : prev,
+      );
+      setInventoryForm(emptyInventoryForm);
+      setStatus({ type: "success", message: "Inventario actualizado." });
+      await load();
+      await loadInventoryMovements(inventoryProduct);
+      await loadInventoryBatches(inventoryProduct);
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        message:
+          err instanceof Error
+            ? err.message
+            : "No se pudo actualizar el inventario.",
+      });
+    }
+  }
+
+  async function setPhysicalCount() {
+    if (!inventoryProduct) return;
+    const realCount = Number(inventoryForm.realCount || 0);
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(
+        `/api/admin/cafeteria-products/${inventoryProduct.id}/physical-count`,
+        {
+          method: "POST",
+          body: {
+            realCount,
+            reason: inventoryForm.reason,
+          },
+        },
+      );
+      setInventoryProduct((prev) =>
+        prev
+          ? {
+              ...prev,
+              current_stock: realCount,
+            }
+          : prev,
+      );
+      setInventoryForm(emptyInventoryForm);
+      setStatus({ type: "success", message: "Conteo fisico registrado." });
+      await load();
+      await loadInventoryMovements(inventoryProduct);
+      await loadInventoryBatches(inventoryProduct);
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        message:
+          err instanceof Error
+            ? err.message
+            : "No se pudo registrar el conteo fisico.",
+      });
+    }
+  }
+
+  async function writeOffExpiredBatches() {
+    if (!inventoryProduct) return;
+    const reason = window.prompt("Motivo de baja por vencimiento") || "";
+    if (!reason.trim()) return;
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(
+        `/api/admin/cafeteria-products/${inventoryProduct.id}/write-off-expired`,
+        {
+          method: "POST",
+          body: { reason },
+        },
+      );
+      setStatus({ type: "success", message: "Vencidos dados de baja." });
+      await load();
+      await loadInventoryMovements(inventoryProduct);
+      await loadInventoryBatches(inventoryProduct);
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        message:
+          err instanceof Error
+            ? err.message
+            : "No se pudieron dar de baja los vencidos.",
+      });
+    }
   }
 
   function closeProductEditor(force = false) {
@@ -707,6 +1085,7 @@ export default function AdminCafeteriaProducts() {
                     <TableCell>Precio</TableCell>
                     <TableCell>Estado</TableCell>
                     <TableCell>Categoria</TableCell>
+                    <TableCell>Inventario</TableCell>
                     <TableCell>Acciones</TableCell>
                   </TableRow>
                 </TableHead>
@@ -743,6 +1122,47 @@ export default function AdminCafeteriaProducts() {
                         {product.category || "Sin categoria"}
                       </TableCell>
                       <TableCell className="admin-crud__cell--nowrap">
+                        {isTrackingInventory(product) ? (
+                          <Stack direction="row" spacing={1}>
+                            <Chip
+                              label={
+                                isTrackingExpiration(product)
+                                  ? `${sellableStock(product)} vendibles`
+                                  : `${currentStock(product)} ${
+                                      product.unit || "unidad"
+                                    }`
+                              }
+                              color={
+                                product.minimum_stock != null &&
+                                sellableStock(product) <=
+                                  Number(product.minimum_stock)
+                                  ? "warning"
+                                  : "default"
+                              }
+                              size="small"
+                            />
+                            {product.minimum_stock != null &&
+                            sellableStock(product) <=
+                              Number(product.minimum_stock) ? (
+                              <Chip
+                                label="Stock bajo"
+                                color="warning"
+                                size="small"
+                              />
+                            ) : null}
+                            {expirationStatus(product) ? (
+                              <Chip
+                                label={expirationStatus(product)?.label}
+                                color={expirationStatus(product)?.color}
+                                size="small"
+                              />
+                            ) : null}
+                          </Stack>
+                        ) : (
+                          <Chip label="Sin control" size="small" />
+                        )}
+                      </TableCell>
+                      <TableCell className="admin-crud__cell--nowrap">
                         <Stack direction="row" spacing={1}>
                           <Button
                             variant="contained"
@@ -750,6 +1170,16 @@ export default function AdminCafeteriaProducts() {
                             disabled={status.type === "loading"}
                           >
                             Editar
+                          </Button>
+                          <Button
+                            variant="outlined"
+                            onClick={() => void openInventory(product)}
+                            disabled={
+                              status.type === "loading" ||
+                              !isTrackingInventory(product)
+                            }
+                          >
+                            Inventario
                           </Button>
                           <Button
                             variant="outlined"
@@ -765,7 +1195,7 @@ export default function AdminCafeteriaProducts() {
                   ))}
                   {filtered.length === 0 ? (
                     <TableRow>
-                      <TableCell colSpan={5}>Sin registros.</TableCell>
+                      <TableCell colSpan={6}>Sin registros.</TableCell>
                     </TableRow>
                   ) : null}
                 </TableBody>
@@ -961,6 +1391,375 @@ export default function AdminCafeteriaProducts() {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <Dialog
+        open={inventoryProduct != null}
+        onClose={() => setInventoryProduct(null)}
+        maxWidth="md"
+        fullWidth
+        aria-labelledby="inventory-title"
+      >
+        <DialogTitle id="inventory-title">
+          {inventoryProduct
+            ? `Inventario - ${inventoryProduct.name}`
+            : "Inventario"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            {inventoryProduct ? (
+              <Stack direction="row" spacing={1}>
+                <Chip
+                  label={`Stock fisico: ${
+                    inventoryProduct.physical_stock ?? currentStock(inventoryProduct)
+                  } ${inventoryProduct.unit || "unidad"}`}
+                  color="primary"
+                  size="small"
+                />
+                {isTrackingExpiration(inventoryProduct) ? (
+                  <Chip
+                    label={`Vendible: ${sellableStock(inventoryProduct)}`}
+                    color="success"
+                    size="small"
+                  />
+                ) : null}
+                {inventoryProduct.minimum_stock != null ? (
+                  <Chip
+                    label={`Minimo: ${inventoryProduct.minimum_stock}`}
+                    size="small"
+                  />
+                ) : null}
+                {isTrackingExpiration(inventoryProduct) ? (
+                  <Button
+                    variant="outlined"
+                    color="error"
+                    onClick={() => void writeOffExpiredBatches()}
+                    disabled={status.type === "loading"}
+                  >
+                    Dar de baja vencidos
+                  </Button>
+                ) : null}
+              </Stack>
+            ) : null}
+
+            <div className="admin-crud__row">
+              <Select
+                value={inventoryForm.type}
+                onChange={(e) =>
+                  setInventoryForm((s) => ({
+                    ...s,
+                    type: e.target.value as InventoryFormState["type"],
+                  }))
+                }
+                size="small"
+                fullWidth
+              >
+                <MenuItem value="PURCHASE">Compra</MenuItem>
+                <MenuItem value="WASTE">Merma</MenuItem>
+                <MenuItem value="ADJUSTMENT_POSITIVE">
+                  Ajuste positivo
+                </MenuItem>
+                <MenuItem value="ADJUSTMENT_NEGATIVE">
+                  Ajuste negativo
+                </MenuItem>
+              </Select>
+              <TextField
+                label="Cantidad"
+                value={inventoryForm.quantity}
+                onChange={(e) =>
+                  setInventoryForm((s) => ({
+                    ...s,
+                    quantity: e.target.value,
+                  }))
+                }
+                inputProps={{ inputMode: "numeric", min: 1 }}
+                size="small"
+                fullWidth
+              />
+            </div>
+
+            <div className="admin-crud__row">
+              <TextField
+                label="Motivo"
+                value={inventoryForm.reason}
+                onChange={(e) =>
+                  setInventoryForm((s) => ({
+                    ...s,
+                    reason: e.target.value,
+                  }))
+                }
+                size="small"
+                fullWidth
+              />
+              <Button
+                variant="contained"
+                onClick={() => void createInventoryMovement()}
+                disabled={
+                  status.type === "loading" ||
+                  !Number(inventoryForm.quantity || 0) ||
+                  !inventoryForm.reason.trim() ||
+                  (inventoryProduct != null &&
+                    isTrackingExpiration(inventoryProduct) &&
+                    ["PURCHASE", "ADJUSTMENT_POSITIVE"].includes(
+                      inventoryForm.type,
+                    ) &&
+                    !inventoryForm.expirationDate)
+                }
+              >
+                Registrar movimiento
+              </Button>
+            </div>
+
+            {inventoryProduct && isTrackingExpiration(inventoryProduct) ? (
+              <div className="admin-crud__row">
+                <TextField
+                  label="Vencimiento del lote"
+                  type="date"
+                  value={inventoryForm.expirationDate}
+                  onChange={(e) =>
+                    setInventoryForm((s) => ({
+                      ...s,
+                      expirationDate: e.target.value,
+                    }))
+                  }
+                  InputLabelProps={{ shrink: true }}
+                  size="small"
+                  fullWidth
+                  disabled={
+                    inventoryForm.type === "WASTE" ||
+                    inventoryForm.type === "ADJUSTMENT_NEGATIVE"
+                  }
+                />
+                <TextField
+                  label="Numero de lote"
+                  value={inventoryForm.lotNumber}
+                  onChange={(e) =>
+                    setInventoryForm((s) => ({
+                      ...s,
+                      lotNumber: e.target.value,
+                    }))
+                  }
+                  size="small"
+                  fullWidth
+                  disabled={
+                    inventoryForm.type === "WASTE" ||
+                    inventoryForm.type === "ADJUSTMENT_NEGATIVE"
+                  }
+                />
+              </div>
+            ) : null}
+
+            {inventoryProduct && !isTrackingExpiration(inventoryProduct) ? (
+              <div className="admin-crud__row">
+                <TextField
+                  label="Conteo fisico"
+                  value={inventoryForm.realCount}
+                  onChange={(e) =>
+                    setInventoryForm((s) => ({
+                      ...s,
+                      realCount: e.target.value,
+                    }))
+                  }
+                  inputProps={{ inputMode: "numeric", min: 0 }}
+                  size="small"
+                  fullWidth
+                />
+                <Button
+                  variant="outlined"
+                  onClick={() => void setPhysicalCount()}
+                  disabled={
+                    status.type === "loading" ||
+                    inventoryForm.realCount.trim() === "" ||
+                    !inventoryForm.reason.trim()
+                  }
+                >
+                  Ajustar a conteo
+                </Button>
+              </div>
+            ) : null}
+
+            <Stack direction={{ xs: "column", md: "row" }} spacing={1}>
+              <Select
+                value={inventoryFilters.type}
+                onChange={(e) =>
+                  setInventoryFilters((s) => ({
+                    ...s,
+                    type: String(e.target.value),
+                  }))
+                }
+                size="small"
+                displayEmpty
+              >
+                <MenuItem value="">Todos los tipos</MenuItem>
+                {Object.entries(inventoryTypeLabels).map(([value, label]) => (
+                  <MenuItem key={value} value={value}>
+                    {label}
+                  </MenuItem>
+                ))}
+              </Select>
+              <TextField
+                label="Desde"
+                type="date"
+                value={inventoryFilters.dateFrom}
+                onChange={(e) =>
+                  setInventoryFilters((s) => ({
+                    ...s,
+                    dateFrom: e.target.value,
+                  }))
+                }
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+              <TextField
+                label="Hasta"
+                type="date"
+                value={inventoryFilters.dateTo}
+                onChange={(e) =>
+                  setInventoryFilters((s) => ({
+                    ...s,
+                    dateTo: e.target.value,
+                  }))
+                }
+                size="small"
+                InputLabelProps={{ shrink: true }}
+              />
+              <Button
+                variant="contained"
+                onClick={() => {
+                  setInventoryPage(0);
+                  void loadInventoryMovements(inventoryProduct, {
+                    page: 0,
+                    filters: inventoryFilters,
+                  });
+                }}
+              >
+                Filtrar
+              </Button>
+              <Button
+                variant="outlined"
+                onClick={() => {
+                  const filters = { type: "", dateFrom: "", dateTo: "" };
+                  setInventoryFilters(filters);
+                  setInventoryPage(0);
+                  void loadInventoryMovements(inventoryProduct, {
+                    page: 0,
+                    filters,
+                  });
+                }}
+              >
+                Limpiar
+              </Button>
+            </Stack>
+
+            {inventoryProduct && isTrackingExpiration(inventoryProduct) ? (
+              <TableContainer>
+                <Table size="small">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Lote</TableCell>
+                      <TableCell>Vence</TableCell>
+                      <TableCell>Recibido</TableCell>
+                      <TableCell>Actual</TableCell>
+                      <TableCell>Estado</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {inventoryBatches.map((batch) => {
+                      const batchProduct = {
+                        ...inventoryProduct,
+                        nearest_expiration_date: batch.expiration_date,
+                      };
+                      const state = expirationStatus(batchProduct);
+                      return (
+                        <TableRow key={batch.id} hover>
+                          <TableCell>{batch.lot_number || `#${batch.id}`}</TableCell>
+                          <TableCell>{batch.expiration_date}</TableCell>
+                          <TableCell>{batch.received_quantity}</TableCell>
+                          <TableCell>{batch.current_quantity}</TableCell>
+                          <TableCell>
+                            <Chip
+                              label={state?.label || "Vigente"}
+                              color={state?.color || "success"}
+                              size="small"
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    {inventoryBatches.length === 0 ? (
+                      <TableRow>
+                        <TableCell colSpan={5}>Sin lotes.</TableCell>
+                      </TableRow>
+                    ) : null}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : null}
+
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Fecha</TableCell>
+                    <TableCell>Tipo</TableCell>
+                    <TableCell>Cantidad</TableCell>
+                    <TableCell>Origen</TableCell>
+                    <TableCell>Motivo</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {inventoryMovements.map((movement) => (
+                    <TableRow key={movement.id} hover>
+                      <TableCell>
+                        {formatDateTime(movement.occurred_at)}
+                      </TableCell>
+                      <TableCell>
+                        {inventoryTypeLabels[movement.type] || movement.type}
+                      </TableCell>
+                      <TableCell>{movement.quantity_delta}</TableCell>
+                      <TableCell>
+                        {[movement.source_type, movement.source_id]
+                          .filter(Boolean)
+                          .join(" #")}
+                      </TableCell>
+                      <TableCell>{movement.reason || ""}</TableCell>
+                    </TableRow>
+                  ))}
+                  {inventoryMovements.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={5}>Sin movimientos.</TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </TableContainer>
+            <TablePagination
+              component="div"
+              count={inventoryTotal}
+              page={inventoryPage}
+              onPageChange={(_, nextPage) => {
+                setInventoryPage(nextPage);
+                void loadInventoryMovements(inventoryProduct, {
+                  page: nextPage,
+                });
+              }}
+              rowsPerPage={inventoryRowsPerPage}
+              onRowsPerPageChange={(e) => {
+                const nextRowsPerPage = Number(e.target.value);
+                setInventoryRowsPerPage(nextRowsPerPage);
+                setInventoryPage(0);
+                void loadInventoryMovements(inventoryProduct, {
+                  page: 0,
+                  rowsPerPage: nextRowsPerPage,
+                });
+              }}
+              rowsPerPageOptions={[10, 20, 50, 100]}
+            />
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setInventoryProduct(null)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }
@@ -1053,6 +1852,125 @@ function ProductForm({
           <MenuItem value="0">No disponible</MenuItem>
         </Select>
       </div>
+      <div className="admin-crud__row">
+        <Select
+          value={form.trackInventory}
+          onChange={(e) =>
+            setForm((s) => ({
+              ...s,
+              trackInventory: e.target.value as "1" | "0",
+            }))
+          }
+          size="small"
+          fullWidth
+        >
+          <MenuItem value="0">Sin control de inventario</MenuItem>
+          <MenuItem value="1">Controlar inventario</MenuItem>
+        </Select>
+        <TextField
+          label="Unidad"
+          value={form.unit}
+          onChange={(e) => setForm((s) => ({ ...s, unit: e.target.value }))}
+          size="small"
+          fullWidth
+        />
+      </div>
+      {form.trackInventory === "1" ? (
+        <>
+          <div className="admin-crud__row">
+            <TextField
+              label="Stock minimo"
+              value={form.minimumStock}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, minimumStock: e.target.value }))
+              }
+              inputProps={{ inputMode: "numeric", min: 0 }}
+              size="small"
+              fullWidth
+            />
+            <TextField
+              label="Stock inicial"
+              value={form.initialStock}
+              onChange={(e) =>
+                setForm((s) => ({ ...s, initialStock: e.target.value }))
+              }
+              helperText="Solo genera movimiento al crear producto."
+              inputProps={{ inputMode: "numeric", min: 0 }}
+              size="small"
+              fullWidth
+              disabled={multiline}
+            />
+          </div>
+          <div className="admin-crud__row">
+            <Select
+              value={form.trackExpiration}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  trackExpiration: e.target.value as "1" | "0",
+                }))
+              }
+              size="small"
+              fullWidth
+            >
+              <MenuItem value="0">Sin vencimiento</MenuItem>
+              <MenuItem value="1">Controlar vencimiento</MenuItem>
+            </Select>
+            <TextField
+              label="Dias de alerta"
+              value={form.expirationAlertDays}
+              onChange={(e) =>
+                setForm((s) => ({
+                  ...s,
+                  expirationAlertDays: e.target.value,
+                }))
+              }
+              inputProps={{ inputMode: "numeric", min: 1 }}
+              size="small"
+              fullWidth
+            />
+          </div>
+          {form.trackExpiration === "1" ? (
+            <div className="admin-crud__row">
+              <TextField
+                label="Dias criticos"
+                value={form.criticalExpirationAlertDays}
+                onChange={(e) =>
+                  setForm((s) => ({
+                    ...s,
+                    criticalExpirationAlertDays: e.target.value,
+                  }))
+                }
+                inputProps={{ inputMode: "numeric", min: 1 }}
+                size="small"
+                fullWidth
+              />
+              <TextField
+                label="Vencimiento lote inicial"
+                type="date"
+                value={form.expirationDate}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, expirationDate: e.target.value }))
+                }
+                InputLabelProps={{ shrink: true }}
+                size="small"
+                fullWidth
+                disabled={multiline}
+              />
+              <TextField
+                label="Numero de lote"
+                value={form.lotNumber}
+                onChange={(e) =>
+                  setForm((s) => ({ ...s, lotNumber: e.target.value }))
+                }
+                size="small"
+                fullWidth
+                disabled={multiline}
+              />
+            </div>
+          ) : null}
+        </>
+      ) : null}
       <TextField
         label="Imagen (nombre de archivo)"
         value={form.image}

@@ -1,4 +1,4 @@
-import { Fragment, useEffect, useMemo, useState } from "react";
+import { Fragment, type ReactNode, useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
@@ -10,7 +10,9 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  FormControl,
   IconButton,
+  InputLabel,
   Pagination,
   Paper,
   Select,
@@ -57,6 +59,10 @@ type ReservationRow = {
   reservation_source?: string | null;
   out_of_hours?: number | boolean | null;
   reprogrammed?: number | boolean | null;
+  total_paid?: number | string | null;
+  pending_amount?: number | string | null;
+  active_visit_account_id?: number | null;
+  active_visit_account_status?: string | null;
 };
 
 function fullName(r: ReservationRow) {
@@ -64,6 +70,31 @@ function fullName(r: ReservationRow) {
 }
 
 type RoomRow = { id: number; name: string };
+
+type FinancialAccountRow = {
+  id: number;
+  name: string;
+  active: boolean | number | string;
+  available_for_customer_payments: boolean | number | string;
+  balance: number | string;
+};
+
+type ReservationPaymentRow = {
+  id: number;
+  reservation_id: number;
+  amount: number | string;
+  financial_account_id: number;
+  financial_account_name?: string | null;
+  paid_at: number | string;
+  notes: string | null;
+  status: string;
+};
+
+type PaymentFormState = {
+  financialAccountId: string;
+  amount: string;
+  notes: string;
+};
 
 const COLOMBIA_TIMEZONE = "America/Bogota";
 const COLOMBIA_OFFSET = "-05:00";
@@ -197,6 +228,61 @@ function formatDurationMs(value: number | null) {
   return `${mm}:${ss}.${cs}`;
 }
 
+function formatMoney(value: number | string | null | undefined) {
+  const amount = Number(value || 0);
+  return new Intl.NumberFormat("es-CO", {
+    style: "currency",
+    currency: "COP",
+    maximumFractionDigits: 0,
+  }).format(Number.isFinite(amount) ? amount : 0);
+}
+
+function formatDateTime(value: number | string | null | undefined) {
+  const timestamp = Number(value);
+  if (!Number.isFinite(timestamp)) return "";
+  return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+  }).format(new Date(timestamp));
+}
+
+function normalizeBoolean(value: boolean | number | string | null | undefined) {
+  return value === true || value === 1 || value === "1" || value === "true";
+}
+
+function PlaceholderSelect({
+  label,
+  value,
+  onChange,
+  renderValue,
+  children,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  renderValue?: (value: string) => string;
+  children: ReactNode;
+}) {
+  return (
+    <FormControl size="small" fullWidth>
+      <InputLabel>{label}</InputLabel>
+      <Select
+        value={value}
+        label={label}
+        onChange={(e) => onChange(String(e.target.value))}
+        displayEmpty
+        renderValue={(selected) => {
+          const selectedValue = String(selected || "");
+          if (!selectedValue) return label;
+          return renderValue ? renderValue(selectedValue) : selectedValue;
+        }}
+      >
+        {children}
+      </Select>
+    </FormControl>
+  );
+}
+
 function parseDurationToMs(value: string) {
   const raw = String(value || "").trim();
   if (!raw) return null;
@@ -253,6 +339,19 @@ export default function AdminReservations() {
     id: number;
     message: string;
   } | null>(null);
+  const [financialAccounts, setFinancialAccounts] = useState<
+    FinancialAccountRow[]
+  >([]);
+  const [paymentReservation, setPaymentReservation] =
+    useState<ReservationRow | null>(null);
+  const [reservationPayments, setReservationPayments] = useState<
+    ReservationPaymentRow[]
+  >([]);
+  const [paymentForm, setPaymentForm] = useState<PaymentFormState>({
+    financialAccountId: "",
+    amount: "",
+    notes: "",
+  });
 
   const pickerLocale = useMemo(() => {
     const lang = i18n.language || "es";
@@ -275,6 +374,14 @@ export default function AdminReservations() {
       return filterDateTo.format("YYYY-MM-DD");
     return null;
   }, [filterDateTo]);
+
+  const paymentAccounts = useMemo(() => {
+    return financialAccounts.filter(
+      (account) =>
+        normalizeBoolean(account.active) &&
+        normalizeBoolean(account.available_for_customer_payments)
+    );
+  }, [financialAccounts]);
 
   async function load(input?: {
     filters?: { dateFrom?: string; dateTo?: string; search?: string };
@@ -306,7 +413,12 @@ export default function AdminReservations() {
         }
       );
 
-      setRows(data.records || []);
+      const records = data.records || [];
+      setRows(records);
+      setPaymentReservation((current) => {
+        if (!current) return current;
+        return records.find((record) => record.id === current.id) || current;
+      });
       setPage(Number(data.page) || 1);
       setPageSize(Number(data.size) || nextPageSize);
       setPageCount(Number(data.totalPages) || 1);
@@ -351,9 +463,21 @@ export default function AdminReservations() {
     }
   }
 
+  async function loadFinancialAccounts() {
+    try {
+      const data = await adminRequest<FinancialAccountRow[]>(
+        "/api/admin/financial-accounts"
+      );
+      setFinancialAccounts(data || []);
+    } catch {
+      setFinancialAccounts([]);
+    }
+  }
+
   useEffect(() => {
     void load();
     void loadRooms();
+    void loadFinancialAccounts();
   }, []);
 
   useEffect(() => {
@@ -484,6 +608,127 @@ export default function AdminReservations() {
       });
     } catch {
       setStatus({ type: "error", message: "No se pudo eliminar la reserva." });
+    }
+  }
+
+  async function openVisitAccount(row: ReservationRow) {
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(`/api/admin/visit-accounts/from-reservation/${row.id}`, {
+        method: "POST",
+        body: {},
+      });
+      setStatus({
+        type: "success",
+        message: `Cuenta abierta para reserva #${row.id}.`,
+      });
+      await reloadCurrentPage();
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo abrir la cuenta.";
+      setStatus({ type: "error", message });
+      setRowError({ id: row.id, message });
+      await reloadCurrentPage();
+    }
+  }
+
+  async function openPayments(row: ReservationRow) {
+    const roomName =
+      rooms.find((room) => Number(room.id) === Number(row.room_id))?.name ||
+      `Sala #${row.room_id}`;
+    setPaymentReservation(row);
+    setReservationPayments([]);
+    setPaymentForm({
+      financialAccountId: "",
+      amount: "",
+      notes: `Abono reserva #${row.id} - ${roomName}`,
+    });
+    setStatus({ type: "loading" });
+    try {
+      const payments = await adminRequest<ReservationPaymentRow[]>(
+        `/api/admin/reservations/${row.id}/payments`
+      );
+      setReservationPayments(payments || []);
+      setStatus({ type: "idle" });
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        message:
+          err instanceof Error ? err.message : "No se pudieron cargar abonos.",
+      });
+    }
+  }
+
+  async function reloadReservationPayments() {
+    if (!paymentReservation) return;
+    const payments = await adminRequest<ReservationPaymentRow[]>(
+      `/api/admin/reservations/${paymentReservation.id}/payments`
+    );
+    setReservationPayments(payments || []);
+  }
+
+  async function createReservationPayment(allowOverpayment = false) {
+    if (!paymentReservation) return;
+    const amount = Number(paymentForm.amount || 0);
+    if (!paymentForm.financialAccountId || !Number.isFinite(amount) || amount <= 0) {
+      setStatus({
+        type: "error",
+        message: "Selecciona una cuenta y un monto valido.",
+      });
+      return;
+    }
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(`/api/admin/reservations/${paymentReservation.id}/payments`, {
+        method: "POST",
+        body: {
+          financialAccountId: Number(paymentForm.financialAccountId),
+          amount,
+          notes: paymentForm.notes,
+          allowOverpayment,
+        },
+      });
+      setPaymentForm((current) => ({ ...current, amount: "" }));
+      await reloadReservationPayments();
+      await reloadCurrentPage();
+      setStatus({ type: "success", message: "Abono registrado." });
+    } catch (err: unknown) {
+      const message =
+        err instanceof Error ? err.message : "No se pudo registrar el abono.";
+      if (
+        !allowOverpayment &&
+        message === "Payment exceeds reservation total" &&
+        window.confirm("El abono supera el total de la reserva. ¿Registrar de todas formas?")
+      ) {
+        await createReservationPayment(true);
+        return;
+      }
+      setStatus({ type: "error", message });
+    }
+  }
+
+  async function voidReservationPayment(paymentId: number) {
+    if (!paymentReservation) return;
+    const reason = window.prompt("Motivo de anulacion del abono");
+    if (!reason?.trim()) return;
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(
+        `/api/admin/reservations/${paymentReservation.id}/payments/${paymentId}/void`,
+        {
+          method: "POST",
+          body: { reason },
+        }
+      );
+      await reloadReservationPayments();
+      await reloadCurrentPage();
+      setStatus({ type: "success", message: "Abono anulado." });
+    } catch (err: unknown) {
+      setStatus({
+        type: "error",
+        message:
+          err instanceof Error ? err.message : "No se pudo anular el abono.",
+      });
     }
   }
 
@@ -842,33 +1087,53 @@ export default function AdminReservations() {
                         />
                       </TableCell>
                       <TableCell>
-                        <TextField
-                          value={r.total == null ? "" : String(r.total)}
-                          onChange={(e) =>
-                            setRows((prev) =>
-                              prev.map((x) =>
-                                x.id === r.id
-                                  ? {
-                                      ...x,
-                                      total: (() => {
-                                        const raw = e.target.value;
-                                        const trimmed = raw.trim();
-                                        if (!trimmed) return null;
-                                        const parsed = Number(trimmed);
-                                        if (!Number.isFinite(parsed))
-                                          return x.total;
-                                        return Math.trunc(parsed);
-                                      })(),
-                                    }
-                                  : x
+                        <Stack spacing={1}>
+                          <TextField
+                            value={r.total == null ? "" : String(r.total)}
+                            onChange={(e) =>
+                              setRows((prev) =>
+                                prev.map((x) =>
+                                  x.id === r.id
+                                    ? {
+                                        ...x,
+                                        total: (() => {
+                                          const raw = e.target.value;
+                                          const trimmed = raw.trim();
+                                          if (!trimmed) return null;
+                                          const parsed = Number(trimmed);
+                                          if (!Number.isFinite(parsed))
+                                            return x.total;
+                                          return Math.trunc(parsed);
+                                        })(),
+                                      }
+                                    : x
+                                )
                               )
-                            )
-                          }
-                          size="small"
-                          type="number"
-                          inputProps={{ min: 0, step: 1, inputMode: "numeric" }}
-                          placeholder="COP"
-                        />
+                            }
+                            size="small"
+                            type="number"
+                            inputProps={{
+                              min: 0,
+                              step: 1,
+                              inputMode: "numeric",
+                            }}
+                            placeholder="COP"
+                          />
+                          <Stack direction="row" spacing={1} flexWrap="wrap">
+                            <Chip
+                              label={`Pagado ${formatMoney(r.total_paid)}`}
+                              size="small"
+                              color="success"
+                              variant="outlined"
+                            />
+                            <Chip
+                              label={`Pendiente ${formatMoney(r.pending_amount)}`}
+                              size="small"
+                              color="warning"
+                              variant="outlined"
+                            />
+                          </Stack>
+                        </Stack>
                       </TableCell>
                       <TableCell>
                         <TextField
@@ -1006,6 +1271,31 @@ export default function AdminReservations() {
                           >
                             <SaveOutlinedIcon />
                           </IconButton>
+                          {r.active_visit_account_id ? (
+                            <Chip
+                              label={`Cuenta #${r.active_visit_account_id}`}
+                              size="small"
+                              color="success"
+                              variant="outlined"
+                            />
+                          ) : (
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => void openVisitAccount(r)}
+                              disabled={status.type === "loading"}
+                            >
+                              Abrir cuenta
+                            </Button>
+                          )}
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => void openPayments(r)}
+                            disabled={status.type === "loading"}
+                          >
+                            Abonos
+                          </Button>
                           <IconButton
                             onClick={() => setConfirmDeleteId(r.id)}
                             disabled={status.type === "loading"}
@@ -1152,6 +1442,166 @@ export default function AdminReservations() {
           >
             Eliminar
           </Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog
+        open={paymentReservation != null}
+        onClose={() => setPaymentReservation(null)}
+        maxWidth="md"
+        fullWidth
+        aria-labelledby="reservation-payments-title"
+      >
+        <DialogTitle id="reservation-payments-title">
+          {paymentReservation
+            ? `Abonos - Reserva #${paymentReservation.id}`
+            : "Abonos"}
+        </DialogTitle>
+        <DialogContent>
+          <Stack spacing={2}>
+            {paymentReservation ? (
+              <Stack direction="row" spacing={1} flexWrap="wrap">
+                <Chip label={fullName(paymentReservation)} size="small" />
+                <Chip
+                  label={`Total ${formatMoney(paymentReservation.total)}`}
+                  size="small"
+                />
+                <Chip
+                  label={`Pagado ${formatMoney(paymentReservation.total_paid)}`}
+                  color="success"
+                  size="small"
+                />
+                <Chip
+                  label={`Pendiente ${formatMoney(paymentReservation.pending_amount)}`}
+                  color={
+                    Number(paymentReservation.pending_amount || 0) > 0
+                      ? "warning"
+                      : "success"
+                  }
+                  size="small"
+                />
+              </Stack>
+            ) : null}
+
+            <div className="admin-crud__row">
+              <PlaceholderSelect
+                label="Cuenta financiera"
+                value={paymentForm.financialAccountId}
+                onChange={(value) =>
+                  setPaymentForm((current) => ({
+                    ...current,
+                    financialAccountId: value,
+                  }))
+                }
+                renderValue={(value) =>
+                  paymentAccounts.find((account) => String(account.id) === value)
+                    ?.name || value
+                }
+              >
+                {paymentAccounts.map((account) => (
+                  <MenuItem key={account.id} value={String(account.id)}>
+                    {account.name} - {formatMoney(account.balance)}
+                  </MenuItem>
+                ))}
+              </PlaceholderSelect>
+              <TextField
+                label="Monto abonado"
+                value={paymentForm.amount}
+                onChange={(e) =>
+                  setPaymentForm((current) => ({
+                    ...current,
+                    amount: e.target.value,
+                  }))
+                }
+                inputProps={{ inputMode: "numeric", min: 1 }}
+                size="small"
+                fullWidth
+              />
+            </div>
+
+            <TextField
+              label="Descripcion"
+              value={paymentForm.notes}
+              onChange={(e) =>
+                setPaymentForm((current) => ({
+                  ...current,
+                  notes: e.target.value,
+                }))
+              }
+              size="small"
+              fullWidth
+            />
+
+            <div className="admin-crud__actions">
+              <Button
+                variant="contained"
+                onClick={() => void createReservationPayment()}
+                disabled={
+                  status.type === "loading" ||
+                  !paymentForm.financialAccountId ||
+                  Number(paymentForm.amount || 0) <= 0
+                }
+              >
+                Registrar abono
+              </Button>
+            </div>
+
+            <TableContainer>
+              <Table size="small">
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Fecha</TableCell>
+                    <TableCell>Cuenta</TableCell>
+                    <TableCell>Monto</TableCell>
+                    <TableCell>Descripcion</TableCell>
+                    <TableCell>Estado</TableCell>
+                    <TableCell>Acciones</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {reservationPayments.map((payment) => (
+                    <TableRow key={payment.id} hover>
+                      <TableCell>{formatDateTime(payment.paid_at)}</TableCell>
+                      <TableCell>
+                        {payment.financial_account_name ||
+                          `#${payment.financial_account_id}`}
+                      </TableCell>
+                      <TableCell>{formatMoney(payment.amount)}</TableCell>
+                      <TableCell>{payment.notes || ""}</TableCell>
+                      <TableCell>
+                        {payment.status === "CONFIRMED"
+                          ? "Confirmado"
+                          : payment.status === "VOIDED"
+                          ? "Anulado"
+                          : payment.status}
+                      </TableCell>
+                      <TableCell>
+                        <Button
+                          variant="outlined"
+                          color="error"
+                          size="small"
+                          onClick={() => void voidReservationPayment(payment.id)}
+                          disabled={
+                            status.type === "loading" ||
+                            payment.status !== "CONFIRMED"
+                          }
+                        >
+                          Anular
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {reservationPayments.length === 0 ? (
+                    <TableRow>
+                      <TableCell colSpan={6}>Sin abonos.</TableCell>
+                    </TableRow>
+                  ) : null}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setPaymentReservation(null)}>Cerrar</Button>
         </DialogActions>
       </Dialog>
     </div>

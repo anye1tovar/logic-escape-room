@@ -25,6 +25,16 @@ function buildAdminReservationsService(consumer, deps = {}) {
     return Math.min(Math.max(parsed, min), max);
   }
 
+  function normalizeMoney(value) {
+    const parsed = normalizeInt(value);
+    if (!Number.isFinite(parsed) || parsed <= 0) {
+      const err = new Error("amount must be a positive number");
+      err.status = 400;
+      throw err;
+    }
+    return parsed;
+  }
+
   function normalizeTimestampMs(value, { allowNull = false } = {}) {
     if (value == null || value === "") {
       if (allowNull) return null;
@@ -46,6 +56,19 @@ function buildAdminReservationsService(consumer, deps = {}) {
     const text = String(value);
     if (!text.trim() && !allowEmpty) return null;
     return text;
+  }
+
+  function normalizeOptionalText(value) {
+    const text = String(value ?? "").trim();
+    return text || null;
+  }
+
+  function normalizeUserId(user) {
+    return normalizeInt(user?.id ?? user?.sub);
+  }
+
+  function isActiveBoolean(value) {
+    return value === true || value === 1 || value === "1";
   }
 
   function todayLocalDate() {
@@ -102,6 +125,10 @@ function buildAdminReservationsService(consumer, deps = {}) {
   function isPrivilegedUser(user) {
     const role = String(user?.role || "").toLowerCase();
     return role === "admin" || role === "game_master";
+  }
+
+  function isAdminUser(user) {
+    return String(user?.role || "").toLowerCase() === "admin";
   }
 
   function formatTimeFromMsWithOffset(ms, offsetMinutes) {
@@ -560,6 +587,144 @@ function buildAdminReservationsService(consumer, deps = {}) {
     return { ok: true };
   }
 
+  async function listReservationPayments(id) {
+    const reservationId = normalizeInt(id);
+    if (!reservationId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const existing = await consumer.getReservationById?.(reservationId);
+    if (!existing) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return consumer.listReservationPayments(reservationId);
+  }
+
+  async function createReservationPayment(id, input, context = {}) {
+    const reservationId = normalizeInt(id);
+    if (!reservationId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    const existing = await consumer.getReservationById?.(reservationId);
+    if (!existing) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+
+    const amount = normalizeMoney(input?.amount);
+    const financialAccountId = normalizeInt(
+      input?.financialAccountId ?? input?.financial_account_id
+    );
+    if (!financialAccountId) {
+      const err = new Error("financialAccountId is required");
+      err.status = 400;
+      throw err;
+    }
+
+    const account = await consumer.getFinancialAccountForPayment(
+      financialAccountId
+    );
+    if (!account) {
+      const err = new Error("Financial account not found");
+      err.status = 404;
+      throw err;
+    }
+    if (
+      !isActiveBoolean(account.active) ||
+      !isActiveBoolean(account.available_for_customer_payments)
+    ) {
+      const err = new Error(
+        "Financial account is not available for customer payments"
+      );
+      err.status = 409;
+      throw err;
+    }
+
+    const reservationTotal = normalizeInt(existing.total) || 0;
+    const totalPaid = normalizeInt(existing.total_paid) || 0;
+    const overpaid = totalPaid + amount > reservationTotal;
+    const allowOverpayment =
+      input?.allowOverpayment === true || input?.allow_overpayment === true;
+    if (overpaid && (!allowOverpayment || !isAdminUser(context?.user))) {
+      const err = new Error("Payment exceeds reservation total");
+      err.status = 409;
+      err.code = "OVERPAYMENT_REQUIRES_CONFIRMATION";
+      throw err;
+    }
+
+    const paidAt = normalizeTimestampMs(
+      input?.paidAt ?? input?.paid_at,
+      { allowNull: true }
+    );
+    const createdAt = Date.now();
+    return consumer.createReservationPayment({
+      reservationId,
+      amount,
+      financialAccountId,
+      paidAt: paidAt ?? createdAt,
+      notes: normalizeOptionalText(input?.notes),
+      createdBy: normalizeUserId(context?.user),
+      createdAt,
+    });
+  }
+
+  async function voidReservationPayment(id, paymentIdInput, input, context = {}) {
+    const reservationId = normalizeInt(id);
+    const paymentId = normalizeInt(paymentIdInput);
+    if (!reservationId || !paymentId) {
+      const err = new Error("id is required");
+      err.status = 400;
+      throw err;
+    }
+    if (!isAdminUser(context?.user)) {
+      const err = new Error("Forbidden");
+      err.status = 403;
+      throw err;
+    }
+
+    const existing = await consumer.getReservationPaymentById(
+      reservationId,
+      paymentId
+    );
+    if (!existing) {
+      const err = new Error("Payment not found");
+      err.status = 404;
+      throw err;
+    }
+    if (String(existing.status || "").toUpperCase() === "VOIDED") {
+      const err = new Error("Payment is already voided");
+      err.status = 409;
+      throw err;
+    }
+
+    const reason = normalizeOptionalText(input?.reason ?? input?.voidReason);
+    if (!reason) {
+      const err = new Error("reason is required");
+      err.status = 400;
+      throw err;
+    }
+
+    const result = await consumer.voidReservationPayment({
+      reservationId,
+      paymentId,
+      reason,
+      voidedAt: Date.now(),
+      voidedBy: normalizeUserId(context?.user),
+    });
+    if (!result) {
+      const err = new Error("Payment not found");
+      err.status = 404;
+      throw err;
+    }
+    return result;
+  }
+
   async function startTimer(id, input) {
     const reservationId = normalizeInt(id);
     if (!reservationId) {
@@ -631,6 +796,9 @@ function buildAdminReservationsService(consumer, deps = {}) {
     listReservationsPage,
     updateReservation,
     deleteReservation,
+    listReservationPayments,
+    createReservationPayment,
+    voidReservationPayment,
     startTimer,
     saveTimer,
   };

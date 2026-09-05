@@ -41,6 +41,44 @@ function buildAdminReservationsController(service) {
     }
   }
 
+  async function listReservationPayments(req, res) {
+    try {
+      const payments = await service.listReservationPayments(req.params.id);
+      res.json(payments);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function createReservationPayment(req, res) {
+    try {
+      const payment = await service.createReservationPayment(
+        req.params.id,
+        req.body,
+        { user: req.user }
+      );
+      res.status(201).json(payment);
+    } catch (err) {
+      res
+        .status(err.status || 500)
+        .json({ error: err.message, code: err.code });
+    }
+  }
+
+  async function voidReservationPayment(req, res) {
+    try {
+      const payment = await service.voidReservationPayment(
+        req.params.id,
+        req.params.paymentId,
+        req.body,
+        { user: req.user }
+      );
+      res.json(payment);
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   async function startTimer(req, res) {
     try {
       const result = await service.startTimer(req.params.id, req.body);
@@ -63,6 +101,9 @@ function buildAdminReservationsController(service) {
     listReservations,
     updateReservation,
     deleteReservation,
+    listReservationPayments,
+    createReservationPayment,
+    voidReservationPayment,
     startTimer,
     saveTimer,
   };
