@@ -21,6 +21,7 @@ export default function Qr() {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const qrRef = useRef<QRCodeStyling | null>(null);
   const [path, setPath] = useState<string>(routeOptions[0].path);
+  const [customUrl, setCustomUrl] = useState("");
   const [qrSize, setQrSize] = useState<number>(320);
   const [qrColor, setQrColor] = useState<string>("#efbb3d");
   const [showBackground, setShowBackground] = useState<boolean>(true);
@@ -30,12 +31,27 @@ export default function Qr() {
   const origin = typeof window !== "undefined" ? window.location.origin : "";
 
   const targetUrl = useMemo(() => {
-    return `${origin}${path}`;
-  }, [origin, path]);
+    if (path !== "custom") return `${origin}${path}`;
+
+    const value = customUrl.trim();
+    if (!value || !/^(https?:\/\/|\/(?!\/))/i.test(value)) return "";
+
+    try {
+      const url = new URL(value, origin);
+      return url.protocol === "http:" || url.protocol === "https:"
+        ? url.href
+        : "";
+    } catch {
+      return "";
+    }
+  }, [origin, path, customUrl]);
 
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return undefined;
+    container.innerHTML = "";
+    qrRef.current = null;
+    if (!targetUrl) return undefined;
 
     const ratio = Math.min(0.5, Math.max(0.08, logoSize / qrSize));
     const backgroundColor = showBackground ? "#ffffff" : "transparent";
@@ -72,6 +88,7 @@ export default function Qr() {
 
     return () => {
       container.innerHTML = "";
+      qrRef.current = null;
     };
   }, [qrColor, qrSize, targetUrl, showBackground, showLogo, logoSize]);
 
@@ -91,7 +108,7 @@ export default function Qr() {
             <p className="qr-page__eyebrow">Generador QR</p>
             <h1 className="qr-page__title">Rutas Logic</h1>
             <p className="qr-page__subtitle">
-              Genera un QR para la ruta del home o la cafeteria. Ajusta color,
+              Genera un QR para el home, la cafeteria o una URL personalizada. Ajusta color,
               fondo y el logo si lo necesitas.
             </p>
           </header>
@@ -110,8 +127,30 @@ export default function Qr() {
                       {option.label}
                     </MenuItem>
                   ))}
+                  <MenuItem value="custom">URL personalizada</MenuItem>
                 </Select>
               </div>
+
+              {path === "custom" && (
+                <div className="qr-page__field">
+                  <label htmlFor="qr-custom-url">URL personalizada</label>
+                  <input
+                    id="qr-custom-url"
+                    type="text"
+                    inputMode="url"
+                    placeholder="https://ejemplo.com/ruta o /mi-ruta"
+                    value={customUrl}
+                    onChange={(event) => setCustomUrl(event.target.value)}
+                    aria-describedby="qr-custom-url-help"
+                    aria-invalid={customUrl.trim() !== "" && !targetUrl}
+                  />
+                  <p id="qr-custom-url-help" className="qr-page__note">
+                    {customUrl.trim() && !targetUrl
+                      ? "Ingresa una URL válida con http:// o https://, o una ruta que empiece por /."
+                      : "Usa una URL con https:// o una ruta de este sitio que empiece por /."}
+                  </p>
+                </div>
+              )}
 
               <div className="qr-page__field">
                 <label htmlFor="qr-size">Tamano QR</label>
@@ -183,13 +222,14 @@ export default function Qr() {
 
               <div className="qr-page__field">
                 <label>URL</label>
-                <div className="qr-page__url">{targetUrl}</div>
+                <div className="qr-page__url">{targetUrl || "Ingresa una URL para generar el QR."}</div>
               </div>
 
               <button
                 type="button"
                 className="qr-page__download"
                 onClick={handleDownload}
+                disabled={!targetUrl}
               >
                 Descargar QR
               </button>

@@ -77,12 +77,14 @@
 }
 
 .qr-page__field select,
+.qr-page__field input[type="text"],
 .qr-page__field input[type="range"],
 .qr-page__field input[type="number"] {
   width: 100%;
 }
 
 .qr-page__field select,
+.qr-page__field input[type="text"],
 .qr-page__field input[type="range"],
 .qr-page__field input[type="number"],
 .qr-page__field input[type="color"] {
@@ -150,7 +152,12 @@
   box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
 }
 
-.qr-page__download:hover {
+.qr-page__download:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.qr-page__download:hover:not(:disabled) {
   transform: translateY(-1px);
   box-shadow: 0 16px 28px rgba(30, 26, 22, 0.28);
 }
