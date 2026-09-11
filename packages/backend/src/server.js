@@ -461,12 +461,7 @@ async function start() {
   );
   app.use(
     "/api/admin/supplies",
-    (req, res, next) => {
-      if (req.method === "GET" && req.path === "/") {
-        return adminOrGameMasterAuth(req, res, next);
-      }
-      return adminAuth(req, res, next);
-    },
+    adminOrGameMasterAuth,
     adminSuppliesRouter,
   );
   app.use(
@@ -474,7 +469,11 @@ async function start() {
     adminOrGameMasterAuth,
     adminSupplyPurchasesRouter,
   );
-  app.use("/api/admin/recipes", adminAuth, adminRecipesRouter);
+  app.use(
+    "/api/admin/recipes",
+    adminOrGameMasterAuth,
+    adminRecipesRouter,
+  );
 
   app.get("/health", (req, res) => res.json({ ok: true }));
 

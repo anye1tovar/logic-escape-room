@@ -76,7 +76,7 @@ const navGroups: NavGroup[] = [
       {
         to: "/admin/dashboard/cafeteria/insumos",
         label: "Insumos",
-        roles: ["admin"],
+        roles: ["admin", "game_master"],
       },
       {
         to: "/admin/dashboard/cafeteria/compras-insumos",
@@ -86,7 +86,7 @@ const navGroups: NavGroup[] = [
       {
         to: "/admin/dashboard/cafeteria/recetas",
         label: "Recetas",
-        roles: ["admin"],
+        roles: ["admin", "game_master"],
       },
     ],
   },
