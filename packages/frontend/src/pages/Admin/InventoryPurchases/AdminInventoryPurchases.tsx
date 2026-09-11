@@ -563,6 +563,7 @@ export default function AdminInventoryPurchases() {
                               : "Solo se habilita para productos con Controlar vencimiento activo en Productos."
                           }
                           arrow
+                          disableInteractive
                         >
                           <span>
                             <TextField
@@ -589,6 +590,7 @@ export default function AdminInventoryPurchases() {
                               : "Solo se habilita para productos con Controlar vencimiento activo en Productos."
                           }
                           arrow
+                          disableInteractive
                         >
                           <span>
                             <TextField

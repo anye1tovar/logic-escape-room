@@ -513,6 +513,7 @@ export default function AdminSupplyPurchases() {
                               ? "Este insumo controla vencimiento; registra la fecha recibida."
                               : "Este insumo no controla vencimiento."
                           }
+                          disableInteractive
                         >
                           <span>
                             <TextField
@@ -539,6 +540,7 @@ export default function AdminSupplyPurchases() {
                               ? "Identificador opcional del lote recibido."
                               : "Este insumo no controla vencimiento."
                           }
+                          disableInteractive
                         >
                           <span>
                             <TextField
