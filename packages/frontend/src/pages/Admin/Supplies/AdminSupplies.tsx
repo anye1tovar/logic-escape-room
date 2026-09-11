@@ -57,6 +57,25 @@ type SupplyFormState = {
   active: "1" | "0";
 };
 
+type SupplyInventoryForm = {
+  type: "WASTE" | "ADJUSTMENT_POSITIVE" | "ADJUSTMENT_NEGATIVE";
+  quantity: string;
+  realCount: string;
+  reason: string;
+  expirationDate: string;
+  lotNumber: string;
+};
+
+type SupplyInventoryMovement = {
+  id: number;
+  type: string;
+  quantity_delta: number | string;
+  reason: string | null;
+  occurred_at: number | string;
+  expiration_date: string | null;
+  lot_number: string | null;
+};
+
 const unitOptions = [
   "unidad",
   "g",
@@ -80,6 +99,15 @@ const emptyForm: SupplyFormState = {
   minimumStock: "",
   initialStock: "0",
   active: "1",
+};
+
+const emptyInventoryForm: SupplyInventoryForm = {
+  type: "ADJUSTMENT_POSITIVE",
+  quantity: "",
+  realCount: "",
+  reason: "",
+  expirationDate: "",
+  lotNumber: "",
 };
 
 function normalizeBoolean(value: boolean | number | string) {
@@ -141,6 +169,9 @@ export default function AdminSupplies() {
   const [categories, setCategories] = useState<CategoryRow[]>([]);
   const [form, setForm] = useState<SupplyFormState>(emptyForm);
   const [editing, setEditing] = useState<SupplyRow | null>(null);
+  const [inventorySupply, setInventorySupply] = useState<SupplyRow | null>(null);
+  const [inventoryForm, setInventoryForm] = useState<SupplyInventoryForm>(emptyInventoryForm);
+  const [inventoryMovements, setInventoryMovements] = useState<SupplyInventoryMovement[]>([]);
   const [editForm, setEditForm] = useState<SupplyFormState>(emptyForm);
   const [savedEditForm, setSavedEditForm] = useState<SupplyFormState | null>(
     null,
@@ -294,6 +325,64 @@ export default function AdminSupplies() {
     setSavedEditForm(nextForm);
   }
 
+  async function openInventory(row: SupplyRow) {
+    setInventorySupply(row);
+    setInventoryForm(emptyInventoryForm);
+    try {
+      setInventoryMovements(
+        await adminRequest<SupplyInventoryMovement[]>(
+          `/api/admin/supplies/${row.id}/inventory-movements`,
+        ),
+      );
+    } catch {
+      setInventoryMovements([]);
+    }
+  }
+
+  async function registerInventoryMovement() {
+    if (!inventorySupply) return;
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(`/api/admin/supplies/${inventorySupply.id}/inventory-movements`, {
+        method: "POST",
+        body: {
+          type: inventoryForm.type,
+          quantity: Number(inventoryForm.quantity),
+          reason: inventoryForm.reason,
+          expirationDate: inventoryForm.expirationDate || null,
+          lotNumber: inventoryForm.lotNumber || null,
+        },
+      });
+      setInventorySupply(null);
+      setStatus({ type: "success", message: "Movimiento de inventario registrado." });
+      await load();
+    } catch (err) {
+      setStatus({
+        type: "error",
+        message: err instanceof Error ? err.message : "No se pudo registrar el movimiento.",
+      });
+    }
+  }
+
+  async function adjustToPhysicalCount() {
+    if (!inventorySupply) return;
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(`/api/admin/supplies/${inventorySupply.id}/physical-count`, {
+        method: "POST",
+        body: { realCount: Number(inventoryForm.realCount), reason: inventoryForm.reason },
+      });
+      setInventorySupply(null);
+      setStatus({ type: "success", message: "Inventario ajustado al conteo fisico." });
+      await load();
+    } catch (err) {
+      setStatus({
+        type: "error",
+        message: err instanceof Error ? err.message : "No se pudo ajustar el inventario.",
+      });
+    }
+  }
+
   return (
     <div className="admin-crud">
       <div className="admin-crud__header">
@@ -443,6 +532,13 @@ export default function AdminSupplies() {
                       <Button variant="outlined" onClick={() => openEditor(row)}>
                         Editar
                       </Button>
+                      <Button
+                        variant="outlined"
+                        onClick={() => void openInventory(row)}
+                        disabled={!normalizeBoolean(row.track_inventory)}
+                      >
+                        Inventario
+                      </Button>
                       <Button color="error" variant="outlined" onClick={() => void remove(row)}>
                         {normalizeBoolean(row.has_movements)
                           ? "Desactivar"
@@ -509,6 +605,134 @@ export default function AdminSupplies() {
             disabled={!hasEditChanges || status.type === "loading"}
           >
             Guardar
+          </Button>
+        </div>
+      </Drawer>
+
+      <Drawer
+        anchor="right"
+        open={inventorySupply != null}
+        onClose={() => setInventorySupply(null)}
+        PaperProps={{ className: "admin-crud__drawer" }}
+      >
+        <div className="admin-crud__drawer-header">
+          <div>
+            <Typography component="h2" className="admin-crud__section-title">
+              Inventario de insumo
+            </Typography>
+            <Typography fontWeight={900}>{inventorySupply?.name}</Typography>
+          </div>
+          <Chip
+            label={`Actual: ${formatQuantity(inventorySupply?.current_stock)} ${inventorySupply?.consumption_unit || ""}`}
+            color="primary"
+            size="small"
+          />
+        </div>
+        <div className="admin-crud__drawer-content">
+          <Select
+            value={inventoryForm.type}
+            onChange={(e) => setInventoryForm((s) => ({
+              ...s,
+              type: e.target.value as SupplyInventoryForm["type"],
+            }))}
+            size="small"
+            fullWidth
+          >
+            <MenuItem value="ADJUSTMENT_POSITIVE">Ajuste positivo</MenuItem>
+            <MenuItem value="ADJUSTMENT_NEGATIVE">Ajuste negativo</MenuItem>
+            <MenuItem value="WASTE">Merma / dano</MenuItem>
+          </Select>
+          <TextField
+            label={`Cantidad (${inventorySupply?.consumption_unit || "unidad"})`}
+            value={inventoryForm.quantity}
+            onChange={(e) => setInventoryForm((s) => ({ ...s, quantity: e.target.value }))}
+            inputProps={{ inputMode: "decimal", min: 0.001, step: "0.001" }}
+            size="small"
+            fullWidth
+          />
+          <TextField
+            label="Motivo"
+            value={inventoryForm.reason}
+            onChange={(e) => setInventoryForm((s) => ({ ...s, reason: e.target.value }))}
+            helperText="Ejemplo: inventario inicial, producto danado o conteo corregido."
+            size="small"
+            fullWidth
+          />
+          {inventorySupply && normalizeBoolean(inventorySupply.track_expiration) && inventoryForm.type === "ADJUSTMENT_POSITIVE" ? (
+            <>
+              <TextField
+                label="Vencimiento del lote"
+                type="date"
+                value={inventoryForm.expirationDate}
+                onChange={(e) => setInventoryForm((s) => ({ ...s, expirationDate: e.target.value }))}
+                InputLabelProps={{ shrink: true }}
+                size="small"
+                fullWidth
+              />
+              <TextField
+                label="Numero de lote"
+                value={inventoryForm.lotNumber}
+                onChange={(e) => setInventoryForm((s) => ({ ...s, lotNumber: e.target.value }))}
+                size="small"
+                fullWidth
+              />
+            </>
+          ) : null}
+          {inventorySupply && !normalizeBoolean(inventorySupply.track_expiration) ? (
+            <TextField
+              label="Conteo fisico total"
+              value={inventoryForm.realCount}
+              onChange={(e) => setInventoryForm((s) => ({ ...s, realCount: e.target.value }))}
+              inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}
+              helperText="Opcional: deja el stock exactamente en esta cantidad."
+              size="small"
+              fullWidth
+            />
+          ) : null}
+          <div>
+            <Typography fontWeight={900} mb={1}>
+              Historial reciente
+            </Typography>
+            <Stack spacing={0.75}>
+              {inventoryMovements.slice(0, 8).map((movement) => (
+                <Typography key={movement.id} variant="body2">
+                  {new Date(Number(movement.occurred_at)).toLocaleDateString("es-CO")} · {movement.type} · {Number(movement.quantity_delta) > 0 ? "+" : ""}{formatQuantity(movement.quantity_delta)}
+                  {movement.reason ? ` · ${movement.reason}` : ""}
+                </Typography>
+              ))}
+              {inventoryMovements.length === 0 ? (
+                <Typography variant="body2" color="text.secondary">
+                  Aun no hay movimientos.
+                </Typography>
+              ) : null}
+            </Stack>
+          </div>
+        </div>
+        <div className="admin-crud__drawer-actions">
+          <Button onClick={() => setInventorySupply(null)}>Cancelar</Button>
+          {inventorySupply && !normalizeBoolean(inventorySupply.track_expiration) && inventoryForm.realCount.trim() !== "" ? (
+            <Button
+              variant="outlined"
+              onClick={() => void adjustToPhysicalCount()}
+              disabled={status.type === "loading" || !inventoryForm.reason.trim()}
+            >
+              Ajustar a conteo
+            </Button>
+          ) : null}
+          <Button
+            variant="contained"
+            onClick={() => void registerInventoryMovement()}
+            disabled={
+              status.type === "loading" ||
+              Number(inventoryForm.quantity || 0) <= 0 ||
+              !inventoryForm.reason.trim() ||
+              (inventorySupply != null &&
+                normalizeBoolean(inventorySupply.track_expiration) &&
+                inventoryForm.type === "ADJUSTMENT_POSITIVE" &&
+                !inventoryForm.expirationDate)
+            }
+          >
+            Registrar movimiento
           </Button>
         </div>
       </Drawer>

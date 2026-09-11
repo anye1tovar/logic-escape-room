@@ -399,6 +399,11 @@ async function initSchema() {
   `);
 
   await pool.query(`
+    ALTER TABLE supply_batches
+    ALTER COLUMN purchase_id DROP NOT NULL;
+  `);
+
+  await pool.query(`
     ALTER TABLE supply_inventory_movements
     ADD COLUMN IF NOT EXISTS supply_batch_id INTEGER REFERENCES supply_batches(id);
   `);

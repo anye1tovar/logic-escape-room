@@ -1477,37 +1477,18 @@ export default function AdminCafeteriaProducts() {
               />
             </div>
 
-            <div className="admin-crud__row">
-              <TextField
-                label="Motivo"
-                value={inventoryForm.reason}
-                onChange={(e) =>
-                  setInventoryForm((s) => ({
-                    ...s,
-                    reason: e.target.value,
-                  }))
-                }
-                size="small"
-                fullWidth
-              />
-              <Button
-                variant="contained"
-                onClick={() => void createInventoryMovement()}
-                disabled={
-                  status.type === "loading" ||
-                  !Number(inventoryForm.quantity || 0) ||
-                  !inventoryForm.reason.trim() ||
-                  (inventoryProduct != null &&
-                    isTrackingExpiration(inventoryProduct) &&
-                    ["PURCHASE", "ADJUSTMENT_POSITIVE"].includes(
-                      inventoryForm.type,
-                    ) &&
-                    !inventoryForm.expirationDate)
-                }
-              >
-                Registrar movimiento
-              </Button>
-            </div>
+            <TextField
+              label="Motivo"
+              value={inventoryForm.reason}
+              onChange={(e) =>
+                setInventoryForm((s) => ({
+                  ...s,
+                  reason: e.target.value,
+                }))
+              }
+              size="small"
+              fullWidth
+            />
 
             {inventoryProduct && isTrackingExpiration(inventoryProduct) ? (
               <div className="admin-crud__row">
@@ -1576,6 +1557,26 @@ export default function AdminCafeteriaProducts() {
                 </Button>
               </div>
             ) : null}
+
+            <Stack direction="row" justifyContent="flex-end">
+              <Button
+                variant="contained"
+                onClick={() => void createInventoryMovement()}
+                disabled={
+                  status.type === "loading" ||
+                  !Number(inventoryForm.quantity || 0) ||
+                  !inventoryForm.reason.trim() ||
+                  (inventoryProduct != null &&
+                    isTrackingExpiration(inventoryProduct) &&
+                    ["PURCHASE", "ADJUSTMENT_POSITIVE"].includes(
+                      inventoryForm.type,
+                    ) &&
+                    !inventoryForm.expirationDate)
+                }
+              >
+                Registrar movimiento
+              </Button>
+            </Stack>
 
             <Stack direction={{ xs: "column", md: "row" }} spacing={1}>
               <Select

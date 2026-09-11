@@ -35,6 +35,15 @@ function normalizeUserId(user) {
   return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
 }
 
+function normalizeDate(value) {
+  const text = normalizeText(value);
+  if (!text) return null;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(text)) {
+    throw badRequest("expirationDate must be YYYY-MM-DD");
+  }
+  return text;
+}
+
 function normalizeSupplyInput(input, { creating = false } = {}) {
   const name = normalizeText(input?.name);
   if (!name) throw badRequest("name is required");
@@ -114,6 +123,90 @@ function buildAdminSuppliesService(consumer) {
     return updated;
   }
 
+  async function listInventoryMovements(idInput) {
+    const id = Number(idInput);
+    if (!Number.isFinite(id) || id <= 0) throw badRequest("id is required");
+    const supply = await consumer.getSupplyStock(Math.trunc(id));
+    if (!supply) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return consumer.listInventoryMovements(Math.trunc(id));
+  }
+
+  async function createInventoryMovement(idInput, input, context = {}) {
+    const id = Number(idInput);
+    if (!Number.isFinite(id) || id <= 0) throw badRequest("id is required");
+    const type = String(input?.type || "").trim().toUpperCase();
+    if (!["WASTE", "ADJUSTMENT_POSITIVE", "ADJUSTMENT_NEGATIVE"].includes(type)) {
+      throw badRequest("Invalid inventory movement type");
+    }
+    const quantity = normalizePositiveNumber(input?.quantity, "quantity");
+    const reason = normalizeText(input?.reason);
+    if (!reason) throw badRequest("reason is required");
+    const supply = await consumer.getSupplyStock(Math.trunc(id));
+    if (!supply) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    if (!normalizeBoolean(supply.track_inventory)) {
+      const err = new Error("Supply does not track inventory");
+      err.status = 409;
+      throw err;
+    }
+    const isNegative = type === "WASTE" || type === "ADJUSTMENT_NEGATIVE";
+    const expirationDate = normalizeDate(input?.expirationDate ?? input?.expiration_date);
+    if (normalizeBoolean(supply.track_expiration) && !isNegative && !expirationDate) {
+      throw badRequest("expirationDate is required for this supply");
+    }
+    return consumer.createInventoryMovement({
+      supplyId: Math.trunc(id),
+      type,
+      quantityDelta: isNegative ? -quantity : quantity,
+      reason,
+      expirationDate,
+      lotNumber: normalizeText(input?.lotNumber ?? input?.lot_number),
+      createdBy: normalizeUserId(context.user),
+      createdAt: Date.now(),
+    });
+  }
+
+  async function setPhysicalCount(idInput, input, context = {}) {
+    const id = Number(idInput);
+    if (!Number.isFinite(id) || id <= 0) throw badRequest("id is required");
+    const realCount = normalizeNumber(input?.realCount ?? input?.real_count);
+    if (realCount == null || realCount < 0) throw badRequest("realCount is required");
+    const reason = normalizeText(input?.reason);
+    if (!reason) throw badRequest("reason is required");
+    const supply = await consumer.getSupplyStock(Math.trunc(id));
+    if (!supply) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    if (normalizeBoolean(supply.track_expiration)) {
+      const err = new Error("Physical count is not available for supplies with expiration batches");
+      err.status = 409;
+      throw err;
+    }
+    const delta = Math.round((realCount - Number(supply.current_stock || 0)) * 1000) / 1000;
+    if (delta === 0) {
+      const err = new Error("Physical count matches current stock");
+      err.status = 409;
+      throw err;
+    }
+    return consumer.createInventoryMovement({
+      supplyId: Math.trunc(id),
+      type: delta > 0 ? "ADJUSTMENT_POSITIVE" : "ADJUSTMENT_NEGATIVE",
+      quantityDelta: delta,
+      reason,
+      createdBy: normalizeUserId(context.user),
+      createdAt: Date.now(),
+    });
+  }
+
   async function deleteSupply(idInput) {
     const id = Number(idInput);
     if (!Number.isFinite(id) || id <= 0) throw badRequest("id is required");
@@ -131,6 +224,9 @@ function buildAdminSuppliesService(consumer) {
     listCategories,
     createSupply,
     updateSupply,
+    listInventoryMovements,
+    createInventoryMovement,
+    setPhysicalCount,
     deleteSupply,
   };
 }

@@ -148,6 +148,145 @@ async function updateSupply(id, payload) {
   return result.rows[0] || null;
 }
 
+async function getSupplyStock(id) {
+  const result = await db.query(
+    `
+      SELECT supply.*, COALESCE(SUM(movement.quantity_delta), 0)::NUMERIC(14, 3) AS current_stock
+      FROM inventory_supplies supply
+      LEFT JOIN supply_inventory_movements movement ON movement.supply_id = supply.id
+      WHERE supply.id = $1
+      GROUP BY supply.id;
+    `,
+    [id],
+  );
+  return result.rows[0] || null;
+}
+
+async function listInventoryMovements(supplyId) {
+  const result = await db.query(
+    `
+      SELECT movement.*, batch.expiration_date, batch.lot_number, creator.name AS created_by_name
+      FROM supply_inventory_movements movement
+      LEFT JOIN supply_batches batch ON batch.id = movement.supply_batch_id
+      LEFT JOIN users creator ON creator.id = movement.created_by
+      WHERE movement.supply_id = $1
+      ORDER BY movement.occurred_at DESC, movement.id DESC
+      LIMIT 100;
+    `,
+    [supplyId],
+  );
+  return result.rows || [];
+}
+
+async function createInventoryMovement(payload) {
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const supplyResult = await client.query(
+      `SELECT id, track_inventory, track_expiration
+       FROM inventory_supplies WHERE id = $1 FOR UPDATE;`,
+      [payload.supplyId],
+    );
+    const supply = supplyResult.rows[0];
+    if (!supply) {
+      const err = new Error("Supply not found");
+      err.status = 404;
+      throw err;
+    }
+    if (!supply.track_inventory) {
+      const err = new Error("Supply does not track inventory");
+      err.status = 409;
+      throw err;
+    }
+
+    const tracksExpiration = supply.track_expiration === true || supply.track_expiration === 1 || supply.track_expiration === "1";
+    const insertMovement = async (quantityDelta, supplyBatchId = null) => {
+      const result = await client.query(
+        `INSERT INTO supply_inventory_movements (
+          supply_id, supply_batch_id, type, quantity_delta, occurred_at,
+          source_type, source_id, reason, created_by, created_at
+        ) VALUES ($1, $2, $3, $4, $5, 'MANUAL_INVENTORY', NULL, $6, $7, $8)
+        RETURNING *;`,
+        [
+          payload.supplyId,
+          supplyBatchId,
+          payload.type,
+          quantityDelta,
+          payload.createdAt,
+          payload.reason,
+          payload.createdBy,
+          payload.createdAt,
+        ],
+      );
+      return result.rows[0];
+    };
+
+    if (!tracksExpiration) {
+      const stockResult = await client.query(
+        `SELECT COALESCE(SUM(quantity_delta), 0)::NUMERIC(14, 3) AS current_stock
+         FROM supply_inventory_movements WHERE supply_id = $1;`,
+        [payload.supplyId],
+      );
+      if (Number(stockResult.rows[0]?.current_stock || 0) + payload.quantityDelta < -0.0005) {
+        const err = new Error("Insufficient stock");
+        err.status = 409;
+        throw err;
+      }
+      const movement = await insertMovement(payload.quantityDelta);
+      await client.query("COMMIT");
+      return movement;
+    }
+
+    if (payload.quantityDelta > 0) {
+      const batchResult = await client.query(
+        `INSERT INTO supply_batches (
+          supply_id, received_quantity, current_quantity, received_at,
+          expiration_date, lot_number, purchase_id, created_by, created_at, status
+        ) VALUES ($1, $2, $2, $3, $4, $5, NULL, $6, $7, 'ACTIVE')
+        RETURNING id;`,
+        [payload.supplyId, payload.quantityDelta, payload.createdAt, payload.expirationDate, payload.lotNumber, payload.createdBy, payload.createdAt],
+      );
+      const movement = await insertMovement(payload.quantityDelta, batchResult.rows[0].id);
+      await client.query("COMMIT");
+      return movement;
+    }
+
+    let remaining = Math.abs(payload.quantityDelta);
+    const batches = await client.query(
+      `SELECT id, current_quantity FROM supply_batches
+       WHERE supply_id = $1 AND current_quantity > 0 AND status = 'ACTIVE'
+       ORDER BY expiration_date ASC NULLS LAST, id ASC FOR UPDATE;`,
+      [payload.supplyId],
+    );
+    const movements = [];
+    for (const batch of batches.rows) {
+      if (remaining <= 0.0005) break;
+      const consumed = Math.min(Number(batch.current_quantity), remaining);
+      await client.query(
+        `UPDATE supply_batches
+         SET current_quantity = current_quantity - $1,
+             status = CASE WHEN current_quantity - $1 <= 0.0005 THEN 'DEPLETED' ELSE status END
+         WHERE id = $2;`,
+        [consumed, batch.id],
+      );
+      movements.push(await insertMovement(-consumed, batch.id));
+      remaining = Math.round((remaining - consumed) * 1000) / 1000;
+    }
+    if (remaining > 0.0005) {
+      const err = new Error("Insufficient stock");
+      err.status = 409;
+      throw err;
+    }
+    await client.query("COMMIT");
+    return movements.length === 1 ? movements[0] : movements;
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
+}
+
 async function deactivateOrDeleteSupply(id) {
   const countResult = await db.query(
     `
@@ -190,6 +329,9 @@ module.exports = async function initConsumer() {
     listCategories,
     createSupply,
     updateSupply,
+    getSupplyStock,
+    listInventoryMovements,
+    createInventoryMovement,
     deactivateOrDeleteSupply,
   };
 };
