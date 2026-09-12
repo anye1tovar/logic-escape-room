@@ -196,7 +196,9 @@ export default function AdminInventoryPurchases() {
     try {
       const [productData, accountData, purchaseData] = await Promise.all([
         adminRequest<ProductRow[]>("/api/admin/cafeteria-products"),
-        adminRequest<FinancialAccountRow[]>("/api/admin/financial-accounts"),
+        adminRequest<FinancialAccountRow[]>(
+          "/api/admin/financial-accounts/operation-accounts",
+        ),
         adminRequest<PurchaseRow[]>("/api/admin/inventory-purchases"),
       ]);
       setProducts(
