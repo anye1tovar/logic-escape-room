@@ -24,7 +24,7 @@ async function listSupplies() {
           WHERE purchase_item.supply_id = supply.id
         ) AS has_movements
       FROM inventory_supplies supply
-      ORDER BY active DESC, COALESCE(category, '') ASC, lower(name) ASC;
+      ORDER BY lower(name) ASC;
     `,
   );
   return result.rows || [];

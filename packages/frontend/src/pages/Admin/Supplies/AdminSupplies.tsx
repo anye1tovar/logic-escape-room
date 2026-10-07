@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import { formatDecimal, normalizeDecimalInput, parseDecimal } from "../../../utils/numbers";
 import {
   Alert,
   Button,
@@ -114,14 +115,6 @@ function normalizeBoolean(value: boolean | number | string) {
   return value === true || value === 1 || value === "1" || value === "true";
 }
 
-function formatQuantity(value: number | string | null | undefined) {
-  const parsed = Number(value || 0);
-  if (!Number.isFinite(parsed)) return "0";
-  return new Intl.NumberFormat("es-CO", {
-    maximumFractionDigits: 3,
-  }).format(parsed);
-}
-
 function toForm(row: SupplyRow): SupplyFormState {
   return {
     name: row.name,
@@ -143,11 +136,11 @@ function toPayload(form: SupplyFormState) {
     category: form.category || null,
     purchaseUnit: form.purchaseUnit,
     consumptionUnit: form.consumptionUnit,
-    conversionFactor: Number(form.conversionFactor || 1),
+    conversionFactor: parseDecimal(form.conversionFactor || 1),
     trackInventory: form.trackInventory === "1",
     trackExpiration: form.trackExpiration === "1",
-    minimumStock: form.minimumStock ? Number(form.minimumStock) : null,
-    initialStock: Number(form.initialStock || 0),
+    minimumStock: form.minimumStock ? parseDecimal(form.minimumStock) : null,
+    initialStock: parseDecimal(form.initialStock || 0),
     active: form.active === "1",
   };
 }
@@ -225,9 +218,9 @@ export default function AdminSupplies() {
     form.name.trim().length > 0 &&
     form.purchaseUnit.trim().length > 0 &&
     form.consumptionUnit.trim().length > 0 &&
-    Number(form.conversionFactor || 0) > 0 &&
-    Number(form.initialStock || 0) >= 0 &&
-    (!form.minimumStock || Number(form.minimumStock) >= 0);
+    parseDecimal(form.conversionFactor || 0) > 0 &&
+    parseDecimal(form.initialStock || 0) >= 0 &&
+    (!form.minimumStock || parseDecimal(form.minimumStock) >= 0);
   const hasEditChanges = !sameForm(savedEditForm, editForm);
 
   async function load() {
@@ -347,7 +340,7 @@ export default function AdminSupplies() {
         method: "POST",
         body: {
           type: inventoryForm.type,
-          quantity: Number(inventoryForm.quantity),
+          quantity: parseDecimal(inventoryForm.quantity),
           reason: inventoryForm.reason,
           expirationDate: inventoryForm.expirationDate || null,
           lotNumber: inventoryForm.lotNumber || null,
@@ -370,7 +363,7 @@ export default function AdminSupplies() {
     try {
       await adminRequest(`/api/admin/supplies/${inventorySupply.id}/physical-count`, {
         method: "POST",
-        body: { realCount: Number(inventoryForm.realCount), reason: inventoryForm.reason },
+        body: { realCount: parseDecimal(inventoryForm.realCount), reason: inventoryForm.reason },
       });
       setInventorySupply(null);
       setStatus({ type: "success", message: "Inventario ajustado al conteo fisico." });
@@ -492,18 +485,18 @@ export default function AdminSupplies() {
                   <TableCell>{row.consumption_unit}</TableCell>
                   <TableCell>
                     1 {row.purchase_unit} ={" "}
-                    {formatQuantity(row.conversion_factor)}{" "}
+                    {formatDecimal(row.conversion_factor)}{" "}
                     {row.consumption_unit}
                   </TableCell>
                   <TableCell>
                     {normalizeBoolean(row.track_inventory)
-                      ? `${formatQuantity(row.current_stock)} ${row.consumption_unit}`
+                      ? `${formatDecimal(row.current_stock)} ${row.consumption_unit}`
                       : "Sin control"}
                   </TableCell>
                   <TableCell>
                     {row.minimum_stock == null
                       ? "-"
-                      : `${formatQuantity(row.minimum_stock)} ${row.consumption_unit}`}
+                      : `${formatDecimal(row.minimum_stock)} ${row.consumption_unit}`}
                   </TableCell>
                   <TableCell>
                     <Chip
@@ -623,7 +616,7 @@ export default function AdminSupplies() {
             <Typography fontWeight={900}>{inventorySupply?.name}</Typography>
           </div>
           <Chip
-            label={`Actual: ${formatQuantity(inventorySupply?.current_stock)} ${inventorySupply?.consumption_unit || ""}`}
+            label={`Actual: ${formatDecimal(inventorySupply?.current_stock)} ${inventorySupply?.consumption_unit || ""}`}
             color="primary"
             size="small"
           />
@@ -645,7 +638,7 @@ export default function AdminSupplies() {
           <TextField
             label={`Cantidad (${inventorySupply?.consumption_unit || "unidad"})`}
             value={inventoryForm.quantity}
-            onChange={(e) => setInventoryForm((s) => ({ ...s, quantity: e.target.value }))}
+            onChange={(e) => setInventoryForm((s) => ({ ...s, quantity: normalizeDecimalInput(e.target.value) }))}
             inputProps={{ inputMode: "decimal", min: 0.001, step: "0.001" }}
             size="small"
             fullWidth
@@ -682,7 +675,7 @@ export default function AdminSupplies() {
             <TextField
               label="Conteo fisico total"
               value={inventoryForm.realCount}
-              onChange={(e) => setInventoryForm((s) => ({ ...s, realCount: e.target.value }))}
+            onChange={(e) => setInventoryForm((s) => ({ ...s, realCount: normalizeDecimalInput(e.target.value) }))}
               inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}
               helperText="Opcional: deja el stock exactamente en esta cantidad."
               size="small"
@@ -696,7 +689,7 @@ export default function AdminSupplies() {
             <Stack spacing={0.75}>
               {inventoryMovements.slice(0, 8).map((movement) => (
                 <Typography key={movement.id} variant="body2">
-                  {new Date(Number(movement.occurred_at)).toLocaleDateString("es-CO")} · {movement.type} · {Number(movement.quantity_delta) > 0 ? "+" : ""}{formatQuantity(movement.quantity_delta)}
+                  {new Date(Number(movement.occurred_at)).toLocaleDateString("es-CO")} · {movement.type} · {Number(movement.quantity_delta) > 0 ? "+" : ""}{formatDecimal(movement.quantity_delta)}
                   {movement.reason ? ` · ${movement.reason}` : ""}
                 </Typography>
               ))}
@@ -724,7 +717,7 @@ export default function AdminSupplies() {
             onClick={() => void registerInventoryMovement()}
             disabled={
               status.type === "loading" ||
-              Number(inventoryForm.quantity || 0) <= 0 ||
+              parseDecimal(inventoryForm.quantity || 0) <= 0 ||
               !inventoryForm.reason.trim() ||
               (inventorySupply != null &&
                 normalizeBoolean(inventorySupply.track_expiration) &&
@@ -815,7 +808,7 @@ function SupplyForm({
           label="Conversion"
           value={form.conversionFactor}
           onChange={(e) =>
-            setForm((s) => ({ ...s, conversionFactor: e.target.value }))
+            setForm((s) => ({ ...s, conversionFactor: normalizeDecimalInput(e.target.value) }))
           }
           helperText={`1 ${form.purchaseUnit || "unidad"} equivale a cuanto en ${form.consumptionUnit || "consumo"}`}
           inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}
@@ -826,7 +819,7 @@ function SupplyForm({
           label="Stock minimo"
           value={form.minimumStock}
           onChange={(e) =>
-            setForm((s) => ({ ...s, minimumStock: e.target.value }))
+            setForm((s) => ({ ...s, minimumStock: normalizeDecimalInput(e.target.value) }))
           }
           inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}
           size="small"
@@ -868,7 +861,7 @@ function SupplyForm({
           label="Stock inicial"
           value={form.initialStock}
           onChange={(e) =>
-            setForm((s) => ({ ...s, initialStock: e.target.value }))
+            setForm((s) => ({ ...s, initialStock: normalizeDecimalInput(e.target.value) }))
           }
           helperText="Se registra como movimiento inicial solo al crear."
           inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}

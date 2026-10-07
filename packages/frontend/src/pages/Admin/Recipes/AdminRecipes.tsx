@@ -3,13 +3,10 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Alert,
+  Autocomplete,
   Button,
   Chip,
-  FormControl,
-  InputLabel,
-  MenuItem,
   Paper,
-  Select,
   Stack,
   Table,
   TableBody,
@@ -22,6 +19,7 @@ import {
   Typography,
 } from "@mui/material";
 import { adminRequest } from "../../../api/adminClient";
+import { formatDecimal, normalizeDecimalInput, parseDecimal } from "../../../utils/numbers";
 import "../adminCrud.scss";
 import "./AdminRecipes.scss";
 
@@ -132,8 +130,8 @@ function recipeItemsToForm(recipe: Recipe | null): ItemForm[] {
   if (!recipe || recipe.items.length === 0) return [];
   return recipe.items.map((item) => ({
     supplyId: String(item.supply_id),
-    quantity: String(item.quantity),
-    wastePercent: String(item.waste_percent || 0),
+    quantity: formatDecimal(item.quantity),
+    wastePercent: formatDecimal(item.waste_percent || 0),
   }));
 }
 
@@ -160,6 +158,16 @@ export default function AdminRecipes() {
 
   const supplyById = useMemo(
     () => new Map(supplies.map((supply) => [String(supply.id), supply])),
+    [supplies],
+  );
+  const sortedProducts = useMemo(
+    () => [...products].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })),
+    [products],
+  );
+  const activeSupplies = useMemo(
+    () => supplies
+      .filter((supply) => normalizeBoolean(supply.active))
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })),
     [supplies],
   );
   const duplicateSupplyIds = useMemo(() => {
@@ -234,14 +242,14 @@ export default function AdminRecipes() {
     Boolean(selectedProductId) &&
     items.length > 0 &&
     duplicateSupplyIds.size === 0 &&
-    Number(targetMargin) > 0 &&
-    Number(targetMargin) < 100 &&
+    parseDecimal(targetMargin) > 0 &&
+    parseDecimal(targetMargin) < 100 &&
     items.every(
       (item) =>
         Boolean(item.supplyId) &&
-        Number(item.quantity) > 0 &&
-        Number(item.wastePercent || 0) >= 0 &&
-        Number(item.wastePercent || 0) < 100,
+        parseDecimal(item.quantity) > 0 &&
+        parseDecimal(item.wastePercent || 0) >= 0 &&
+        parseDecimal(item.wastePercent || 0) < 100,
     );
 
   useEffect(() => {
@@ -277,11 +285,11 @@ export default function AdminRecipes() {
   function buildPayload() {
     return {
       productId: Number(selectedProductId),
-      targetMarginPercent: Number(targetMargin),
+      targetMarginPercent: parseDecimal(targetMargin),
       items: items.map((item) => ({
         supplyId: Number(item.supplyId),
-        quantity: Number(item.quantity),
-        wastePercent: Number(item.wastePercent || 0),
+        quantity: parseDecimal(item.quantity),
+        wastePercent: parseDecimal(item.wastePercent || 0),
       })),
     };
   }
@@ -358,14 +366,14 @@ export default function AdminRecipes() {
     status.type !== "loading" &&
     Boolean(selectedProductId) &&
     duplicateSupplyIds.size === 0 &&
-    Number(targetMargin) > 0 &&
-    Number(targetMargin) < 100 &&
+    parseDecimal(targetMargin) > 0 &&
+    parseDecimal(targetMargin) < 100 &&
     items.every(
       (item) =>
         item.supplyId &&
-        Number(item.quantity) > 0 &&
-        Number(item.wastePercent || 0) >= 0 &&
-        Number(item.wastePercent || 0) < 100,
+        parseDecimal(item.quantity) > 0 &&
+        parseDecimal(item.wastePercent || 0) >= 0 &&
+        parseDecimal(item.wastePercent || 0) < 100,
     );
   const canActivate =
     canSave &&
@@ -395,33 +403,24 @@ export default function AdminRecipes() {
 
       <Paper className="admin-crud__panel admin-crud__panel--accent">
         <div className="admin-crud__panel-inner recipes-admin__selector">
-          <FormControl size="small" fullWidth>
-            <InputLabel shrink>Producto vendible</InputLabel>
-            <Select
-              value={selectedProductId}
-              label="Producto vendible"
-              displayEmpty
-              onChange={(event) => setSelectedProductId(String(event.target.value))}
-              renderValue={(value) => {
-                if (!value) return <span className="admin-crud__muted">Selecciona un producto</span>;
-                return products.find((product) => String(product.id) === String(value))?.name;
-              }}
-            >
-              {products.map((product) => (
-                <MenuItem key={product.id} value={String(product.id)}>
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <span>{product.name}</span>
-                    {product.active_recipe_id ? (
-                      <Chip label={`Activa v${product.active_version}`} size="small" color="success" />
-                    ) : null}
-                    {product.draft_recipe_id ? (
-                      <Chip label={`Borrador v${product.draft_version}`} size="small" color="warning" />
-                    ) : null}
-                  </Stack>
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
+          <Autocomplete
+            size="small"
+            options={sortedProducts}
+            value={sortedProducts.find((product) => String(product.id) === selectedProductId) || null}
+            getOptionLabel={(product) => product.name}
+            isOptionEqualToValue={(option, value) => option.id === value.id}
+            onChange={(_, product) => setSelectedProductId(product ? String(product.id) : "")}
+            renderInput={(params) => <TextField {...params} label="Producto vendible" placeholder="Buscar producto" />}
+            renderOption={(props, product) => (
+              <li {...props} key={product.id}>
+                <Stack direction="row" spacing={1} alignItems="center">
+                  <span>{product.name}</span>
+                  {product.active_recipe_id ? <Chip label={`Activa v${product.active_version}`} size="small" color="success" /> : null}
+                  {product.draft_recipe_id ? <Chip label={`Borrador v${product.draft_version}`} size="small" color="warning" /> : null}
+                </Stack>
+              </li>
+            )}
+          />
           {details ? (
             <Stack direction="row" spacing={1} flexWrap="wrap">
               <Chip
@@ -494,7 +493,7 @@ export default function AdminRecipes() {
                 <TextField
                   label="Margen objetivo (%)"
                   value={targetMargin}
-                  onChange={(event) => setTargetMargin(event.target.value)}
+                  onChange={(event) => setTargetMargin(normalizeDecimalInput(event.target.value))}
                   inputProps={{ inputMode: "decimal", min: 0.01, max: 99.99 }}
                   size="small"
                   sx={{ width: 210 }}
@@ -527,35 +526,22 @@ export default function AdminRecipes() {
                       return (
                         <TableRow key={index}>
                           <TableCell sx={{ minWidth: 230 }}>
-                            <FormControl size="small" fullWidth error={duplicateSupplyIds.has(item.supplyId)}>
-                              <InputLabel shrink>Insumo</InputLabel>
-                              <Select
-                                value={item.supplyId}
-                                label="Insumo"
-                                displayEmpty
-                                onChange={(event) =>
-                                  updateItem(index, { supplyId: String(event.target.value) })
-                                }
-                                renderValue={(value) =>
-                                  value ? supplyById.get(String(value))?.name : "Selecciona"
-                                }
-                              >
-                                {supplies
-                                  .filter((option) => normalizeBoolean(option.active))
-                                  .map((option) => (
-                                    <MenuItem key={option.id} value={String(option.id)}>
-                                      {option.name}
-                                    </MenuItem>
-                                  ))}
-                              </Select>
-                            </FormControl>
+                            <Autocomplete
+                              size="small"
+                              options={activeSupplies}
+                              value={supplyById.get(item.supplyId) || null}
+                              getOptionLabel={(option) => option.name}
+                              isOptionEqualToValue={(option, value) => option.id === value.id}
+                              onChange={(_, option) => updateItem(index, { supplyId: option ? String(option.id) : "" })}
+                              renderInput={(params) => <TextField {...params} label="Insumo" placeholder="Buscar insumo" error={duplicateSupplyIds.has(item.supplyId)} />}
+                            />
                           </TableCell>
                           <TableCell sx={{ minWidth: 140 }}>
                             <TextField
                               label="Cantidad"
                               value={item.quantity}
-                              onChange={(event) => updateItem(index, { quantity: event.target.value })}
-                              inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}
+                              onChange={(event) => updateItem(index, { quantity: normalizeDecimalInput(event.target.value) })}
+                              inputProps={{ inputMode: "decimal", min: 0, step: "0.01" }}
                               size="small"
                             />
                           </TableCell>
@@ -566,7 +552,7 @@ export default function AdminRecipes() {
                             ) : (
                               <Stack spacing={0.25}>
                                 <Typography fontWeight={900}>
-                                  {formatMoney(previewItem.unitCost, 4)}
+                                  {formatMoney(previewItem.unitCost, 2)}
                                 </Typography>
                                 <Typography variant="caption" color="text.secondary">
                                   {previewItem.costingMethod === "FEFO" ? "Lote FEFO" : "Costo promedio"}
@@ -584,9 +570,9 @@ export default function AdminRecipes() {
                               label="Merma %"
                               value={item.wastePercent}
                               onChange={(event) =>
-                                updateItem(index, { wastePercent: event.target.value })
+                                updateItem(index, { wastePercent: normalizeDecimalInput(event.target.value) })
                               }
-                              inputProps={{ inputMode: "decimal", min: 0, max: 99.999 }}
+                              inputProps={{ inputMode: "decimal", min: 0, max: 99.99, step: "0.01" }}
                               size="small"
                             />
                           </TableCell>

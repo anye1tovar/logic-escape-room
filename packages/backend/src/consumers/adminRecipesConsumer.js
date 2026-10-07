@@ -41,7 +41,7 @@ async function listProducts() {
         FROM product_recipes
         WHERE product_id = product.id
       ) version_info ON TRUE
-      ORDER BY product.available DESC, lower(product.name) ASC;
+      ORDER BY lower(product.name) ASC;
     `,
   );
   return result.rows || [];

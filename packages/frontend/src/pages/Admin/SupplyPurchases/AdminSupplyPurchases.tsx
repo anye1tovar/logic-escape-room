@@ -24,6 +24,7 @@ import {
   Typography,
 } from "@mui/material";
 import { adminRequest } from "../../../api/adminClient";
+import { formatDecimal, normalizeDecimalInput, parseDecimal } from "../../../utils/numbers";
 import "../adminCrud.scss";
 
 type SupplyRow = {
@@ -120,12 +121,6 @@ function formatMoney(value: number | string | null | undefined, decimals = 0) {
     minimumFractionDigits: 0,
     maximumFractionDigits: decimals,
   }).format(Number(value || 0));
-}
-
-function formatQuantity(value: number) {
-  return new Intl.NumberFormat("es-CO", {
-    maximumFractionDigits: 3,
-  }).format(value);
 }
 
 function formatDate(value: number | string) {
@@ -300,7 +295,7 @@ export default function AdminSupplyPurchases() {
           allocations: buildAllocations(),
           items: items.map((item) => ({
             supplyId: Number(item.supplyId),
-            purchasedQuantity: Number(item.purchasedQuantity),
+            purchasedQuantity: parseDecimal(item.purchasedQuantity),
             lineTotal: Number(item.lineTotal),
             expirationDate: item.expirationDate || null,
             lotNumber: item.lotNumber || null,
@@ -327,7 +322,7 @@ export default function AdminSupplyPurchases() {
       const supply = supplyById.get(item.supplyId);
       return (
         supply != null &&
-        Number(item.purchasedQuantity) > 0 &&
+        parseDecimal(item.purchasedQuantity) > 0 &&
         Number.isInteger(Number(item.lineTotal)) &&
         Number(item.lineTotal) > 0 &&
         (!normalizeBoolean(supply.track_expiration) || item.expirationDate)
@@ -426,7 +421,7 @@ export default function AdminSupplyPurchases() {
                 {items.map((item, index) => {
                   const supply = supplyById.get(item.supplyId);
                   const convertedQuantity =
-                    Number(item.purchasedQuantity || 0) *
+                    parseDecimal(item.purchasedQuantity || 0) *
                     Number(supply?.conversion_factor || 0);
                   const unitCost =
                     convertedQuantity > 0 && Number(item.lineTotal) > 0
@@ -452,7 +447,7 @@ export default function AdminSupplyPurchases() {
                           }}
                           renderValue={(value) => supplyById.get(value)?.name || value}
                         >
-                          {supplies.map((option) => (
+                          {[...supplies].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })).map((option) => (
                             <MenuItem key={option.id} value={String(option.id)}>
                               {option.name}
                             </MenuItem>
@@ -465,10 +460,10 @@ export default function AdminSupplyPurchases() {
                           value={item.purchasedQuantity}
                           onChange={(event) =>
                             updateItem(index, {
-                              purchasedQuantity: event.target.value,
+                              purchasedQuantity: normalizeDecimalInput(event.target.value),
                             })
                           }
-                          inputProps={{ inputMode: "decimal", min: 0, step: "0.001" }}
+                          inputProps={{ inputMode: "decimal", min: 0, step: "0.01" }}
                           size="small"
                         />
                       </TableCell>
@@ -478,7 +473,7 @@ export default function AdminSupplyPurchases() {
                             <Typography fontWeight={900}>{supply.purchase_unit}</Typography>
                             <Typography variant="caption" color="text.secondary">
                               {convertedQuantity > 0
-                                ? `${formatQuantity(convertedQuantity)} ${supply.consumption_unit}`
+                                ? `${formatDecimal(convertedQuantity)} ${supply.consumption_unit}`
                                 : `a ${supply.consumption_unit}`}
                             </Typography>
                           </Stack>
