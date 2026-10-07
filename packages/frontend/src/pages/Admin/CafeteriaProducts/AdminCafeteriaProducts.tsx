@@ -6,8 +6,11 @@ import {
   useState,
 } from "react";
 import { adminRequest } from "../../../api/adminClient";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Alert,
+  Autocomplete,
   Button,
   Chip,
   Dialog,
@@ -16,6 +19,7 @@ import {
   DialogContentText,
   DialogTitle,
   Drawer,
+  IconButton,
   MenuItem,
   Paper,
   Select,
@@ -53,6 +57,7 @@ type ProductRow = {
   track_expiration: boolean | number | string;
   expiration_alert_days: number | string;
   critical_expiration_alert_days: number | string;
+  product_type?: "NORMAL" | "INTERNAL" | "COMBO";
 };
 
 type CategoryRow = {
@@ -80,6 +85,7 @@ type ProductFormState = {
   criticalExpirationAlertDays: string;
   expirationDate: string;
   lotNumber: string;
+  productType: "NORMAL" | "INTERNAL" | "COMBO";
 };
 
 type InventoryMovementRow = {
@@ -134,6 +140,13 @@ type CategoryFormState = {
   active: "1" | "0";
 };
 
+type ComboGroupForm = {
+  name: string;
+  minSelections: string;
+  maxSelections: string;
+  options: Array<{ productId: string; quantity: string }>;
+};
+
 const emptyProductForm: ProductFormState = {
   name: "",
   price: "",
@@ -150,6 +163,7 @@ const emptyProductForm: ProductFormState = {
   criticalExpirationAlertDays: "7",
   expirationDate: "",
   lotNumber: "",
+  productType: "NORMAL",
 };
 
 const inventoryTypeLabels: Record<string, string> = {
@@ -215,6 +229,7 @@ function toProductForm(row: ProductRow): ProductFormState {
     criticalExpirationAlertDays: String(row.critical_expiration_alert_days ?? 7),
     expirationDate: "",
     lotNumber: "",
+    productType: row.product_type || "NORMAL",
   };
 }
 
@@ -246,6 +261,7 @@ function productPayload(form: ProductFormState) {
     criticalExpirationAlertDays: Number(form.criticalExpirationAlertDays || 7),
     expirationDate: form.expirationDate || null,
     lotNumber: form.lotNumber || null,
+    productType: form.productType,
   };
 }
 
@@ -388,6 +404,8 @@ export default function AdminCafeteriaProducts() {
   });
   const [inventoryForm, setInventoryForm] =
     useState<InventoryFormState>(emptyInventoryForm);
+  const [comboProduct, setComboProduct] = useState<ProductRow | null>(null);
+  const [comboGroups, setComboGroups] = useState<ComboGroupForm[]>([]);
 
   const sorted = useMemo(() => {
     return [...rows].sort((a, b) => {
@@ -569,6 +587,45 @@ export default function AdminCafeteriaProducts() {
       await load();
     } catch {
       setStatus({ type: "error", message: "No se pudo eliminar el producto." });
+    }
+  }
+
+  async function openComboEditor(product: ProductRow) {
+    setStatus({ type: "loading" });
+    try {
+      const data = await adminRequest<{ groups: Array<{ name: string; min_selections: number; max_selections: number; options: Array<{ productId: number; quantity: number }> }> }>(
+        `/api/admin/cafeteria-products/${product.id}/combo`,
+      );
+      setComboProduct(product);
+      setComboGroups((data.groups || []).map((group) => ({
+        name: group.name,
+        minSelections: "1",
+        maxSelections: "1",
+        options: group.options.map((option) => ({ productId: String(option.productId), quantity: String(option.quantity) })),
+      })));
+      setStatus({ type: "idle" });
+    } catch (err) {
+      setStatus({ type: "error", message: err instanceof Error ? err.message : "No se pudo cargar el combo." });
+    }
+  }
+
+  async function saveCombo() {
+    if (!comboProduct) return;
+    setStatus({ type: "loading" });
+    try {
+      await adminRequest(`/api/admin/cafeteria-products/${comboProduct.id}/combo`, {
+        method: "PUT",
+        body: { groups: comboGroups.map((group, index) => ({
+          name: `Producto ${index + 1}`,
+          minSelections: 1,
+          maxSelections: 1,
+          options: group.options.filter((option) => option.productId).map((option) => ({ productId: Number(option.productId), quantity: Number(option.quantity || 1) })),
+        })) },
+      });
+      setComboProduct(null);
+      setStatus({ type: "success", message: "Configuracion del combo guardada." });
+    } catch (err) {
+      setStatus({ type: "error", message: err instanceof Error ? err.message : "No se pudo guardar el combo." });
     }
   }
 
@@ -1181,6 +1238,15 @@ export default function AdminCafeteriaProducts() {
                           >
                             Inventario
                           </Button>
+                          {product.product_type === "COMBO" ? (
+                            <Button
+                              variant="outlined"
+                              onClick={() => void openComboEditor(product)}
+                              disabled={status.type === "loading"}
+                            >
+                              Configurar combo
+                            </Button>
+                          ) : null}
                           <Button
                             variant="outlined"
                             color="error"
@@ -1268,6 +1334,59 @@ export default function AdminCafeteriaProducts() {
           </Button>
         </div>
       </Drawer>
+
+      <Dialog
+        open={comboProduct != null}
+        onClose={() => setComboProduct(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        <DialogTitle>{comboProduct ? `Configurar combo: ${comboProduct.name}` : "Configurar combo"}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <Alert severity="info">Agrega cada producto incluido. Si agregas alternativas dentro del mismo producto, el cliente elegira una de ellas.</Alert>
+            {comboGroups.map((group, groupIndex) => (
+              <Paper key={groupIndex} variant="outlined" sx={{ p: 2, position: "relative" }}>
+                <Stack spacing={1}>
+                  <Stack direction="row" alignItems="center" justifyContent="space-between">
+                    <Typography fontWeight={900}>Producto {groupIndex + 1}{group.options.length > 1 ? " — el cliente elige uno" : ""}</Typography>
+                    <IconButton aria-label={`Eliminar producto ${groupIndex + 1}`} color="error" size="small" sx={{ mt: -0.5, mr: -0.5 }} onClick={() => setComboGroups((groups) => groups.filter((_, index) => index !== groupIndex))}>
+                      <CloseIcon />
+                    </IconButton>
+                  </Stack>
+                  {group.options.map((option, optionIndex) => (
+                    <div key={optionIndex} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(140px, 1fr) auto", gap: "16px", alignItems: "center" }}>
+                      <Autocomplete
+                        options={rows
+                          .filter((row) => row.id !== comboProduct?.id && row.product_type !== "COMBO")
+                          .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }))}
+                        value={rows.find((row) => String(row.id) === option.productId) || null}
+                        getOptionLabel={(product) => product.name}
+                        isOptionEqualToValue={(a, b) => a.id === b.id}
+                        onChange={(_, product) => setComboGroups((groups) => groups.map((current, index) => index !== groupIndex ? current : { ...current, options: current.options.map((currentOption, currentIndex) => currentIndex === optionIndex ? { ...currentOption, productId: product ? String(product.id) : "" } : currentOption) }))}
+                        ListboxProps={{ style: { maxHeight: 300 } }}
+                        renderInput={(params) => (
+                          <TextField {...params} label="Producto" size="small" placeholder="Buscar producto" />
+                        )}
+                      />
+                      <TextField label="Cantidad" type="number" value={option.quantity} size="small" inputProps={{ min: 1 }} onChange={(e) => setComboGroups((groups) => groups.map((current, index) => index !== groupIndex ? current : { ...current, options: current.options.map((currentOption, currentIndex) => currentIndex === optionIndex ? { ...currentOption, quantity: e.target.value } : currentOption) }))} />
+                      <IconButton aria-label={`Eliminar alternativa ${optionIndex + 1}`} color="error" size="small" sx={{ justifySelf: "end" }} onClick={() => setComboGroups((groups) => groups.map((current, index) => index !== groupIndex ? current : { ...current, options: current.options.filter((_, currentIndex) => currentIndex !== optionIndex) }))}>
+                        <DeleteOutlineIcon />
+                      </IconButton>
+                    </div>
+                  ))}
+                  <Button onClick={() => setComboGroups((groups) => groups.map((current, index) => index !== groupIndex ? current : { ...current, options: [...current.options, { productId: "", quantity: "1" }] }))}>+ Agregar alternativa</Button>
+                </Stack>
+              </Paper>
+            ))}
+            <Button variant="outlined" onClick={() => setComboGroups((groups) => [...groups, { name: "", minSelections: "1", maxSelections: "1", options: [{ productId: "", quantity: "1" }] }])}>+ Agregar producto</Button>
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setComboProduct(null)}>Cancelar</Button>
+          <Button variant="contained" onClick={() => void saveCombo()} disabled={status.type === "loading"}>Guardar configuracion</Button>
+        </DialogActions>
+      </Dialog>
 
       <Drawer
         anchor="right"
@@ -1822,6 +1941,21 @@ function ProductForm({
         />
       </div>
       <div className="admin-crud__row">
+        <Select
+          value={form.productType}
+          onChange={(e) =>
+            setForm((s) => ({
+              ...s,
+              productType: e.target.value as ProductFormState["productType"],
+            }))
+          }
+          size="small"
+          fullWidth
+        >
+          <MenuItem value="NORMAL">Producto normal</MenuItem>
+          <MenuItem value="INTERNAL">Producto interno (solo para combos)</MenuItem>
+          <MenuItem value="COMBO">Combo</MenuItem>
+        </Select>
         <Select
           value={form.categoryId}
           onChange={(e) =>

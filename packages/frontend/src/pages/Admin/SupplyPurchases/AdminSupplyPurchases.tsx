@@ -3,6 +3,7 @@ import AddIcon from "@mui/icons-material/Add";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
 import {
   Alert,
+  Autocomplete,
   Button,
   Checkbox,
   Chip,
@@ -432,27 +433,23 @@ export default function AdminSupplyPurchases() {
                   return (
                     <TableRow key={index}>
                       <TableCell sx={{ minWidth: 220 }}>
-                        <LabeledSelect
-                          label="Insumo"
-                          value={item.supplyId}
-                          onChange={(value) => {
-                            const next = supplyById.get(value);
+                        <Autocomplete
+                          options={[...supplies].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }))}
+                          value={supplyById.get(item.supplyId) || null}
+                          getOptionLabel={(supplyOption) => supplyOption.name}
+                          isOptionEqualToValue={(a, b) => a.id === b.id}
+                          ListboxProps={{ style: { maxHeight: 300 } }}
+                          onChange={(_, next) => {
                             const keepsBatch =
                               next && normalizeBoolean(next.track_expiration);
                             updateItem(index, {
-                              supplyId: value,
+                              supplyId: next ? String(next.id) : "",
                               expirationDate: keepsBatch ? item.expirationDate : "",
                               lotNumber: keepsBatch ? item.lotNumber : "",
                             });
                           }}
-                          renderValue={(value) => supplyById.get(value)?.name || value}
-                        >
-                          {[...supplies].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })).map((option) => (
-                            <MenuItem key={option.id} value={String(option.id)}>
-                              {option.name}
-                            </MenuItem>
-                          ))}
-                        </LabeledSelect>
+                          renderInput={(params) => <TextField {...params} label="Insumo" size="small" placeholder="Buscar insumo" />}
+                        />
                       </TableCell>
                       <TableCell sx={{ minWidth: 170 }}>
                         <TextField

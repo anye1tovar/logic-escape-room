@@ -2,6 +2,7 @@ import { type ReactNode, useEffect, useMemo, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
+  Autocomplete,
   Button,
   Checkbox,
   Chip,
@@ -517,35 +518,26 @@ export default function AdminInventoryPurchases() {
                   return (
                     <TableRow key={index}>
                       <TableCell sx={{ minWidth: 220 }}>
-                        <PlaceholderSelect
-                          label="Producto"
-                          value={item.productId}
-                          onChange={(value) => {
-                            const nextProduct = productById.get(value);
+                        <Autocomplete
+                          options={[...products].sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" }))}
+                          value={productById.get(item.productId) || null}
+                          getOptionLabel={(productOption) => productOption.name}
+                          isOptionEqualToValue={(a, b) => a.id === b.id}
+                          ListboxProps={{ style: { maxHeight: 300 } }}
+                          onChange={(_, nextProduct) => {
                             const tracksExpiration =
                               nextProduct &&
                               normalizeBoolean(nextProduct.track_expiration);
                             updateItem(index, {
-                              productId: value,
+                              productId: nextProduct ? String(nextProduct.id) : "",
                               expirationDate: tracksExpiration
                                 ? item.expirationDate
                                 : "",
                               lotNumber: tracksExpiration ? item.lotNumber : "",
                             });
                           }}
-                          renderValue={(value) =>
-                            productById.get(value)?.name || value
-                          }
-                        >
-                          {products.map((productOption) => (
-                            <MenuItem
-                              key={productOption.id}
-                              value={String(productOption.id)}
-                            >
-                              {productOption.name}
-                            </MenuItem>
-                          ))}
-                        </PlaceholderSelect>
+                          renderInput={(params) => <TextField {...params} label="Producto" size="small" placeholder="Buscar producto" />}
+                        />
                       </TableCell>
                       <TableCell>
                         <TextField

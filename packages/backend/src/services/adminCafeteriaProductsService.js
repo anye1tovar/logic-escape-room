@@ -122,6 +122,12 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
 
+    const productType = String(input?.productType ?? input?.product_type ?? "NORMAL").trim().toUpperCase();
+    if (!['NORMAL', 'INTERNAL', 'COMBO'].includes(productType)) {
+      const err = new Error("productType must be NORMAL, INTERNAL or COMBO");
+      err.status = 400;
+      throw err;
+    }
     return {
       name,
       price,
@@ -152,6 +158,7 @@ function buildAdminCafeteriaProductsService(consumer) {
         ) ?? 7,
       expirationDate,
       lotNumber: normalizeText(input?.lotNumber ?? input?.lot_number),
+      productType,
     };
   }
 
@@ -313,6 +320,39 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
     return { ok: true };
+  }
+
+  function normalizeComboGroups(input) {
+    if (!Array.isArray(input)) throw Object.assign(new Error("groups must be an array"), { status: 400 });
+    return input.map((group, groupIndex) => {
+      const name = normalizeText(group?.name);
+      const minSelections = normalizeInt(group?.minSelections ?? group?.min_selections) ?? 0;
+      const maxSelections = normalizeInt(group?.maxSelections ?? group?.max_selections) ?? 0;
+      const options = Array.isArray(group?.options) ? group.options : [];
+      if (!name || minSelections < 0 || maxSelections < minSelections || (minSelections > 0 && options.length === 0)) {
+        throw Object.assign(new Error(`groups[${groupIndex}] is invalid`), { status: 400 });
+      }
+      const seen = new Set();
+      return { name, minSelections, maxSelections, sortOrder: groupIndex, options: options.map((option, optionIndex) => {
+        const productId = normalizeInt(option?.productId ?? option?.product_id);
+        const quantity = normalizeInt(option?.quantity) ?? 1;
+        if (!productId || quantity <= 0 || seen.has(productId)) throw Object.assign(new Error(`groups[${groupIndex}].options is invalid`), { status: 400 });
+        seen.add(productId);
+        return { productId, quantity, sortOrder: optionIndex };
+      }) };
+    });
+  }
+
+  async function getCombo(productIdInput) {
+    const productId = normalizeInt(productIdInput);
+    if (!productId) throw Object.assign(new Error("id is required"), { status: 400 });
+    return consumer.getCombo(productId);
+  }
+
+  async function saveCombo(productIdInput, input) {
+    const productId = normalizeInt(productIdInput);
+    if (!productId) throw Object.assign(new Error("id is required"), { status: 400 });
+    return consumer.saveCombo(productId, normalizeComboGroups(input?.groups));
   }
 
   async function listInventoryMovements(id, filtersInput = {}) {
@@ -521,6 +561,8 @@ function buildAdminCafeteriaProductsService(consumer) {
     createProduct,
     updateProduct,
     deleteProduct,
+    getCombo,
+    saveCombo,
     listInventoryMovements,
     createInventoryMovement,
     setPhysicalCount,

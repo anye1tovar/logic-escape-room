@@ -103,6 +103,7 @@ async function createProduct(payload) {
         name, price, description, available, category, image, category_id,
         track_inventory, minimum_stock, unit, track_expiration,
         expiration_alert_days, critical_expiration_alert_days
+        , product_type
        )
        VALUES (
          $1,
@@ -117,7 +118,8 @@ async function createProduct(payload) {
          $10,
          $11,
          $12,
-         $13
+         $13,
+         $14
        )
        RETURNING id;`,
       [
@@ -134,6 +136,7 @@ async function createProduct(payload) {
         payload.trackExpiration ?? false,
         payload.expirationAlertDays ?? 30,
         payload.criticalExpirationAlertDays ?? 7,
+        payload.productType,
       ],
     );
     const productId = result.rows[0]?.id ?? null;
@@ -191,7 +194,8 @@ async function updateProduct(id, payload) {
        track_expiration = $11,
        expiration_alert_days = $12,
        critical_expiration_alert_days = $13
-     WHERE id = $14;`,
+       , product_type = $14
+     WHERE id = $15;`,
     [
       payload.name,
       payload.price,
@@ -206,10 +210,46 @@ async function updateProduct(id, payload) {
       payload.trackExpiration ?? false,
       payload.expirationAlertDays ?? 30,
       payload.criticalExpirationAlertDays ?? 7,
+      payload.productType,
       id,
     ],
   );
   return { changes: result.rowCount };
+}
+
+async function getCombo(productId) {
+  const product = await db.query("SELECT id, product_type FROM cafeteria_products WHERE id = $1", [productId]);
+  if (!product.rows[0]) return null;
+  const groups = await db.query(`SELECT group_row.id, group_row.name, group_row.min_selections, group_row.max_selections, group_row.sort_order,
+    COALESCE(JSON_AGG(JSON_BUILD_OBJECT('productId', option_row.product_id, 'name', child.name, 'quantity', option_row.quantity, 'sortOrder', option_row.sort_order) ORDER BY option_row.sort_order)
+      FILTER (WHERE option_row.id IS NOT NULL), '[]'::json) AS options
+    FROM product_combo_groups group_row
+    LEFT JOIN product_combo_options option_row ON option_row.combo_group_id = group_row.id
+    LEFT JOIN cafeteria_products child ON child.id = option_row.product_id
+    WHERE group_row.combo_product_id = $1
+    GROUP BY group_row.id ORDER BY group_row.sort_order, group_row.id`, [productId]);
+  return { ...product.rows[0], groups: groups.rows || [] };
+}
+
+async function saveCombo(productId, groups) {
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const product = await client.query("SELECT id, product_type FROM cafeteria_products WHERE id = $1 FOR UPDATE", [productId]);
+    if (!product.rows[0]) return null;
+    if (product.rows[0].product_type !== 'COMBO') throw Object.assign(new Error("Product must be a COMBO"), { status: 409 });
+    await client.query("DELETE FROM product_combo_groups WHERE combo_product_id = $1", [productId]);
+    for (const group of groups) {
+      const created = await client.query(`INSERT INTO product_combo_groups (combo_product_id, name, min_selections, max_selections, sort_order)
+        VALUES ($1,$2,$3,$4,$5) RETURNING id`, [productId, group.name, group.minSelections, group.maxSelections, group.sortOrder]);
+      for (const option of group.options) {
+        if (option.productId === productId) throw Object.assign(new Error("A combo cannot contain itself"), { status: 400 });
+        await client.query(`INSERT INTO product_combo_options (combo_group_id, product_id, quantity, sort_order) VALUES ($1,$2,$3,$4)`, [created.rows[0].id, option.productId, option.quantity, option.sortOrder]);
+      }
+    }
+    await client.query("COMMIT");
+  } catch (err) { await client.query("ROLLBACK"); throw err; } finally { client.release(); }
+  return getCombo(productId);
 }
 
 async function listInventoryMovements(productId, filters = {}) {
@@ -666,6 +706,8 @@ module.exports = async function initConsumer() {
     createProduct,
     updateProduct,
     deleteProduct,
+    getCombo,
+    saveCombo,
     listInventoryMovements,
     getProductStock,
     createInventoryMovement,

@@ -330,6 +330,9 @@ function buildAdminVisitAccountsService(consumer) {
     );
     const product = await consumer.getProductById(productId);
     if (!product) throw serviceError("Product not found", 404);
+    if (String(product.product_type || "NORMAL") === "INTERNAL") {
+      throw serviceError("Internal products can only be sold as part of a combo", 409);
+    }
     if (
       product.available === false ||
       product.available === 0 ||

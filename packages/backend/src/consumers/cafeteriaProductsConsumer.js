@@ -15,6 +15,7 @@ async function listProducts() {
       FROM cafeteria_products product
       LEFT JOIN cafeteria_categories category ON category.id = product.category_id
       WHERE COALESCE(category.active, TRUE) = TRUE
+        AND product.product_type <> 'INTERNAL'
       ORDER BY
         category.sort_order ASC NULLS LAST,
         COALESCE(category.name, product.category, '') ASC,

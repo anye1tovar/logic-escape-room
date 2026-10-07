@@ -11,6 +11,8 @@ function createAdminCafeteriaProductsRouter(controller) {
   router.delete("/categories/:id", controller.deleteCategory);
   router.get("/", controller.listProducts);
   router.post("/", controller.createProduct);
+  router.get("/:id/combo", controller.getCombo);
+  router.put("/:id/combo", controller.saveCombo);
   router.get("/:id/inventory-movements", controller.listInventoryMovements);
   router.post("/:id/inventory-movements", controller.createInventoryMovement);
   router.post("/:id/physical-count", controller.setPhysicalCount);

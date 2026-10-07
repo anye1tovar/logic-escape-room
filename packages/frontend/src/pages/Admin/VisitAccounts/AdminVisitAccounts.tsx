@@ -70,6 +70,7 @@ type ProductRow = {
   current_stock?: number | string;
   sellable_stock?: number | string;
   active_recipe_id?: number | null;
+  product_type?: "NORMAL" | "INTERNAL" | "COMBO";
   active_recipe_version?: number | null;
   controlled_item_count?: number | string | null;
   recipe_max_quantity?: number | string | null;
@@ -530,7 +531,7 @@ export default function AdminVisitAccounts() {
         adminRequest<ProductRow[]>("/api/admin/cafeteria-products"),
       ]);
       setOrderItems(itemsData || []);
-      setProducts(productData || []);
+      setProducts((productData || []).filter((product) => product.product_type !== "INTERNAL"));
       setOrderStatus("idle");
     } catch (err) {
       setOrderStatus("error");
@@ -547,7 +548,7 @@ export default function AdminVisitAccounts() {
       adminRequest<ProductRow[]>("/api/admin/cafeteria-products"),
     ]);
     setOrderItems(itemsData || []);
-    setProducts(productData || []);
+    setProducts((productData || []).filter((product) => product.product_type !== "INTERNAL"));
     await load();
   }
 

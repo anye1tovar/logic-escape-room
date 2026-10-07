@@ -34,6 +34,8 @@ function buildAdminCafeteriaProductsController(service) {
       res.status(err.status || 500).json({ error: err.message });
     }
   }
+  async function getCombo(req, res) { try { const combo = await service.getCombo(req.params.id); if (!combo) return res.status(404).json({ error: "Not found" }); res.json(combo); } catch (err) { res.status(err.status || 500).json({ error: err.message }); } }
+  async function saveCombo(req, res) { try { const combo = await service.saveCombo(req.params.id, req.body); if (!combo) return res.status(404).json({ error: "Not found" }); res.json(combo); } catch (err) { res.status(err.status || 500).json({ error: err.message }); } }
 
   async function listInventoryMovements(req, res) {
     try {
@@ -158,6 +160,8 @@ function buildAdminCafeteriaProductsController(service) {
     createProduct,
     updateProduct,
     deleteProduct,
+    getCombo,
+    saveCombo,
     listInventoryMovements,
     createInventoryMovement,
     setPhysicalCount,

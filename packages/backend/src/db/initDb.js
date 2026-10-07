@@ -257,6 +257,36 @@ async function initSchema() {
     ALTER TABLE cafeteria_products ADD COLUMN IF NOT EXISTS track_expiration BOOLEAN NOT NULL DEFAULT FALSE;
     ALTER TABLE cafeteria_products ADD COLUMN IF NOT EXISTS expiration_alert_days INTEGER NOT NULL DEFAULT 30;
     ALTER TABLE cafeteria_products ADD COLUMN IF NOT EXISTS critical_expiration_alert_days INTEGER NOT NULL DEFAULT 7;
+    ALTER TABLE cafeteria_products ADD COLUMN IF NOT EXISTS product_type TEXT NOT NULL DEFAULT 'NORMAL';
+    ALTER TABLE cafeteria_products DROP CONSTRAINT IF EXISTS cafeteria_products_product_type_check;
+    ALTER TABLE cafeteria_products ADD CONSTRAINT cafeteria_products_product_type_check
+      CHECK (product_type IN ('NORMAL', 'INTERNAL', 'COMBO'));
+  `);
+
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS product_combo_groups (
+      id SERIAL PRIMARY KEY,
+      combo_product_id INTEGER NOT NULL REFERENCES cafeteria_products(id) ON DELETE CASCADE,
+      name TEXT NOT NULL,
+      min_selections INTEGER NOT NULL DEFAULT 0,
+      max_selections INTEGER NOT NULL DEFAULT 0,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      CHECK (min_selections >= 0),
+      CHECK (max_selections >= min_selections)
+    );
+    CREATE TABLE IF NOT EXISTS product_combo_options (
+      id SERIAL PRIMARY KEY,
+      combo_group_id INTEGER NOT NULL REFERENCES product_combo_groups(id) ON DELETE CASCADE,
+      product_id INTEGER NOT NULL REFERENCES cafeteria_products(id),
+      quantity INTEGER NOT NULL DEFAULT 1,
+      sort_order INTEGER NOT NULL DEFAULT 0,
+      CHECK (quantity > 0),
+      UNIQUE (combo_group_id, product_id)
+    );
+    CREATE INDEX IF NOT EXISTS product_combo_groups_combo_idx
+      ON product_combo_groups(combo_product_id, sort_order);
+    CREATE INDEX IF NOT EXISTS product_combo_options_group_idx
+      ON product_combo_options(combo_group_id, sort_order);
   `);
 
   await pool.query(`
