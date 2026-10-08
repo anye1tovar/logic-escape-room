@@ -1,5 +1,6 @@
 import { motion } from "framer-motion";
 import { useTranslation } from "react-i18next";
+import ArrowForwardIcon from "@mui/icons-material/ArrowForward";
 import "./Hero.scss";
 import Button from "../../common/Button";
 
@@ -75,6 +76,14 @@ const Hero = () => {
               {t("hero.whatIsEscapeRoom")}
             </Button>
           </motion.div>
+          <div className="hero__reservation">
+            <p>{t("hero.reservationPrompt")}</p>
+            <a href="/reservar" className="hero__reservation-link">
+              {t("hero.bookNow", "Consultar horarios y reservar aquí")}
+              <ArrowForwardIcon fontSize="small" aria-hidden="true" />
+            </a>
+            <span>{t("hero.reservationHelper")}</span>
+          </div>
         </motion.div>
       </div>
     </section>
