@@ -151,6 +151,20 @@
     align-items: center;
   }
 
+  &__contact-item--hours {
+    align-items: start;
+  }
+
+  &__hours {
+    display: grid;
+    gap: 0.2rem;
+  }
+
+  &__hours-title {
+    margin: 0;
+    font-weight: 900;
+  }
+
   &__label {
     margin: 0;
     font-weight: 900;

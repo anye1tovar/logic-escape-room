@@ -23,6 +23,7 @@ type OpeningHour = {
   openTime: string | null;
   closeTime: string | null;
   isOpen: number;
+  requiresAdvanceBooking: number;
 };
 
 const dayNames = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
@@ -105,6 +106,7 @@ export default function AdminOpeningHours() {
             <TableHead>
               <TableRow>
                 <TableCell>Día</TableCell>
+                <TableCell>Solo con reserva previa</TableCell>
                 <TableCell>Abre</TableCell>
                 <TableCell>Cierra</TableCell>
                 <TableCell>Abierto</TableCell>
@@ -116,6 +118,29 @@ export default function AdminOpeningHours() {
                 <TableRow key={r.dayOfWeek} hover>
                   <TableCell>
                     {dayNames[r.dayOfWeek] ?? String(r.dayOfWeek)} ({r.dayOfWeek})
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={String(r.requiresAdvanceBooking)}
+                      onChange={(e) =>
+                        setRows((prev) =>
+                          prev.map((x) =>
+                            x.dayOfWeek === r.dayOfWeek
+                              ? {
+                                  ...x,
+                                  requiresAdvanceBooking:
+                                    e.target.value === "1" ? 1 : 0,
+                                }
+                              : x
+                          )
+                        )
+                      }
+                      size="small"
+                      fullWidth
+                    >
+                      <MenuItem value="1">Sí, mínimo 1 hora</MenuItem>
+                      <MenuItem value="0">No</MenuItem>
+                    </Select>
                   </TableCell>
                   <TableCell>
                     <TextField
@@ -183,7 +208,7 @@ export default function AdminOpeningHours() {
               ))}
               {sorted.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={5}>Sin registros.</TableCell>
+                  <TableCell colSpan={6}>Sin registros.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>

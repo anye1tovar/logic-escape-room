@@ -4,6 +4,7 @@ import InstagramIcon from "@mui/icons-material/Instagram";
 import WhatsAppIcon from "@mui/icons-material/WhatsApp";
 import YouTubeIcon from "@mui/icons-material/YouTube";
 import { Typography } from "@mui/material";
+import { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import socials from "../../../assets/data/socials.json";
@@ -15,11 +16,55 @@ type SocialItem = {
   icon?: string;
 };
 
+type OpeningHour = {
+  dayOfWeek: number;
+  openTime: string | null;
+  closeTime: string | null;
+  isOpen: boolean;
+  requiresAdvanceBooking: boolean;
+};
+
 const logicLogo = "/img/logic.webp";
 
 const Footer = () => {
   const { t } = useTranslation();
+  const [openingHours, setOpeningHours] = useState<OpeningHour[]>([]);
   const socialLinks = (socials as SocialItem[]).filter((item) => item.platform && item.url);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+    fetch(`${apiBase}/api/bookings/opening-hours`, { signal: controller.signal })
+      .then((response) => (response.ok ? response.json() : []))
+      .then((data: unknown) => {
+        if (Array.isArray(data)) setOpeningHours(data as OpeningHour[]);
+      })
+      .catch(() => undefined);
+    return () => controller.abort();
+  }, []);
+
+  const schedule = useMemo(() => {
+    const dayNames = t("footer.dayNames", {
+      returnObjects: true,
+    }) as string[];
+    return openingHours
+      .filter(
+        (item) =>
+          item.isOpen &&
+          !item.requiresAdvanceBooking &&
+          item.openTime &&
+          item.closeTime
+      )
+      .sort(
+        (a, b) =>
+          (a.dayOfWeek === 0 ? 7 : a.dayOfWeek) -
+          (b.dayOfWeek === 0 ? 7 : b.dayOfWeek)
+      )
+      .map((item) => ({
+        label: dayNames[item.dayOfWeek] || String(item.dayOfWeek),
+        hours: `${item.openTime}–${item.closeTime}`,
+      }));
+  }, [openingHours, t]);
 
   const renderIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -97,6 +142,19 @@ const Footer = () => {
                   {t("footer.email")}
                 </a>
               </div>
+              {schedule.length > 0 && (
+                <div className="footer__contact-item footer__contact-item--hours">
+                  <p className="footer__label">H.</p>
+                  <div className="footer__hours">
+                    <p className="footer__hours-title">{t("footer.hoursTitle")}</p>
+                    {schedule.map((item) => (
+                      <p className="footer__value" key={item.label}>
+                        {item.label}: {item.hours}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

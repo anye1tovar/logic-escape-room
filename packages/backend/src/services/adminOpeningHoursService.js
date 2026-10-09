@@ -31,6 +31,12 @@ function buildAdminOpeningHoursService(consumer) {
           row?.is_open === 1 || row?.is_open === true || row?.is_open === "1"
             ? 1
             : 0,
+        requiresAdvanceBooking:
+          row?.requires_advance_booking === 1 ||
+          row?.requires_advance_booking === true ||
+          row?.requires_advance_booking === "1"
+            ? 1
+            : 0,
       });
     }
     return result;
@@ -46,6 +52,10 @@ function buildAdminOpeningHoursService(consumer) {
 
     const isOpen =
       input?.isOpen === 1 || input?.isOpen === true || input?.isOpen === "1";
+    const requiresAdvanceBooking =
+      input?.requiresAdvanceBooking === 1 ||
+      input?.requiresAdvanceBooking === true ||
+      input?.requiresAdvanceBooking === "1";
 
     const openTime = normalizeTime(input?.openTime ?? input?.open_time);
     const closeTime = normalizeTime(input?.closeTime ?? input?.close_time);
@@ -55,6 +65,7 @@ function buildAdminOpeningHoursService(consumer) {
       openTime,
       closeTime,
       isOpen,
+      requiresAdvanceBooking,
     });
 
     return { ok: true };

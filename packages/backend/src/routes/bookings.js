@@ -4,6 +4,7 @@ function createBookingsRouter(controller) {
   const router = express.Router();
 
   router.get("/availability", controller.getAvailability);
+  router.get("/opening-hours", controller.listOpeningHours);
   router.get("/quote", controller.getQuote);
   router.get("/consult/:code", controller.getBookingStatusByConsultCode);
   router.get("/", controller.listBookings);

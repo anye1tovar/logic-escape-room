@@ -14,6 +14,7 @@ import CalendarMonthIcon from "@mui/icons-material/CalendarMonth";
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import Inventory2Icon from "@mui/icons-material/Inventory2";
 import MenuIcon from "@mui/icons-material/Menu";
+import LogoutIcon from "@mui/icons-material/Logout";
 import SettingsIcon from "@mui/icons-material/Settings";
 import "./AdminLayout.scss";
 
@@ -287,6 +288,7 @@ function SidebarInner({
         className="admin-layout__logout"
         onClick={onLogout}
       >
+        <LogoutIcon className="admin-layout__logout-icon" />
         Cerrar sesion
       </Button>
     </>
@@ -299,6 +301,7 @@ export default function AdminLayout() {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const [isNavOpen, setIsNavOpen] = useState(false);
+  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
   const adminUser = useMemo(() => getStoredAdminUser(), []);
   const role = String(adminUser?.role || "admin").toLowerCase();
   const allowedNavGroups = useMemo(() => {
@@ -343,9 +346,26 @@ export default function AdminLayout() {
   }, [navigate]);
 
   return (
-    <div className="admin-layout">
+    <div
+      className={`admin-layout ${
+        isSidebarExpanded ? "is-sidebar-expanded" : ""
+      }`}
+    >
       {!isMobile ? (
-        <aside className="admin-layout__sidebar" aria-label="Admin navigation">
+        <aside
+          className={`admin-layout__sidebar ${
+            isSidebarExpanded ? "is-expanded" : ""
+          }`}
+          aria-label="Admin navigation"
+          onMouseEnter={() => setIsSidebarExpanded(true)}
+          onMouseLeave={() => setIsSidebarExpanded(false)}
+          onFocusCapture={() => setIsSidebarExpanded(true)}
+          onBlurCapture={(event) => {
+            if (!event.currentTarget.contains(event.relatedTarget)) {
+              setIsSidebarExpanded(false);
+            }
+          }}
+        >
           <SidebarInner
             groups={allowedNavGroups}
             activeGroupId={activeGroupId}

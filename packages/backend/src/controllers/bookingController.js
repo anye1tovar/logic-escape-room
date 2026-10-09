@@ -69,6 +69,14 @@ function buildBookingController(service, deps = {}) {
     }
   }
 
+  async function listOpeningHours(req, res) {
+    try {
+      res.json(await service.listOpeningHours());
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   async function getQuote(req, res) {
     try {
       const { date, attendees } = req.query;
@@ -108,6 +116,7 @@ function buildBookingController(service, deps = {}) {
     createBooking,
     listBookings,
     getAvailability,
+    listOpeningHours,
     getQuote,
     getBooking,
     getBookingStatusByConsultCode,

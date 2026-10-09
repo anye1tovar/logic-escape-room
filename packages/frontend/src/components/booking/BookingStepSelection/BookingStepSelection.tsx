@@ -619,6 +619,22 @@ export default function BookingStepSelection({
             </p>
           )}
 
+          {availability?.minAdvanceMinutes === 60 && (
+            <div className="booking-alert booking-alert--reservation-only" role="status">
+              {t("booking.selection.reservationOnlyNotice")} {" "}
+              <a
+                className="booking-form__link"
+                href={buildLogicWhatsAppUrl(
+                  t("booking.selection.reservationOnlyWhatsAppMessage")
+                )}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                {t("booking.selection.reservationOnlyCta")}
+              </a>
+            </div>
+          )}
+
           <p className="booking-form__hint">
             {t("booking.selection.cantFindSlotPrefix")}{" "}
             <a

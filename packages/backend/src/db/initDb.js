@@ -40,8 +40,14 @@ async function initSchema() {
       day_of_week INTEGER NOT NULL UNIQUE,
       open_time TEXT,
       close_time TEXT,
-      is_open BOOLEAN NOT NULL
+      is_open BOOLEAN NOT NULL,
+      requires_advance_booking BOOLEAN NOT NULL DEFAULT FALSE
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE opening_hours
+    ADD COLUMN IF NOT EXISTS requires_advance_booking BOOLEAN NOT NULL DEFAULT FALSE;
   `);
 
   await pool.query(`

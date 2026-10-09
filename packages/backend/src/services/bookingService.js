@@ -8,7 +8,7 @@ const crypto = require("crypto");
 function buildBookingService(consumer, deps = {}) {
   const TIMEZONE = "America/Bogota";
   const TIMEZONE_OFFSET_MINUTES = -5 * 60; // Bogota has fixed UTC-5
-  const MIN_ADVANCE_MINUTES = 40;
+  const RESERVATION_ONLY_MIN_ADVANCE_MINUTES = 60;
   const SLOT_DURATION_MINUTES = 90;
   const MAX_CONSULT_CODE_LENGTH = 15;
   const metaCapiService = deps.metaCapiService;
@@ -733,6 +733,27 @@ function buildBookingService(consumer, deps = {}) {
     };
   }
 
+  async function listOpeningHours() {
+    const openingHoursConsumer = deps.openingHoursConsumer;
+    if (!openingHoursConsumer?.listOpeningHours) {
+      const err = new Error("openingHoursConsumer is required for opening hours.");
+      err.status = 500;
+      throw err;
+    }
+
+    const rows = await openingHoursConsumer.listOpeningHours();
+    return (rows || []).map((row) => ({
+      dayOfWeek: Number(row.day_of_week),
+      openTime: row.open_time ?? null,
+      closeTime: row.close_time ?? null,
+      isOpen: row.is_open === 1 || row.is_open === true || row.is_open === "1",
+      requiresAdvanceBooking:
+        row.requires_advance_booking === 1 ||
+        row.requires_advance_booking === true ||
+        row.requires_advance_booking === "1",
+    }));
+  }
+
   async function getAvailabilityByDate(date, options = {}) {
     const requestedDate = parseDateParam(date);
     if (!requestedDate) {
@@ -819,8 +840,8 @@ function buildBookingService(consumer, deps = {}) {
 
     const nowIso = bogotaNowIso();
     const nowMs = Date.parse(nowIso);
-    const minAdvanceMs = MIN_ADVANCE_MINUTES * 60_000;
     let slotStarts = [];
+    let minAdvanceMinutes = 0;
     if (!allowOutOfHours) {
       const openingHours = await getOpeningHoursForDate(requestedDate);
       const isOpen = openingHours?.is_open;
@@ -853,7 +874,15 @@ function buildBookingService(consumer, deps = {}) {
         startMinutes,
         endMinutes
       );
+      const requiresAdvanceBooking =
+        openingHours?.requires_advance_booking === 1 ||
+        openingHours?.requires_advance_booking === true ||
+        openingHours?.requires_advance_booking === "1";
+      minAdvanceMinutes = requiresAdvanceBooking
+        ? RESERVATION_ONLY_MIN_ADVANCE_MINUTES
+        : 0;
     }
+    const minAdvanceMs = minAdvanceMinutes * 60_000;
 
     const rooms = activeRooms.map((roomRow) => {
       const roomKey = useDbRoomId
@@ -890,7 +919,7 @@ function buildBookingService(consumer, deps = {}) {
       rates,
       timezone: TIMEZONE,
       serverNow: nowIso,
-      minAdvanceMinutes: MIN_ADVANCE_MINUTES,
+      minAdvanceMinutes,
       rooms,
     };
   }
@@ -900,6 +929,7 @@ function buildBookingService(consumer, deps = {}) {
     listBookings,
     getBooking,
     getBookingStatusByConsultCode,
+    listOpeningHours,
     getAvailabilityByDate,
     getBookingQuote,
   };

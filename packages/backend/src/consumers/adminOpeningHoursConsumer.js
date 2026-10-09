@@ -9,13 +9,20 @@ async function listOpeningHours() {
 
 async function upsertOpeningHour(payload) {
   await db.query(
-    `INSERT INTO opening_hours (day_of_week, open_time, close_time, is_open)
-     VALUES ($1, $2, $3, $4)
+    `INSERT INTO opening_hours (day_of_week, open_time, close_time, is_open, requires_advance_booking)
+     VALUES ($1, $2, $3, $4, $5)
      ON CONFLICT(day_of_week) DO UPDATE SET
        open_time = excluded.open_time,
        close_time = excluded.close_time,
-       is_open = excluded.is_open;`,
-    [payload.dayOfWeek, payload.openTime, payload.closeTime, payload.isOpen]
+       is_open = excluded.is_open,
+       requires_advance_booking = excluded.requires_advance_booking;`,
+    [
+      payload.dayOfWeek,
+      payload.openTime,
+      payload.closeTime,
+      payload.isOpen,
+      payload.requiresAdvanceBooking,
+    ]
   );
   return { ok: true };
 }
