@@ -219,6 +219,34 @@ function buildAdminSuppliesService(consumer) {
     return { ok: true, deactivated: result.deactivated };
   }
 
+  async function listSupplyRecipeUsages(idInput) {
+    const id = Number(idInput);
+    if (!Number.isInteger(id) || id <= 0) throw badRequest("id is required");
+    const supply = await consumer.getSupplyStock(id);
+    if (!supply) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    return consumer.listSupplyRecipeUsages(id);
+  }
+
+  async function getSupplyUsageDetails(idInput) {
+    const id = Number(idInput);
+    if (!Number.isInteger(id) || id <= 0) throw badRequest("id is required");
+    const supply = await consumer.getSupplyStock(id);
+    if (!supply) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    const [recipes, records] = await Promise.all([
+      consumer.listSupplyRecipeUsages(id),
+      consumer.getSupplyUsageCounts(id),
+    ]);
+    return { supply, recipes, records };
+  }
+
   return {
     listSupplies,
     listCategories,
@@ -228,6 +256,8 @@ function buildAdminSuppliesService(consumer) {
     createInventoryMovement,
     setPhysicalCount,
     deleteSupply,
+    listSupplyRecipeUsages,
+    getSupplyUsageDetails,
   };
 }
 

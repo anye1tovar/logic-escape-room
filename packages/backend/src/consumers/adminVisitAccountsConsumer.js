@@ -266,7 +266,7 @@ async function getProductById(id) {
           SELECT SUM(movement.quantity_delta)
           FROM inventory_movements movement
           WHERE movement.product_id = product.id
-        ), 0)::INTEGER AS current_stock
+        ), 0)::NUMERIC(14, 3) AS current_stock
       FROM cafeteria_products product
       WHERE product.id = $1
       LIMIT 1;
@@ -1069,7 +1069,7 @@ async function getInventoryProductForUpdate(client, productId) {
   }
   const stockResult = await client.query(
     `
-      SELECT COALESCE(SUM(quantity_delta), 0)::INTEGER AS current_stock
+      SELECT COALESCE(SUM(quantity_delta), 0)::NUMERIC(14, 3) AS current_stock
       FROM inventory_movements
       WHERE product_id = $1;
     `,
@@ -1107,18 +1107,23 @@ async function getRecipeItemsForUpdate(client, recipeId) {
     `
       SELECT
         item.supply_id,
+        item.product_id,
         item.quantity,
         item.waste_percent,
         supply.name AS supply_name,
         supply.consumption_unit,
         supply.track_inventory,
-        supply.track_expiration
+        supply.track_expiration,
+        component.name AS product_name,
+        component.unit AS product_unit,
+        component.track_inventory AS product_track_inventory,
+        component.track_expiration AS product_track_expiration
       FROM product_recipe_items item
       JOIN product_recipes recipe ON recipe.id = item.recipe_id
-      JOIN inventory_supplies supply ON supply.id = item.supply_id
+      LEFT JOIN inventory_supplies supply ON supply.id = item.supply_id
+      LEFT JOIN cafeteria_products component ON component.id = item.product_id
       WHERE recipe.id = $1
-      ORDER BY item.supply_id ASC
-      FOR UPDATE OF supply;
+      ORDER BY item.supply_id NULLS LAST, item.product_id NULLS LAST;
     `,
     [recipeId]
   );
@@ -1126,6 +1131,10 @@ async function getRecipeItemsForUpdate(client, recipeId) {
     const err = new Error("Recipe has no supplies");
     err.status = 409;
     throw err;
+  }
+  for (const item of result.rows) {
+    if (item.supply_id != null) await client.query("SELECT id FROM inventory_supplies WHERE id=$1 FOR UPDATE;", [item.supply_id]);
+    else await client.query("SELECT id FROM cafeteria_products WHERE id=$1 FOR UPDATE;", [item.product_id]);
   }
   return result.rows;
 }
@@ -1176,12 +1185,25 @@ async function getSupplyAvailableStock(client, recipeItem, { lockBatches = false
 async function assertRecipeInventoryAvailable(client, payload) {
   const recipeItems = await getRecipeItemsForUpdate(client, payload.recipeId);
   for (const recipeItem of recipeItems) {
-    const tracksInventory =
-      recipeItem.track_inventory === true ||
-      recipeItem.track_inventory === 1 ||
-      recipeItem.track_inventory === "1";
+    const productComponent = recipeItem.product_id != null;
+    const tracksInventory = productComponent
+      ? recipeItem.product_track_inventory === true || recipeItem.product_track_inventory === 1 || recipeItem.product_track_inventory === "1"
+      : recipeItem.track_inventory === true || recipeItem.track_inventory === 1 || recipeItem.track_inventory === "1";
     if (!tracksInventory) continue;
     const required = requiredSupplyQuantity(recipeItem, payload.quantity);
+    if (productComponent) {
+      const product = await getInventoryProductForUpdate(client, recipeItem.product_id);
+      let available = product.current_stock;
+      if (product.track_expiration) {
+        const result = await client.query(`SELECT COALESCE(SUM(current_quantity),0) AS stock FROM inventory_batches WHERE product_id=$1 AND status='ACTIVE' AND current_quantity>0 AND expiration_date>=CURRENT_DATE::TEXT;`, [recipeItem.product_id]);
+        available = Number(result.rows[0]?.stock || 0);
+      }
+      if (available + 0.0005 < required) {
+        const err = new Error(`No hay suficiente ${recipeItem.product_name} para vender ${payload.productName || "producto"}. Disponible: ${roundSupplyQuantity(available)} ${recipeItem.product_unit}. Requerido: ${required} ${recipeItem.product_unit}.`);
+        err.status = 409; err.code = "INSUFFICIENT_RECIPE_STOCK"; err.productId = recipeItem.product_id; throw err;
+      }
+      continue;
+    }
     const available = await getSupplyAvailableStock(client, recipeItem, {
       lockBatches: true,
     });
@@ -1219,7 +1241,7 @@ async function assertInventoryAvailableForOrderItem(client, payload) {
   if (tracksExpiration) {
     const sellableResult = await client.query(
       `
-        SELECT COALESCE(SUM(current_quantity), 0)::INTEGER AS sellable_stock
+        SELECT COALESCE(SUM(current_quantity), 0)::NUMERIC(14, 3) AS sellable_stock
         FROM inventory_batches
         WHERE product_id = $1
           AND current_quantity > 0
@@ -1353,16 +1375,17 @@ async function restoreInventoryBatchesForOrderItem(client, payload) {
     `
       SELECT
         inventory_batch_id,
-        SUM(quantity_delta)::INTEGER AS net_quantity
+        SUM(quantity_delta)::NUMERIC(14, 3) AS net_quantity
       FROM inventory_movements
       WHERE source_type = 'ORDER_ITEM'
         AND source_id = $1
+        AND product_id = $2
         AND inventory_batch_id IS NOT NULL
       GROUP BY inventory_batch_id
       HAVING SUM(quantity_delta) < 0
       ORDER BY MIN(id) ASC;
     `,
-    [String(payload.item.id)]
+    [String(payload.item.id), payload.item.product_id]
   );
   const movements = [];
   for (const row of consumedResult.rows || []) {
@@ -1432,6 +1455,31 @@ async function createRecipeInventoryMovement(client, payload) {
   const movements = [];
 
   for (const recipeItem of recipeItems) {
+    if (recipeItem.product_id != null) {
+      const tracksInventory = recipeItem.product_track_inventory === true || recipeItem.product_track_inventory === 1 || recipeItem.product_track_inventory === "1";
+      if (!tracksInventory) continue;
+      const quantity = requiredSupplyQuantity(recipeItem, productQuantity);
+      const componentProduct = await getInventoryProductForUpdate(client, recipeItem.product_id);
+      const componentPayload = { ...payload, item: { ...payload.item, product_id: recipeItem.product_id }, quantityDelta: isReversal ? quantity : -quantity, type: movementType, reason: `Receta de ${payload.item.product_name || "producto"}` };
+      if (isReversal) {
+        if (componentProduct.track_expiration) movements.push(...await restoreInventoryBatchesForOrderItem(client, componentPayload));
+        else {
+          const consumed = await client.query(`SELECT -COALESCE(SUM(quantity_delta),0) AS quantity FROM inventory_movements WHERE source_type='ORDER_ITEM' AND source_id=$1 AND product_id=$2;`, [String(payload.item.id), recipeItem.product_id]);
+          const restore = Math.min(quantity, Number(consumed.rows[0]?.quantity || 0));
+          if (restore > 0) {
+            const result = await client.query(`INSERT INTO inventory_movements (product_id,type,quantity_delta,occurred_at,source_type,source_id,reason,created_by,created_at) VALUES ($1,'REVERSAL',$2,$3,'ORDER_ITEM',$4,$5,$6,$7) RETURNING *;`, [recipeItem.product_id, restore, payload.createdAt, String(payload.item.id), componentPayload.reason, payload.createdBy, payload.createdAt]);
+            movements.push(result.rows[0]);
+          }
+        }
+      } else if (componentProduct.track_expiration) {
+        movements.push(...await consumeInventoryBatchesFefo(client, componentPayload));
+      } else {
+        if (componentProduct.current_stock < quantity) throw Object.assign(new Error(`Insufficient stock for ${recipeItem.product_name}`), { status: 409 });
+        const result = await client.query(`INSERT INTO inventory_movements (product_id,type,quantity_delta,occurred_at,source_type,source_id,reason,created_by,created_at) VALUES ($1,$2,$3,$4,'ORDER_ITEM',$5,$6,$7,$8) RETURNING *;`, [recipeItem.product_id, movementType, -quantity, payload.createdAt, String(payload.item.id), componentPayload.reason, payload.createdBy, payload.createdAt]);
+        movements.push(result.rows[0]);
+      }
+      continue;
+    }
     const tracksInventory =
       recipeItem.track_inventory === true ||
       recipeItem.track_inventory === 1 ||

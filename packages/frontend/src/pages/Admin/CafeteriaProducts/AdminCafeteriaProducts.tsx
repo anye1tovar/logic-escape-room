@@ -1590,7 +1590,7 @@ export default function AdminCafeteriaProducts() {
                     quantity: e.target.value,
                   }))
                 }
-                inputProps={{ inputMode: "numeric", min: 1 }}
+                inputProps={{ inputMode: "decimal", min: 0.001, step: 0.001 }}
                 size="small"
                 fullWidth
               />
@@ -1659,7 +1659,7 @@ export default function AdminCafeteriaProducts() {
                       realCount: e.target.value,
                     }))
                   }
-                  inputProps={{ inputMode: "numeric", min: 0 }}
+                  inputProps={{ inputMode: "decimal", min: 0, step: 0.001 }}
                   size="small"
                   fullWidth
                 />

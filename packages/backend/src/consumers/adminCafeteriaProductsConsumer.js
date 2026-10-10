@@ -14,20 +14,20 @@ async function listProducts() {
           SELECT SUM(movement.quantity_delta)
           FROM inventory_movements movement
           WHERE movement.product_id = product.id
-        ), 0)::INTEGER AS current_stock,
+        ), 0)::NUMERIC(14, 3) AS current_stock,
         COALESCE((
           SELECT SUM(batch.current_quantity)
           FROM inventory_batches batch
           WHERE batch.product_id = product.id
             AND batch.status = 'ACTIVE'
-        ), 0)::INTEGER AS physical_stock,
+        ), 0)::NUMERIC(14, 3) AS physical_stock,
         COALESCE((
           SELECT SUM(batch.current_quantity)
           FROM inventory_batches batch
           WHERE batch.product_id = product.id
             AND batch.status = 'ACTIVE'
             AND batch.expiration_date >= CURRENT_DATE::TEXT
-        ), 0)::INTEGER AS sellable_stock,
+        ), 0)::NUMERIC(14, 3) AS sellable_stock,
         (
           SELECT MIN(batch.expiration_date)
           FROM inventory_batches batch
@@ -307,7 +307,7 @@ async function getProductStock(productId) {
     `
       SELECT
         product.*,
-        COALESCE(SUM(movement.quantity_delta), 0)::INTEGER AS current_stock
+        COALESCE(SUM(movement.quantity_delta), 0)::NUMERIC(14, 3) AS current_stock
       FROM cafeteria_products product
       LEFT JOIN inventory_movements movement ON movement.product_id = product.id
       WHERE product.id = $1
@@ -381,7 +381,7 @@ async function assertInventoryMovementAllowed(client, productId, quantityDelta) 
   }
   const stockResult = await client.query(
     `
-      SELECT COALESCE(SUM(quantity_delta), 0)::INTEGER AS current_stock
+      SELECT COALESCE(SUM(quantity_delta), 0)::NUMERIC(14, 3) AS current_stock
       FROM inventory_movements
       WHERE product_id = $1;
     `,

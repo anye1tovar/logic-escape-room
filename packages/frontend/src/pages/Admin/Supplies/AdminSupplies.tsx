@@ -7,11 +7,16 @@ import {
 } from "react";
 import { adminRequest } from "../../../api/adminClient";
 import { formatDecimal, normalizeDecimalInput, parseDecimal } from "../../../utils/numbers";
+import { Link } from "react-router-dom";
 import {
   Alert,
   Button,
   Chip,
   Drawer,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
   MenuItem,
   Paper,
   Select,
@@ -41,9 +46,24 @@ type SupplyRow = {
   active: boolean | number | string;
   current_stock: number | string;
   has_movements: boolean | number | string;
+  has_recipe_usage: boolean | number | string;
+  has_purchase_history: boolean | number | string;
+  has_cost_history: boolean | number | string;
 };
 
 type CategoryRow = { name: string };
+type RecipeUsage = {
+  recipe_id: number;
+  product_id: number;
+  product_name: string;
+  version: number;
+  status: string;
+  active: boolean | number | string;
+};
+type SupplyUsageDetails = {
+  recipes: RecipeUsage[];
+  records: { purchase_lines: number | string; cost_records: number | string; movements: number | string; batches: number | string };
+};
 
 type SupplyFormState = {
   name: string;
@@ -165,12 +185,15 @@ export default function AdminSupplies() {
   const [inventorySupply, setInventorySupply] = useState<SupplyRow | null>(null);
   const [inventoryForm, setInventoryForm] = useState<SupplyInventoryForm>(emptyInventoryForm);
   const [inventoryMovements, setInventoryMovements] = useState<SupplyInventoryMovement[]>([]);
+  const [recipeUsageSupply, setRecipeUsageSupply] = useState<SupplyRow | null>(null);
+  const [recipeUsages, setRecipeUsages] = useState<RecipeUsage[]>([]);
+  const [usageRecords, setUsageRecords] = useState<SupplyUsageDetails["records"]>({ purchase_lines: 0, cost_records: 0, movements: 0, batches: 0 });
+  const [deleteWarningSupply, setDeleteWarningSupply] = useState<SupplyRow | null>(null);
   const [editForm, setEditForm] = useState<SupplyFormState>(emptyForm);
   const [savedEditForm, setSavedEditForm] = useState<SupplyFormState | null>(
     null,
   );
   const [categoryFilter, setCategoryFilter] = useState("all");
-  const [activeFilter, setActiveFilter] = useState("active");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
@@ -198,16 +221,10 @@ export default function AdminSupplies() {
       if (categoryFilter !== "all" && row.category !== categoryFilter) {
         return false;
       }
-      if (activeFilter === "active" && !normalizeBoolean(row.active)) {
-        return false;
-      }
-      if (activeFilter === "inactive" && normalizeBoolean(row.active)) {
-        return false;
-      }
       if (!term) return true;
       return row.name.toLocaleLowerCase("es-CO").includes(term);
     });
-  }, [activeFilter, categoryFilter, rows, search]);
+  }, [categoryFilter, rows, search]);
 
   const paginated = useMemo(() => {
     const start = page * rowsPerPage;
@@ -247,7 +264,7 @@ export default function AdminSupplies() {
 
   useEffect(() => {
     setPage(0);
-  }, [activeFilter, categoryFilter, rowsPerPage, search]);
+  }, [categoryFilter, rowsPerPage, search]);
 
   async function create() {
     setStatus({ type: "loading" });
@@ -288,8 +305,47 @@ export default function AdminSupplies() {
   }
 
   async function remove(row: SupplyRow) {
+    setStatus({ type: "loading" });
+    try {
+      const usages = await adminRequest<RecipeUsage[]>(`/api/admin/supplies/${row.id}/recipes`);
+      if (usages.length) {
+        setRecipeUsages(usages);
+        setRecipeUsageSupply(row);
+        setStatus({ type: "idle" });
+        return;
+      }
+      if (!normalizeBoolean(row.has_purchase_history) && !normalizeBoolean(row.has_cost_history)) {
+        setDeleteWarningSupply(row);
+        setStatus({ type: "idle" });
+        return;
+      }
+    } catch (err) {
+      setStatus({ type: "error", message: err instanceof Error ? err.message : "No se pudieron consultar las recetas." });
+      return;
+    }
+    await confirmRemove(row);
+  }
+
+  async function viewDetails(row: SupplyRow) {
+    setStatus({ type: "loading" });
+    try {
+      const details = await adminRequest<SupplyUsageDetails>(`/api/admin/supplies/${row.id}/usage`);
+      setRecipeUsages(details.recipes || []);
+      setUsageRecords(details.records);
+      setRecipeUsageSupply(row);
+      setStatus({ type: "idle" });
+    } catch (err) {
+      setStatus({ type: "error", message: err instanceof Error ? err.message : "No se pudieron cargar los detalles." });
+    }
+  }
+
+  function hasUsageAssociations(row: SupplyRow) {
+    return normalizeBoolean(row.has_recipe_usage) || normalizeBoolean(row.has_purchase_history) || normalizeBoolean(row.has_cost_history);
+  }
+
+  async function confirmRemove(row: SupplyRow, skipPrompt = false) {
     const verb = normalizeBoolean(row.has_movements) ? "desactivar" : "eliminar";
-    if (!window.confirm(`Deseas ${verb} este insumo?`)) return;
+    if (!skipPrompt && !window.confirm(`Deseas ${verb} este insumo?`)) return;
     setStatus({ type: "loading" });
     try {
       const result = await adminRequest<{ deactivated: boolean }>(
@@ -299,7 +355,7 @@ export default function AdminSupplies() {
       setStatus({
         type: "success",
         message: result.deactivated
-          ? "Insumo desactivado porque ya tenia movimientos."
+          ? "Insumo desactivado porque tiene registros asociados."
           : "Insumo eliminado.",
       });
       await load();
@@ -445,15 +501,6 @@ export default function AdminSupplies() {
               </MenuItem>
             ))}
           </Select>
-          <Select
-            value={activeFilter}
-            onChange={(e) => setActiveFilter(String(e.target.value))}
-            size="small"
-          >
-            <MenuItem value="active">Activos</MenuItem>
-            <MenuItem value="inactive">Inactivos</MenuItem>
-            <MenuItem value="all">Todos</MenuItem>
-          </Select>
         </div>
         <TableContainer>
           <Table className="admin-crud__table admin-crud__table--comfortable">
@@ -467,7 +514,6 @@ export default function AdminSupplies() {
                 <TableCell>Inventario</TableCell>
                 <TableCell>Stock minimo</TableCell>
                 <TableCell>Vencimiento</TableCell>
-                <TableCell>Estado</TableCell>
                 <TableCell>Acciones</TableCell>
               </TableRow>
             </TableHead>
@@ -513,13 +559,6 @@ export default function AdminSupplies() {
                       size="small"
                     />
                   </TableCell>
-                  <TableCell>
-                    <Chip
-                      label={normalizeBoolean(row.active) ? "Activo" : "Inactivo"}
-                      color={normalizeBoolean(row.active) ? "success" : "default"}
-                      size="small"
-                    />
-                  </TableCell>
                   <TableCell className="admin-crud__cell--nowrap">
                     <Stack direction="row" spacing={1}>
                       <Button variant="outlined" onClick={() => openEditor(row)}>
@@ -532,10 +571,8 @@ export default function AdminSupplies() {
                       >
                         Inventario
                       </Button>
-                      <Button color="error" variant="outlined" onClick={() => void remove(row)}>
-                        {normalizeBoolean(row.has_movements)
-                          ? "Desactivar"
-                          : "Eliminar"}
+                      <Button color={hasUsageAssociations(row) ? "primary" : "error"} variant="outlined" onClick={() => void (hasUsageAssociations(row) ? viewDetails(row) : remove(row))}>
+                        {hasUsageAssociations(row) ? "Ver detalles" : "Eliminar"}
                       </Button>
                     </Stack>
                   </TableCell>
@@ -543,7 +580,7 @@ export default function AdminSupplies() {
               ))}
               {paginated.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={10}>Sin insumos.</TableCell>
+                  <TableCell colSpan={9}>Sin insumos.</TableCell>
                 </TableRow>
               ) : null}
             </TableBody>
@@ -729,6 +766,61 @@ export default function AdminSupplies() {
           </Button>
         </div>
       </Drawer>
+      <Dialog open={recipeUsageSupply != null} onClose={() => setRecipeUsageSupply(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Uso de {recipeUsageSupply?.name}</DialogTitle>
+        <DialogContent>
+          <Typography color="text.secondary" sx={{ mb: 2 }}>
+            Consulta dónde se utiliza este insumo y revisa sus movimientos registrados.
+          </Typography>
+          <Paper variant="outlined" sx={{ p: 1.5, mb: 2 }}>
+            <Typography>Stock actual: <strong>{formatDecimal(recipeUsageSupply?.current_stock)} {recipeUsageSupply?.consumption_unit}</strong></Typography>
+            <Typography variant="body2" color="text.secondary">Compras: {usageRecords.purchase_lines} · Costos de ventas: {usageRecords.cost_records} · Movimientos: {usageRecords.movements} · Lotes: {usageRecords.batches}</Typography>
+          </Paper>
+          <Stack spacing={1.5}>
+            {recipeUsages.map((usage) => (
+              <Paper key={usage.recipe_id} variant="outlined" sx={{ p: 1.5 }}>
+                <Stack direction="row" alignItems="center" justifyContent="space-between" spacing={2}>
+                  <div>
+                    <Typography fontWeight={800}>{usage.product_name} · v{usage.version}</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      {normalizeBoolean(usage.active) ? "Activa" : usage.status === "DRAFT" ? "Borrador" : "Histórica"}
+                    </Typography>
+                  </div>
+                  <Button component={Link} to={`/admin/dashboard/cafeteria/recetas?productId=${usage.product_id}`} onClick={() => setRecipeUsageSupply(null)}>
+                    Revisar receta
+                  </Button>
+                </Stack>
+              </Paper>
+            ))}
+            {recipeUsages.length === 0 ? <Typography color="text.secondary">No está asociado a ninguna receta.</Typography> : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setRecipeUsageSupply(null)}>Cerrar</Button>
+        </DialogActions>
+      </Dialog>
+      <Dialog open={deleteWarningSupply != null} onClose={() => setDeleteWarningSupply(null)} fullWidth maxWidth="sm">
+        <DialogTitle>Eliminar insumo y stock registrado</DialogTitle>
+        <DialogContent>
+          <Typography>
+            <strong>{deleteWarningSupply?.name}</strong> no aparece en recetas ni tiene compras o costos asociados.
+          </Typography>
+          <Typography color="warning.main" sx={{ mt: 2 }}>
+            Si continúas, se eliminará el insumo junto con su stock actual ({formatDecimal(deleteWarningSupply?.current_stock)} {deleteWarningSupply?.consumption_unit}) y sus movimientos y lotes de inventario. Esta acción no se puede deshacer.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setDeleteWarningSupply(null)}>Cancelar</Button>
+          <Button color="error" variant="contained" disabled={status.type === "loading"} onClick={() => {
+            if (!deleteWarningSupply) return;
+            const target = deleteWarningSupply;
+            setDeleteWarningSupply(null);
+            void confirmRemove(target, true);
+          }}>
+            Eliminar insumo
+          </Button>
+        </DialogActions>
+      </Dialog>
     </div>
   );
 }

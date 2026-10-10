@@ -33,6 +33,7 @@ function normalizeTargetMargin(value) {
 function normalizeItems(input) {
   const rawItems = Array.isArray(input?.items) ? input.items : [];
   const items = rawItems.map((item, index) => {
+    const componentType = String(item?.componentType ?? item?.component_type ?? (item?.productId || item?.product_id ? "PRODUCT" : "SUPPLY")).toUpperCase();
     const quantity = normalizeNumber(item?.quantity, `items[${index}].quantity`);
     const wastePercent =
       item?.wastePercent == null || item?.wastePercent === ""
@@ -42,19 +43,19 @@ function normalizeItems(input) {
     if (wastePercent < 0 || wastePercent >= 100) {
       throw badRequest(`items[${index}].wastePercent must be between 0 and 99.999`);
     }
+    if (!["SUPPLY", "PRODUCT"].includes(componentType)) throw badRequest(`items[${index}].componentType is invalid`);
     return {
-      supplyId: normalizeId(
-        item?.supplyId ?? item?.supply_id,
-        `items[${index}].supplyId`,
-      ),
+      componentType,
+      supplyId: componentType === "SUPPLY" ? normalizeId(item?.supplyId ?? item?.supply_id, `items[${index}].supplyId`) : null,
+      productId: componentType === "PRODUCT" ? normalizeId(item?.productId ?? item?.product_id, `items[${index}].productId`) : null,
       quantity,
       wastePercent,
       notes: normalizeText(item?.notes),
     };
   });
-  const ids = items.map((item) => item.supplyId);
+  const ids = items.map((item) => `${item.componentType}:${item.supplyId ?? item.productId}`);
   if (new Set(ids).size !== ids.length) {
-    throw badRequest("A supply cannot be repeated in the same recipe");
+    throw badRequest("A component cannot be repeated in the same recipe");
   }
   return items;
 }
@@ -65,12 +66,17 @@ function normalizeUserId(user) {
 }
 
 function normalizeRecipeInput(input, context = {}) {
+  const productId = normalizeId(input?.productId ?? input?.product_id, "productId");
+  const items = normalizeItems(input);
+  if (items.some((item) => item.componentType === "PRODUCT" && item.productId === productId)) {
+    throw badRequest("A product cannot use itself as a recipe component");
+  }
   return {
-    productId: normalizeId(input?.productId ?? input?.product_id, "productId"),
+    productId,
     targetMarginPercent: normalizeTargetMargin(
       input?.targetMarginPercent ?? input?.target_margin_percent,
     ),
-    items: normalizeItems(input),
+    items,
     userId: normalizeUserId(context?.user),
     now: Date.now(),
   };

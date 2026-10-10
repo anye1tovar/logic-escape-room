@@ -18,6 +18,10 @@ async function listProducts() {
         product.name,
         product.price,
         product.available,
+        product.unit,
+        TRUE AS active,
+        product.track_inventory,
+        product.product_type,
         active_recipe.id AS active_recipe_id,
         active_recipe.version AS active_version,
         draft_recipe.id AS draft_recipe_id,
@@ -66,9 +70,13 @@ async function getRecipe(recipeId, executor = db) {
         item.*,
         supply.name AS supply_name,
         supply.consumption_unit,
-        supply.active AS supply_active
+        supply.active AS supply_active,
+        component.name AS component_name,
+        component.unit AS product_unit,
+        component.available AS component_active
       FROM product_recipe_items item
-      JOIN inventory_supplies supply ON supply.id = item.supply_id
+      LEFT JOIN inventory_supplies supply ON supply.id = item.supply_id
+      LEFT JOIN cafeteria_products component ON component.id = item.product_id
       WHERE item.recipe_id = $1
       ORDER BY item.id ASC;
     `,
@@ -138,15 +146,30 @@ async function calculatePreview(payload) {
   const product = productResult.rows[0];
   if (!product) throw notFound("Product not found");
 
-  const costs = await loadCurrentCosts(payload.items.map((item) => item.supplyId));
+  const costs = await loadCurrentCosts(payload.items.filter((item) => item.componentType !== "PRODUCT").map((item) => item.supplyId));
+  const productIds = payload.items.filter((item) => item.componentType === "PRODUCT").map((item) => item.productId);
+  if (productIds.length) {
+    const result = await db.query(`
+      SELECT product.id, product.name, product.unit AS consumption_unit, TRUE AS active,
+        SUM(purchase_item.line_total) FILTER (WHERE purchase.status = 'ACTIVE')::NUMERIC / NULLIF(SUM(purchase_item.quantity) FILTER (WHERE purchase.status = 'ACTIVE'), 0) AS unit_cost,
+        'WEIGHTED_AVERAGE' AS costing_method
+      FROM cafeteria_products product
+      LEFT JOIN inventory_purchase_items purchase_item ON purchase_item.product_id = product.id
+      LEFT JOIN inventory_purchases purchase ON purchase.id = purchase_item.purchase_id AND purchase.status = 'ACTIVE'
+      WHERE product.id = ANY($1::INTEGER[])
+      GROUP BY product.id;
+    `, [productIds]);
+    for (const row of result.rows || []) costs.set(`PRODUCT:${row.id}`, row);
+  }
   const items = payload.items.map((item) => {
-    const supply = costs.get(item.supplyId);
-    if (!supply) throw notFound("Supply not found");
+    const supply = costs.get(item.componentType === "PRODUCT" ? `PRODUCT:${item.productId}` : item.supplyId);
+    if (!supply) throw notFound("Recipe component not found");
     const effectiveQuantity = item.quantity * (1 + item.wastePercent / 100);
     const unitCost = supply.unit_cost == null ? null : Number(supply.unit_cost);
     const lineCost = unitCost == null ? null : effectiveQuantity * unitCost;
     return {
       ...item,
+      componentName: supply.name,
       supplyName: supply.name,
       unit: supply.consumption_unit,
       supplyActive: isTruthy(supply.active),
@@ -183,7 +206,9 @@ function recipeToPreviewPayload(recipe) {
     productId: Number(recipe.product_id),
     targetMarginPercent: Number(recipe.target_margin_percent),
     items: recipe.items.map((item) => ({
-      supplyId: Number(item.supply_id),
+      componentType: item.product_id == null ? "SUPPLY" : "PRODUCT",
+      supplyId: item.supply_id == null ? null : Number(item.supply_id),
+      productId: item.product_id == null ? null : Number(item.product_id),
       quantity: Number(item.quantity),
       wastePercent: Number(item.waste_percent),
       notes: item.notes,
@@ -230,7 +255,10 @@ async function getProductRecipes(productId) {
 }
 
 async function assertActiveSupplies(client, items) {
-  if (items.length === 0) return new Map();
+  const supplies = items.filter((item) => item.componentType === "SUPPLY");
+  const products = items.filter((item) => item.componentType === "PRODUCT");
+  const resultMap = new Map();
+  if (supplies.length) {
   const result = await client.query(
     `
       SELECT id, name, consumption_unit, active
@@ -238,16 +266,30 @@ async function assertActiveSupplies(client, items) {
       WHERE id = ANY($1::INTEGER[])
       FOR SHARE;
     `,
-    [items.map((item) => item.supplyId)],
+    [supplies.map((item) => item.supplyId)],
   );
-  if (result.rows.length !== items.length) throw notFound("Supply not found");
+  if (result.rows.length !== supplies.length) throw notFound("Supply not found");
   const inactive = result.rows.find((row) => !isTruthy(row.active));
   if (inactive) {
     const err = new Error(`Supply ${inactive.name} is inactive`);
     err.status = 409;
     throw err;
   }
-  return new Map(result.rows.map((row) => [Number(row.id), row]));
+    for (const row of result.rows) resultMap.set(`SUPPLY:${row.id}`, row);
+  }
+  if (products.length) {
+    const result = await client.query(
+      `SELECT id, name, COALESCE(unit, 'unidad') AS unit, TRUE AS active, track_inventory, product_type FROM cafeteria_products WHERE id = ANY($1::INTEGER[]) FOR SHARE;`,
+      [products.map((item) => item.productId)],
+    );
+    if (result.rows.length !== products.length) throw notFound("Product component not found");
+    const invalid = result.rows.find((row) => !isTruthy(row.active));
+    if (invalid) throw Object.assign(new Error(`Product ${invalid.name} is inactive`), { status: 409 });
+    const notInventory = result.rows.find((row) => !isTruthy(row.track_inventory) || row.product_type !== "NORMAL");
+    if (notInventory) throw Object.assign(new Error(`${notInventory.name} must be a normal product with inventory control`), { status: 409 });
+    for (const row of result.rows) resultMap.set(`PRODUCT:${row.id}`, { ...row, consumption_unit: row.unit });
+  }
+  return resultMap;
 }
 
 async function saveDraft(payload) {
@@ -307,21 +349,22 @@ async function saveDraft(payload) {
     }
 
     for (const item of payload.items) {
-      const supply = supplies.get(item.supplyId);
+      const component = supplies.get(`${item.componentType}:${item.supplyId ?? item.productId}`);
       await client.query(
         `
           INSERT INTO product_recipe_items (
-            recipe_id, supply_id, supply_name_snapshot, quantity,
+            recipe_id, supply_id, product_id, supply_name_snapshot, quantity,
             unit_snapshot, waste_percent, notes
           )
-          VALUES ($1, $2, $3, $4, $5, $6, $7);
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8);
         `,
         [
           recipeId,
           item.supplyId,
-          supply.name,
+          item.productId,
+          component.name,
           item.quantity,
-          supply.consumption_unit,
+          component.consumption_unit,
           item.wastePercent,
           item.notes,
         ],
@@ -368,21 +411,24 @@ async function activateRecipe(payload) {
     }
     const items = await client.query(
       `
-        SELECT item.supply_id, supply.name, supply.active
+        SELECT item.supply_id, item.product_id,
+          COALESCE(supply.name, product.name) AS name,
+          COALESCE(supply.active, TRUE) AS active
         FROM product_recipe_items item
-        JOIN inventory_supplies supply ON supply.id = item.supply_id
+        LEFT JOIN inventory_supplies supply ON supply.id = item.supply_id
+        LEFT JOIN cafeteria_products product ON product.id = item.product_id
         WHERE item.recipe_id = $1;
       `,
       [payload.recipeId],
     );
     if (items.rows.length === 0) {
-      const err = new Error("An active recipe requires at least one supply");
+      const err = new Error("An active recipe requires at least one component");
       err.status = 400;
       throw err;
     }
     const inactive = items.rows.find((item) => !isTruthy(item.active));
     if (inactive) {
-      const err = new Error(`Supply ${inactive.name} is inactive`);
+      const err = new Error(`Component ${inactive.name} is inactive`);
       err.status = 409;
       throw err;
     }

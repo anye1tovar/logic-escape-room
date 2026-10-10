@@ -528,6 +528,25 @@ async function initSchema() {
   `);
 
   await pool.query(`
+    ALTER TABLE product_recipe_items
+      ALTER COLUMN supply_id DROP NOT NULL,
+      ADD COLUMN IF NOT EXISTS product_id INTEGER REFERENCES cafeteria_products(id),
+      ALTER COLUMN quantity TYPE NUMERIC(14, 3);
+    DO $$ BEGIN
+      IF NOT EXISTS (
+        SELECT 1 FROM pg_constraint
+        WHERE conname = 'product_recipe_items_one_component_check'
+      ) THEN
+        ALTER TABLE product_recipe_items
+          ADD CONSTRAINT product_recipe_items_one_component_check
+          CHECK ((supply_id IS NOT NULL) <> (product_id IS NOT NULL));
+      END IF;
+    END $$;
+    CREATE UNIQUE INDEX IF NOT EXISTS product_recipe_items_product_unique_idx
+      ON product_recipe_items (recipe_id, product_id) WHERE product_id IS NOT NULL;
+  `);
+
+  await pool.query(`
     CREATE INDEX IF NOT EXISTS product_recipe_items_recipe_idx
     ON product_recipe_items (recipe_id);
   `);
@@ -719,6 +738,14 @@ async function initSchema() {
       created_by INTEGER,
       created_at BIGINT NOT NULL
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE inventory_movements
+      ALTER COLUMN quantity_delta TYPE NUMERIC(14, 3);
+    ALTER TABLE inventory_batches
+      ALTER COLUMN received_quantity TYPE NUMERIC(14, 3),
+      ALTER COLUMN current_quantity TYPE NUMERIC(14, 3);
   `);
 
   await pool.query(`

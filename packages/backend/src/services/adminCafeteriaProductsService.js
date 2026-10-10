@@ -13,6 +13,12 @@ function buildAdminCafeteriaProductsService(consumer) {
     return Number.isFinite(num) ? Math.trunc(num) : null;
   }
 
+  function normalizeQuantity(value) {
+    if (value == null || value === "") return null;
+    const num = Number(value);
+    return Number.isFinite(num) ? Math.round(num * 1000) / 1000 : null;
+  }
+
   function normalizeText(value) {
     if (value == null) return null;
     const text = String(value).trim();
@@ -180,7 +186,7 @@ function buildAdminCafeteriaProductsService(consumer) {
       err.status = 400;
       throw err;
     }
-    const quantity = normalizeInt(input?.quantity);
+    const quantity = normalizeQuantity(input?.quantity);
     if (!quantity || quantity <= 0) {
       const err = new Error("quantity is required");
       err.status = 400;
@@ -209,7 +215,7 @@ function buildAdminCafeteriaProductsService(consumer) {
   }
 
   async function normalizePhysicalCountInput(productId, input, context = {}) {
-    const realCount = normalizeInt(input?.realCount ?? input?.real_count);
+    const realCount = normalizeQuantity(input?.realCount ?? input?.real_count);
     if (realCount == null || realCount < 0) {
       const err = new Error("realCount is required");
       err.status = 400;

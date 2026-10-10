@@ -17,8 +17,11 @@ import {
   TextField,
   Tooltip,
   Typography,
+  MenuItem,
+  Select,
 } from "@mui/material";
 import { adminRequest } from "../../../api/adminClient";
+import { useSearchParams } from "react-router-dom";
 import { formatDecimal, normalizeDecimalInput, parseDecimal } from "../../../utils/numbers";
 import "../adminCrud.scss";
 import "./AdminRecipes.scss";
@@ -33,6 +36,10 @@ type ProductSummary = {
   draft_recipe_id: number | null;
   draft_version: number | null;
   latest_version: number;
+  unit?: string;
+  active?: boolean | number | string;
+  track_inventory?: boolean | number | string;
+  product_type?: string;
 };
 
 type SupplyRow = {
@@ -43,15 +50,20 @@ type SupplyRow = {
 };
 
 type RecipeItem = {
-  supply_id: number;
+  supply_id: number | null;
+  product_id?: number | null;
+  component_name?: string;
+  product_unit?: string;
   quantity: number | string;
   waste_percent: number | string;
   notes: string | null;
 };
 
 type PreviewItem = {
-  supplyId: number;
-  supplyName: string;
+  supplyId?: number | null;
+  productId?: number | null;
+  componentType?: "SUPPLY" | "PRODUCT";
+  componentName: string;
   quantity: number;
   wastePercent: number;
   effectiveQuantity: number;
@@ -99,12 +111,14 @@ type RecipeDetails = {
 };
 
 type ItemForm = {
+  componentType: "" | "SUPPLY" | "PRODUCT";
   supplyId: string;
+  productId: string;
   quantity: string;
   wastePercent: string;
 };
 
-const emptyItem: ItemForm = { supplyId: "", quantity: "", wastePercent: "0" };
+const emptyItem: ItemForm = { componentType: "", supplyId: "", productId: "", quantity: "", wastePercent: "0" };
 
 function normalizeBoolean(value: boolean | number | string) {
   return value === true || value === 1 || value === "1" || value === "true";
@@ -129,7 +143,9 @@ function formatDate(value: number | string | null) {
 function recipeItemsToForm(recipe: Recipe | null): ItemForm[] {
   if (!recipe || recipe.items.length === 0) return [];
   return recipe.items.map((item) => ({
-    supplyId: String(item.supply_id),
+    componentType: item.product_id == null ? "SUPPLY" : "PRODUCT",
+    supplyId: item.supply_id == null ? "" : String(item.supply_id),
+    productId: item.product_id == null ? "" : String(item.product_id),
     quantity: formatDecimal(item.quantity),
     wastePercent: formatDecimal(item.waste_percent || 0),
   }));
@@ -140,9 +156,10 @@ function serializeEditor(items: ItemForm[], margin: string) {
 }
 
 export default function AdminRecipes() {
+  const [searchParams] = useSearchParams();
   const [products, setProducts] = useState<ProductSummary[]>([]);
   const [supplies, setSupplies] = useState<SupplyRow[]>([]);
-  const [selectedProductId, setSelectedProductId] = useState("");
+  const [selectedProductId, setSelectedProductId] = useState(searchParams.get("productId") || "");
   const [details, setDetails] = useState<RecipeDetails | null>(null);
   const [items, setItems] = useState<ItemForm[]>([]);
   const [targetMargin, setTargetMargin] = useState("60");
@@ -170,13 +187,19 @@ export default function AdminRecipes() {
       .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })),
     [supplies],
   );
+  const activeProducts = useMemo(
+    () => products.filter((product) => normalizeBoolean(product.active ?? true) && normalizeBoolean(product.track_inventory ?? false) && product.product_type === "NORMAL" && String(product.id) !== selectedProductId)
+      .sort((a, b) => a.name.localeCompare(b.name, "es", { sensitivity: "base" })),
+    [products, selectedProductId],
+  );
   const duplicateSupplyIds = useMemo(() => {
     const seen = new Set<string>();
     const duplicates = new Set<string>();
     items.forEach((item) => {
-      if (!item.supplyId) return;
-      if (seen.has(item.supplyId)) duplicates.add(item.supplyId);
-      seen.add(item.supplyId);
+      const key = `${item.componentType}:${item.componentType === "PRODUCT" ? item.productId : item.supplyId}`;
+      if (!item.componentType || key.endsWith(":")) return;
+      if (seen.has(key)) duplicates.add(key);
+      seen.add(key);
     });
     return duplicates;
   }, [items]);
@@ -246,7 +269,7 @@ export default function AdminRecipes() {
     parseDecimal(targetMargin) < 100 &&
     items.every(
       (item) =>
-        Boolean(item.supplyId) &&
+        Boolean(item.componentType === "PRODUCT" ? item.productId : item.supplyId) &&
         parseDecimal(item.quantity) > 0 &&
         parseDecimal(item.wastePercent || 0) >= 0 &&
         parseDecimal(item.wastePercent || 0) < 100,
@@ -287,7 +310,9 @@ export default function AdminRecipes() {
       productId: Number(selectedProductId),
       targetMarginPercent: parseDecimal(targetMargin),
       items: items.map((item) => ({
-        supplyId: Number(item.supplyId),
+        componentType: item.componentType,
+        supplyId: item.componentType === "SUPPLY" ? Number(item.supplyId) : undefined,
+        productId: item.componentType === "PRODUCT" ? Number(item.productId) : undefined,
         quantity: parseDecimal(item.quantity),
         wastePercent: parseDecimal(item.wastePercent || 0),
       })),
@@ -370,7 +395,7 @@ export default function AdminRecipes() {
     parseDecimal(targetMargin) < 100 &&
     items.every(
       (item) =>
-        item.supplyId &&
+        (item.componentType === "PRODUCT" ? item.productId : item.supplyId) &&
         parseDecimal(item.quantity) > 0 &&
         parseDecimal(item.wastePercent || 0) >= 0 &&
         parseDecimal(item.wastePercent || 0) < 100,
@@ -504,7 +529,7 @@ export default function AdminRecipes() {
                 <Table size="small" className="admin-crud__table--comfortable">
                   <TableHead>
                     <TableRow>
-                      <TableCell>Insumo</TableCell>
+                      <TableCell>Ingrediente</TableCell>
                       <TableCell>Cantidad</TableCell>
                       <TableCell>Unidad</TableCell>
                       <TableCell>Costo unitario</TableCell>
@@ -520,21 +545,31 @@ export default function AdminRecipes() {
                   <TableBody>
                     {items.map((item, index) => {
                       const supply = supplyById.get(item.supplyId);
-                      const previewItem = preview?.items.find(
-                        (candidate) => candidate.supplyId === Number(item.supplyId),
-                      );
+                      const previewItem = preview?.items.find((candidate) => item.componentType === "PRODUCT"
+                        ? candidate.productId === Number(item.productId)
+                        : candidate.supplyId === Number(item.supplyId));
                       return (
                         <TableRow key={index}>
                           <TableCell sx={{ minWidth: 230 }}>
-                            <Autocomplete
+                            <Stack spacing={1}>
+                            <Select size="small" displayEmpty value={item.componentType} renderValue={(value) => (value as string) === "" ? <em>Tipo</em> : value === "SUPPLY" ? "Insumo" : "Producto inventariado"} onChange={(event) => updateItem(index, { componentType: event.target.value as "" | "SUPPLY" | "PRODUCT", supplyId: "", productId: "" })}>
+                              <MenuItem value="SUPPLY">Insumo</MenuItem><MenuItem value="PRODUCT">Producto inventariado</MenuItem>
+                            </Select>
+                            {item.componentType === "SUPPLY" ? <Autocomplete
                               size="small"
                               options={activeSupplies}
                               value={supplyById.get(item.supplyId) || null}
                               getOptionLabel={(option) => option.name}
                               isOptionEqualToValue={(option, value) => option.id === value.id}
                               onChange={(_, option) => updateItem(index, { supplyId: option ? String(option.id) : "" })}
-                              renderInput={(params) => <TextField {...params} label="Insumo" placeholder="Buscar insumo" error={duplicateSupplyIds.has(item.supplyId)} />}
-                            />
+                              renderInput={(params) => <TextField {...params} label="Ingrediente" placeholder="Buscar ingrediente" error={duplicateSupplyIds.has(`SUPPLY:${item.supplyId}`)} />}
+                            /> : item.componentType === "PRODUCT" ? <Autocomplete
+                              size="small" options={activeProducts} value={activeProducts.find((product) => String(product.id) === item.productId) || null}
+                              getOptionLabel={(option) => option.name} isOptionEqualToValue={(option, value) => option.id === value.id}
+                              onChange={(_, option) => updateItem(index, { productId: option ? String(option.id) : "" })}
+                              renderInput={(params) => <TextField {...params} label="Ingrediente" placeholder="Buscar ingrediente" error={duplicateSupplyIds.has(`PRODUCT:${item.productId}`)} />}
+                            /> : null}
+                            </Stack>
                           </TableCell>
                           <TableCell sx={{ minWidth: 140 }}>
                             <TextField
@@ -545,7 +580,7 @@ export default function AdminRecipes() {
                               size="small"
                             />
                           </TableCell>
-                          <TableCell>{supply?.consumption_unit || "-"}</TableCell>
+                          <TableCell>{item.componentType === "PRODUCT" ? activeProducts.find((product) => String(product.id) === item.productId)?.unit || "-" : item.componentType === "SUPPLY" ? supply?.consumption_unit || "-" : "-"}</TableCell>
                           <TableCell>
                             {previewItem?.unitCost == null ? (
                               <Chip label="Sin costo" size="small" color="warning" />

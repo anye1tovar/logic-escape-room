@@ -39,6 +39,22 @@ function buildAdminSuppliesController(service) {
     }
   }
 
+  async function listSupplyRecipeUsages(req, res) {
+    try {
+      res.json(await service.listSupplyRecipeUsages(req.params.id));
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
+  async function getSupplyUsageDetails(req, res) {
+    try {
+      res.json(await service.getSupplyUsageDetails(req.params.id));
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   async function createInventoryMovement(req, res) {
     try {
       res.status(201).json(
@@ -77,6 +93,8 @@ function buildAdminSuppliesController(service) {
     createSupply,
     updateSupply,
     listInventoryMovements,
+    listSupplyRecipeUsages,
+    getSupplyUsageDetails,
     createInventoryMovement,
     setPhysicalCount,
     deleteSupply,

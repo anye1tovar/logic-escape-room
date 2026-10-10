@@ -5,6 +5,8 @@ function createAdminSuppliesRouter(controller) {
   router.get("/categories", controller.listCategories);
   router.get("/", controller.listSupplies);
   router.post("/", controller.createSupply);
+  router.get("/:id/recipes", controller.listSupplyRecipeUsages);
+  router.get("/:id/usage", controller.getSupplyUsageDetails);
   router.get("/:id/inventory-movements", controller.listInventoryMovements);
   router.post("/:id/inventory-movements", controller.createInventoryMovement);
   router.post("/:id/physical-count", controller.setPhysicalCount);

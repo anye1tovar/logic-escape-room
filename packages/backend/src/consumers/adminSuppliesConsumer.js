@@ -22,7 +22,10 @@ async function listSupplies() {
           SELECT 1
           FROM supply_purchase_items purchase_item
           WHERE purchase_item.supply_id = supply.id
-        ) AS has_movements
+        ) AS has_movements,
+        EXISTS (SELECT 1 FROM product_recipe_items item WHERE item.supply_id = supply.id) AS has_recipe_usage,
+        EXISTS (SELECT 1 FROM supply_purchase_items item WHERE item.supply_id = supply.id) AS has_purchase_history,
+        EXISTS (SELECT 1 FROM order_item_cost_components item WHERE item.supply_id = supply.id) AS has_cost_history
       FROM inventory_supplies supply
       ORDER BY lower(name) ASC;
     `,
@@ -287,40 +290,63 @@ async function createInventoryMovement(payload) {
   }
 }
 
-async function deactivateOrDeleteSupply(id) {
-  const countResult = await db.query(
+async function listSupplyRecipeUsages(id) {
+  const result = await db.query(
     `
-      SELECT (
-        EXISTS (
-          SELECT 1 FROM supply_inventory_movements WHERE supply_id = $1
-        ) OR EXISTS (
-          SELECT 1 FROM product_recipe_items WHERE supply_id = $1
-        ) OR EXISTS (
-          SELECT 1 FROM supply_purchase_items WHERE supply_id = $1
-        )
-      ) AS has_history;
+      SELECT recipe.id AS recipe_id, recipe.product_id, recipe.version,
+        recipe.status, recipe.active, product.name AS product_name
+      FROM product_recipe_items item
+      JOIN product_recipes recipe ON recipe.id = item.recipe_id
+      JOIN cafeteria_products product ON product.id = recipe.product_id
+      WHERE item.supply_id = $1
+      ORDER BY recipe.active DESC, recipe.status ASC, lower(product.name), recipe.version DESC;
     `,
     [id],
   );
-  const hasMovements = countResult.rows[0]?.has_history === true;
-  if (hasMovements) {
-    const result = await db.query(
-      `
-        UPDATE inventory_supplies
-        SET active = FALSE
-        WHERE id = $1
-        RETURNING *;
-      `,
-      [id],
-    );
-    return { row: result.rows[0] || null, deactivated: true };
-  }
+  return result.rows || [];
+}
 
-  const result = await db.query(
-    "DELETE FROM inventory_supplies WHERE id = $1 RETURNING *;",
-    [id],
-  );
-  return { row: result.rows[0] || null, deactivated: false };
+async function getSupplyUsageCounts(id) {
+  const result = await db.query(`
+    SELECT
+      (SELECT COUNT(*) FROM supply_purchase_items WHERE supply_id=$1)::INTEGER AS purchase_lines,
+      (SELECT COUNT(*) FROM order_item_cost_components WHERE supply_id=$1)::INTEGER AS cost_records,
+      (SELECT COUNT(*) FROM supply_inventory_movements WHERE supply_id=$1)::INTEGER AS movements,
+      (SELECT COUNT(*) FROM supply_batches WHERE supply_id=$1)::INTEGER AS batches;
+  `, [id]);
+  return result.rows[0] || { purchase_lines: 0, cost_records: 0, movements: 0, batches: 0 };
+}
+
+async function deactivateOrDeleteSupply(id) {
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const locked = await client.query("SELECT id FROM inventory_supplies WHERE id=$1 FOR UPDATE;", [id]);
+    if (!locked.rows[0]) {
+      await client.query("ROLLBACK");
+      return { row: null, deactivated: false };
+    }
+    const usage = await client.query(`
+      SELECT EXISTS(SELECT 1 FROM product_recipe_items WHERE supply_id=$1)
+        OR EXISTS(SELECT 1 FROM supply_purchase_items WHERE supply_id=$1)
+        OR EXISTS(SELECT 1 FROM order_item_cost_components WHERE supply_id=$1) AS has_associations;
+    `, [id]);
+    if (usage.rows[0]?.has_associations) {
+      const result = await client.query("UPDATE inventory_supplies SET active=FALSE WHERE id=$1 RETURNING *;", [id]);
+      await client.query("COMMIT");
+      return { row: result.rows[0] || null, deactivated: true };
+    }
+    await client.query("DELETE FROM supply_inventory_movements WHERE supply_id=$1;", [id]);
+    await client.query("DELETE FROM supply_batches WHERE supply_id=$1;", [id]);
+    const result = await client.query("DELETE FROM inventory_supplies WHERE id=$1 RETURNING *;", [id]);
+    await client.query("COMMIT");
+    return { row: result.rows[0] || null, deactivated: false };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 module.exports = async function initConsumer() {
@@ -331,6 +357,8 @@ module.exports = async function initConsumer() {
     updateSupply,
     getSupplyStock,
     listInventoryMovements,
+    listSupplyRecipeUsages,
+    getSupplyUsageCounts,
     createInventoryMovement,
     deactivateOrDeleteSupply,
   };

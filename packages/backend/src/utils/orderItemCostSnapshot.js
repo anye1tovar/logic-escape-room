@@ -106,12 +106,16 @@ async function buildRecipeComponents(client, item) {
     `
       SELECT
         recipe_item.supply_id,
+        recipe_item.product_id,
         recipe_item.quantity,
         recipe_item.waste_percent,
         supply.track_inventory,
-        supply.track_expiration
+        supply.track_expiration,
+        component.track_inventory AS product_track_inventory,
+        component.track_expiration AS product_track_expiration
       FROM product_recipe_items recipe_item
-      JOIN inventory_supplies supply ON supply.id = recipe_item.supply_id
+      LEFT JOIN inventory_supplies supply ON supply.id = recipe_item.supply_id
+      LEFT JOIN cafeteria_products component ON component.id = recipe_item.product_id
       WHERE recipe_item.recipe_id = $1
       ORDER BY recipe_item.supply_id ASC;
     `,
@@ -124,6 +128,32 @@ async function buildRecipeComponents(client, item) {
         (1 + Number(recipeItem.waste_percent || 0) / 100) *
         Number(item.quantity || 0)
     );
+    if (recipeItem.product_id != null) {
+      const tracksInventory = isTruthy(recipeItem.product_track_inventory);
+      const tracksExpiration = isTruthy(recipeItem.product_track_expiration);
+      if (tracksInventory && tracksExpiration) {
+        const movements = await client.query(`
+          SELECT inventory_batch_id, -SUM(quantity_delta)::NUMERIC(14, 3) AS quantity
+          FROM inventory_movements WHERE source_type='ORDER_ITEM' AND source_id=$1
+            AND product_id=$2 AND inventory_batch_id IS NOT NULL
+          GROUP BY inventory_batch_id HAVING SUM(quantity_delta)<0 ORDER BY inventory_batch_id ASC;
+        `, [String(item.id), recipeItem.product_id]);
+        if (!movements.rows.length) components.push(makeComponent({ productId: recipeItem.product_id, quantity: expectedQuantity, unitCost: null, costingMethod: "FEFO" }));
+        for (const movement of movements.rows) components.push(makeComponent({
+          productId: recipeItem.product_id, inventoryBatchId: movement.inventory_batch_id,
+          quantity: Number(movement.quantity), unitCost: await getProductBatchCost(client, movement.inventory_batch_id), costingMethod: "FEFO",
+        }));
+      } else {
+        let quantity = expectedQuantity;
+        if (tracksInventory) {
+          const movement = await client.query(`SELECT -COALESCE(SUM(quantity_delta),0)::NUMERIC(14,3) AS quantity FROM inventory_movements WHERE source_type='ORDER_ITEM' AND source_id=$1 AND product_id=$2;`, [String(item.id), recipeItem.product_id]);
+          quantity = Number(movement.rows[0]?.quantity || expectedQuantity);
+        }
+        components.push(makeComponent({ productId: recipeItem.product_id, quantity,
+          unitCost: await getWeightedProductCost(client, recipeItem.product_id), costingMethod: "WEIGHTED_AVERAGE" }));
+      }
+      continue;
+    }
     const tracksInventory = isTruthy(recipeItem.track_inventory);
     const tracksExpiration = isTruthy(recipeItem.track_expiration);
     if (tracksInventory && tracksExpiration) {
