@@ -365,6 +365,14 @@ function buildAdminReservationsService(consumer, deps = {}) {
     };
   }
 
+  async function listAllReservations() {
+    return consumer.listReservations({});
+  }
+
+  async function listRooms() {
+    return roomsService?.listRooms ? roomsService.listRooms() : [];
+  }
+
   async function updateReservation(id, input, context = {}) {
     const reservationId = normalizeInt(id);
     if (!reservationId) {
@@ -794,6 +802,8 @@ function buildAdminReservationsService(consumer, deps = {}) {
 
   return {
     listReservationsPage,
+    listAllReservations,
+    listRooms,
     updateReservation,
     deleteReservation,
     listReservationPayments,

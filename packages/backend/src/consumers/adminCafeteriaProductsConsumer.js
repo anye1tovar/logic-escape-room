@@ -566,11 +566,31 @@ async function writeOffExpiredBatches(payload) {
 }
 
 async function deleteProduct(id) {
-  const result = await db.query(
-    "DELETE FROM cafeteria_products WHERE id = $1;",
-    [id],
-  );
-  return { changes: result.rowCount };
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    const sales = await client.query(
+      "SELECT 1 FROM order_items WHERE product_id = $1 LIMIT 1;",
+      [id],
+    );
+    if (sales.rowCount) {
+      throw Object.assign(new Error("Cannot delete a product with sales history"), { status: 409 });
+    }
+
+    // Inventory purchase details reference both movements and batches. Remove
+    // those product-specific records before deleting their ledger entries.
+    await client.query("DELETE FROM inventory_purchase_items WHERE product_id = $1;", [id]);
+    await client.query("DELETE FROM inventory_movements WHERE product_id = $1;", [id]);
+    await client.query("DELETE FROM inventory_batches WHERE product_id = $1;", [id]);
+    const result = await client.query("DELETE FROM cafeteria_products WHERE id = $1;", [id]);
+    await client.query("COMMIT");
+    return { changes: result.rowCount };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 }
 
 async function listCategories() {

@@ -569,10 +569,11 @@ export default function AdminCafeteriaProducts() {
       setStatus({ type: "success", message: "Producto actualizado." });
       closeProductEditor(true);
       await load();
-    } catch {
+    } catch (err) {
       setStatus({
         type: "error",
-        message: "No se pudo actualizar el producto.",
+        message:
+          err instanceof Error ? err.message : "No se pudo actualizar el producto.",
       });
     }
   }

@@ -39,6 +39,7 @@ import "dayjs/locale/es";
 import "../adminCrud.scss";
 import SaveOutlinedIcon from "@mui/icons-material/SaveOutlined";
 import DeleteOutlineIcon from "@mui/icons-material/DeleteOutline";
+import FileDownloadOutlinedIcon from "@mui/icons-material/FileDownloadOutlined";
 
 type ReservationRow = {
   id: number;
@@ -352,6 +353,7 @@ export default function AdminReservations() {
     amount: "",
     notes: "",
   });
+  const [exportingReservations, setExportingReservations] = useState(false);
 
   const pickerLocale = useMemo(() => {
     const lang = i18n.language || "es";
@@ -471,6 +473,28 @@ export default function AdminReservations() {
       setFinancialAccounts(data || []);
     } catch {
       setFinancialAccounts([]);
+    }
+  }
+
+  async function exportReservations() {
+    setExportingReservations(true);
+    try {
+      const base = import.meta.env.VITE_API_BASE_URL || "";
+      const response = await fetch(`${base}/api/admin/reservations/export`, {
+        headers: { Authorization: `Bearer ${localStorage.getItem("adminToken") || ""}` },
+      });
+      if (!response.ok) throw new Error("No se pudo generar el reporte de reservas.");
+      const blob = await response.blob();
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "reservas.xlsx";
+      link.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setStatus({ type: "error", message: error instanceof Error ? error.message : "No se pudo generar el reporte de reservas." });
+    } finally {
+      setExportingReservations(false);
     }
   }
 
@@ -753,6 +777,14 @@ export default function AdminReservations() {
             Filtra por fecha y búsqueda; edita y actualiza el estado.
           </Typography>
         </div>
+        <Button
+          variant="outlined"
+          startIcon={<FileDownloadOutlinedIcon />}
+          onClick={() => void exportReservations()}
+          disabled={exportingReservations}
+        >
+          {exportingReservations ? "Generando..." : "Exportar reservas a Excel"}
+        </Button>
       </header>
 
       <Paper className="admin-crud__panel">

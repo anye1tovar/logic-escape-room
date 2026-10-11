@@ -303,6 +303,20 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
     const payload = normalizeProductInput(input);
+    const current = await consumer.getProductStock(productId);
+    if (!current) {
+      const err = new Error("Not found");
+      err.status = 404;
+      throw err;
+    }
+    const wasTrackingExpiration = normalizeBoolean(current.track_expiration);
+    if (!wasTrackingExpiration && payload.trackExpiration && Number(current.current_stock || 0) > 0) {
+      const err = new Error(
+        "Registra o ajusta a cero el stock actual antes de activar el control de vencimiento; el stock existente no tiene lotes ni fecha de vencimiento.",
+      );
+      err.status = 409;
+      throw err;
+    }
     const res = await consumer.updateProduct(productId, payload);
     if (!res?.changes) {
       const err = new Error("Not found");

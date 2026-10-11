@@ -2,6 +2,7 @@ const express = require("express");
 
 function createAdminReservationsRouter(controller) {
   const router = express.Router();
+  router.get("/export", controller.exportCustomers);
   router.get("/", controller.listReservations);
   router.post("/", controller.listReservations);
   router.get("/:id/payments", controller.listReservationPayments);

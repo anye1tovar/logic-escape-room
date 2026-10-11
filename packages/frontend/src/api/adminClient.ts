@@ -14,6 +14,7 @@ export async function adminRequest<T>(
   const method = options?.method || "GET";
   const requestInit: RequestInit = {
     method,
+    ...(method === "GET" ? { cache: "no-store" as RequestCache } : {}),
     headers: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${getAdminToken()}`,
