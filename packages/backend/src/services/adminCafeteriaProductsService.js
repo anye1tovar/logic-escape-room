@@ -53,17 +53,20 @@ function buildAdminCafeteriaProductsService(consumer) {
 
   function normalizeInventoryFilters(input = {}) {
     const type = normalizeText(input?.type);
-    if (type && ![
-      "INITIAL_STOCK",
-      "PURCHASE",
-      "SALE",
-      "COURTESY",
-      "WASTE",
-      "ADJUSTMENT_POSITIVE",
-      "ADJUSTMENT_NEGATIVE",
-      "REVERSAL",
-      "WASTE_EXPIRED",
-    ].includes(type)) {
+    if (
+      type &&
+      ![
+        "INITIAL_STOCK",
+        "PURCHASE",
+        "SALE",
+        "COURTESY",
+        "WASTE",
+        "ADJUSTMENT_POSITIVE",
+        "ADJUSTMENT_NEGATIVE",
+        "REVERSAL",
+        "WASTE_EXPIRED",
+      ].includes(type)
+    ) {
       const err = new Error("Invalid inventory movement type");
       err.status = 400;
       throw err;
@@ -80,15 +83,15 @@ function buildAdminCafeteriaProductsService(consumer) {
     return { type, limit, offset, dateFromMs, dateToMs };
   }
 
-  function normalizeUserId(user) {
-    return normalizeInt(user?.id ?? user?.sub);
-  }
-
   function normalizeTime(value) {
     const text = normalizeText(value);
     if (!text) return null;
     const match = text.match(/^([01]\d|2[0-3]):([0-5]\d)(?::[0-5]\d)?$/);
     return match ? `${match[1]}:${match[2]}` : null;
+  }
+
+  function normalizeUserId(user) {
+    return normalizeInt(user?.id ?? user?.sub);
   }
 
   function slugify(value) {
@@ -128,8 +131,12 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
 
-    const productType = String(input?.productType ?? input?.product_type ?? "NORMAL").trim().toUpperCase();
-    if (!['NORMAL', 'INTERNAL', 'COMBO'].includes(productType)) {
+    const productType = String(
+      input?.productType ?? input?.product_type ?? "NORMAL",
+    )
+      .trim()
+      .toUpperCase();
+    if (!["NORMAL", "INTERNAL", "COMBO"].includes(productType)) {
       const err = new Error("productType must be NORMAL, INTERNAL or COMBO");
       err.status = 400;
       throw err;
@@ -156,7 +163,9 @@ function buildAdminCafeteriaProductsService(consumer) {
       initialStock,
       trackExpiration,
       expirationAlertDays:
-        normalizeInt(input?.expirationAlertDays ?? input?.expiration_alert_days) ?? 30,
+        normalizeInt(
+          input?.expirationAlertDays ?? input?.expiration_alert_days,
+        ) ?? 30,
       criticalExpirationAlertDays:
         normalizeInt(
           input?.criticalExpirationAlertDays ??
@@ -180,7 +189,9 @@ function buildAdminCafeteriaProductsService(consumer) {
   }
 
   function normalizeInventoryMovementInput(input, context = {}) {
-    const type = String(input?.type || "").trim().toUpperCase();
+    const type = String(input?.type || "")
+      .trim()
+      .toUpperCase();
     if (!INVENTORY_MOVEMENT_TYPES.has(type)) {
       const err = new Error("Invalid inventory movement type");
       err.status = 400;
@@ -194,7 +205,10 @@ function buildAdminCafeteriaProductsService(consumer) {
     }
     const negativeTypes = new Set(["WASTE", "ADJUSTMENT_NEGATIVE"]);
     const reason = normalizeText(input?.reason);
-    if (["WASTE", "ADJUSTMENT_POSITIVE", "ADJUSTMENT_NEGATIVE"].includes(type) && !reason) {
+    if (
+      ["WASTE", "ADJUSTMENT_POSITIVE", "ADJUSTMENT_NEGATIVE"].includes(type) &&
+      !reason
+    ) {
       const err = new Error("reason is required");
       err.status = 400;
       throw err;
@@ -206,7 +220,9 @@ function buildAdminCafeteriaProductsService(consumer) {
       sourceType: "MANUAL_INVENTORY",
       sourceId: null,
       reason,
-      expirationDate: normalizeDate(input?.expirationDate ?? input?.expiration_date),
+      expirationDate: normalizeDate(
+        input?.expirationDate ?? input?.expiration_date,
+      ),
       lotNumber: normalizeText(input?.lotNumber ?? input?.lot_number),
       purchaseId: normalizeText(input?.purchaseId ?? input?.purchase_id),
       createdBy: normalizeUserId(context?.user),
@@ -238,7 +254,9 @@ function buildAdminCafeteriaProductsService(consumer) {
       product.track_expiration === 1 ||
       product.track_expiration === "1"
     ) {
-      const err = new Error("Physical count is not available for batched products");
+      const err = new Error(
+        "Physical count is not available for batched products",
+      );
       err.status = 409;
       throw err;
     }
@@ -310,7 +328,11 @@ function buildAdminCafeteriaProductsService(consumer) {
       throw err;
     }
     const wasTrackingExpiration = normalizeBoolean(current.track_expiration);
-    if (!wasTrackingExpiration && payload.trackExpiration && Number(current.current_stock || 0) > 0) {
+    if (
+      !wasTrackingExpiration &&
+      payload.trackExpiration &&
+      Number(current.current_stock || 0) > 0
+    ) {
       const err = new Error(
         "Registra o ajusta a cero el stock actual antes de activar el control de vencimiento; el stock existente no tiene lotes ni fecha de vencimiento.",
       );
@@ -343,35 +365,61 @@ function buildAdminCafeteriaProductsService(consumer) {
   }
 
   function normalizeComboGroups(input) {
-    if (!Array.isArray(input)) throw Object.assign(new Error("groups must be an array"), { status: 400 });
+    if (!Array.isArray(input))
+      throw Object.assign(new Error("groups must be an array"), {
+        status: 400,
+      });
     return input.map((group, groupIndex) => {
       const name = normalizeText(group?.name);
-      const minSelections = normalizeInt(group?.minSelections ?? group?.min_selections) ?? 0;
-      const maxSelections = normalizeInt(group?.maxSelections ?? group?.max_selections) ?? 0;
+      const minSelections =
+        normalizeInt(group?.minSelections ?? group?.min_selections) ?? 0;
+      const maxSelections =
+        normalizeInt(group?.maxSelections ?? group?.max_selections) ?? 0;
       const options = Array.isArray(group?.options) ? group.options : [];
-      if (!name || minSelections < 0 || maxSelections < minSelections || (minSelections > 0 && options.length === 0)) {
-        throw Object.assign(new Error(`groups[${groupIndex}] is invalid`), { status: 400 });
+      if (
+        !name ||
+        minSelections < 0 ||
+        maxSelections < minSelections ||
+        (minSelections > 0 && options.length === 0)
+      ) {
+        throw Object.assign(new Error(`groups[${groupIndex}] is invalid`), {
+          status: 400,
+        });
       }
       const seen = new Set();
-      return { name, minSelections, maxSelections, sortOrder: groupIndex, options: options.map((option, optionIndex) => {
-        const productId = normalizeInt(option?.productId ?? option?.product_id);
-        const quantity = normalizeInt(option?.quantity) ?? 1;
-        if (!productId || quantity <= 0 || seen.has(productId)) throw Object.assign(new Error(`groups[${groupIndex}].options is invalid`), { status: 400 });
-        seen.add(productId);
-        return { productId, quantity, sortOrder: optionIndex };
-      }) };
+      return {
+        name,
+        minSelections,
+        maxSelections,
+        sortOrder: groupIndex,
+        options: options.map((option, optionIndex) => {
+          const productId = normalizeInt(
+            option?.productId ?? option?.product_id,
+          );
+          const quantity = normalizeInt(option?.quantity) ?? 1;
+          if (!productId || quantity <= 0 || seen.has(productId))
+            throw Object.assign(
+              new Error(`groups[${groupIndex}].options is invalid`),
+              { status: 400 },
+            );
+          seen.add(productId);
+          return { productId, quantity, sortOrder: optionIndex };
+        }),
+      };
     });
   }
 
   async function getCombo(productIdInput) {
     const productId = normalizeInt(productIdInput);
-    if (!productId) throw Object.assign(new Error("id is required"), { status: 400 });
+    if (!productId)
+      throw Object.assign(new Error("id is required"), { status: 400 });
     return consumer.getCombo(productId);
   }
 
   async function saveCombo(productIdInput, input) {
     const productId = normalizeInt(productIdInput);
-    if (!productId) throw Object.assign(new Error("id is required"), { status: 400 });
+    if (!productId)
+      throw Object.assign(new Error("id is required"), { status: 400 });
     return consumer.saveCombo(productId, normalizeComboGroups(input?.groups));
   }
 
@@ -415,7 +463,11 @@ function buildAdminCafeteriaProductsService(consumer) {
       product.track_expiration === true ||
       product.track_expiration === 1 ||
       product.track_expiration === "1";
-    if (tracksExpiration && payload.quantityDelta > 0 && !payload.expirationDate) {
+    if (
+      tracksExpiration &&
+      payload.quantityDelta > 0 &&
+      !payload.expirationDate
+    ) {
       const err = new Error("expirationDate is required");
       err.status = 400;
       throw err;
