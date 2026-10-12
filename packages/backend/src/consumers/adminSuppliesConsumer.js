@@ -83,10 +83,23 @@ async function createSupply(payload) {
     );
     const supply = result.rows[0];
     if (payload.trackInventory && payload.initialStock > 0) {
+      let supplyBatchId = null;
+      if (supply.track_expiration) {
+        const batchResult = await client.query(
+          `INSERT INTO supply_batches (
+            supply_id, received_quantity, current_quantity, received_at,
+            expiration_date, lot_number, purchase_id, created_by, created_at, status
+          ) VALUES ($1, $2, $2, $3, NULL, NULL, NULL, $4, $5, 'ACTIVE')
+          RETURNING id;`,
+          [supply.id, payload.initialStock, payload.createdAt, payload.createdBy, payload.createdAt],
+        );
+        supplyBatchId = batchResult.rows[0].id;
+      }
       await client.query(
         `
           INSERT INTO supply_inventory_movements (
             supply_id,
+            supply_batch_id,
             type,
             quantity_delta,
             occurred_at,
@@ -96,10 +109,11 @@ async function createSupply(payload) {
             created_by,
             created_at
           )
-          VALUES ($1, 'INITIAL_STOCK', $2, $3, 'INVENTORY_SUPPLY', $4, 'Stock inicial', $5, $6);
+          VALUES ($1, $2, 'INITIAL_STOCK', $3, $4, 'INVENTORY_SUPPLY', $5, 'Stock inicial', $6, $7);
         `,
         [
           supply.id,
+          supplyBatchId,
           payload.initialStock,
           payload.createdAt,
           String(supply.id),
@@ -274,6 +288,19 @@ async function createInventoryMovement(payload) {
       );
       movements.push(await insertMovement(-consumed, batch.id));
       remaining = Math.round((remaining - consumed) * 1000) / 1000;
+    }
+    if (remaining > 0.0005) {
+      const unbatchedStockResult = await client.query(
+        `SELECT COALESCE(SUM(quantity_delta), 0)::NUMERIC(14, 3) AS stock
+         FROM supply_inventory_movements
+         WHERE supply_id = $1 AND supply_batch_id IS NULL;`,
+        [payload.supplyId],
+      );
+      const unbatchedStock = Number(unbatchedStockResult.rows[0]?.stock || 0);
+      if (unbatchedStock >= remaining - 0.0005) {
+        movements.push(await insertMovement(-remaining));
+        remaining = 0;
+      }
     }
     if (remaining > 0.0005) {
       const err = new Error("Insufficient stock");
