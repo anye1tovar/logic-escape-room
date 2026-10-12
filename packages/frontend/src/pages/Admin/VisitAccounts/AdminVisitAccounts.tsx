@@ -228,6 +228,11 @@ function isCurrentUserAdmin() {
   return getStoredAdminUser()?.role === "admin";
 }
 
+function canCurrentUserVoidPayments() {
+  const role = String(getStoredAdminUser()?.role || "").toLowerCase();
+  return role === "admin" || role === "game_master";
+}
+
 function formatMoney(value: number | string | null) {
   const amount = Number(value || 0);
   return new Intl.NumberFormat("es-CO", {
@@ -1832,7 +1837,8 @@ export default function AdminVisitAccounts() {
                       <TableCell>{payment.status}</TableCell>
                       <TableCell>{payment.notes || ""}</TableCell>
                       <TableCell>
-                        {payment.status === "CONFIRMED" ? (
+                        {payment.status === "CONFIRMED" &&
+                        canCurrentUserVoidPayments() ? (
                           <Button
                             variant="outlined"
                             color="error"

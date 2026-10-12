@@ -47,6 +47,11 @@ function isAdminUser(user) {
   return String(user?.role || "").toLowerCase() === "admin";
 }
 
+function canVoidVisitPayment(user) {
+  const role = String(user?.role || "").toLowerCase();
+  return role === "admin" || role === "game_master";
+}
+
 function isActiveBoolean(value) {
   return value === true || value === 1 || value === "1";
 }
@@ -520,7 +525,7 @@ function buildAdminVisitAccountsService(consumer) {
       "visitAccountId"
     );
     const paymentId = normalizePositiveInt(paymentIdInput, "paymentId");
-    if (!isAdminUser(context?.user)) throw serviceError("Forbidden", 403);
+    if (!canVoidVisitPayment(context?.user)) throw serviceError("Forbidden", 403);
     const payment = await consumer.getVisitPaymentById(visitAccountId, paymentId);
     if (!payment) throw serviceError("Payment not found", 404);
     if (String(payment.status).toUpperCase() === "VOIDED") {
