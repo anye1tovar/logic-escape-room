@@ -91,6 +91,7 @@ const initAdminReportsConsumer = require("./consumers/adminReportsConsumer");
 const buildAdminReportsService = require("./services/adminReportsService");
 const buildAdminReportsController = require("./controllers/adminReportsController");
 const createAdminReportsRouter = require("./routes/adminReports");
+const createAdminInventoryAlertsRouter = require("./routes/adminInventoryAlerts");
 const initAdminCostAllocationRulesConsumer = require("./consumers/adminCostAllocationRulesConsumer");
 const buildAdminCostAllocationRulesService = require("./services/adminCostAllocationRulesService");
 const buildAdminCostAllocationRulesController = require("./controllers/adminCostAllocationRulesController");
@@ -310,6 +311,7 @@ async function start() {
   const adminReportsController =
     buildAdminReportsController(adminReportsService);
   const adminReportsRouter = createAdminReportsRouter(adminReportsController);
+  const adminInventoryAlertsRouter = createAdminInventoryAlertsRouter(adminReportsController);
 
   const adminCostAllocationRulesConsumer =
     await initAdminCostAllocationRulesConsumer();
@@ -444,6 +446,7 @@ async function start() {
     adminDailyClosesRouter,
   );
   app.use("/api/admin/reports", adminAuth, adminReportsRouter);
+  app.use("/api/admin/inventory-alerts", adminOrGameMasterAuth, adminInventoryAlertsRouter);
   app.use(
     "/api/admin/cost-allocation-rules",
     adminAuth,

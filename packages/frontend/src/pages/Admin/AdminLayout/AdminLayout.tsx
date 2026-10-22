@@ -138,6 +138,11 @@ const navGroups: NavGroup[] = [
         label: "Auditoria y exportaciones",
         roles: ["admin"],
       },
+      {
+        to: "/admin/dashboard/reportes/alertas-inventario",
+        label: "Alertas de inventario",
+        roles: ["admin", "game_master"],
+      },
     ],
   },
   {

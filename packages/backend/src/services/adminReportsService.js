@@ -48,6 +48,16 @@ function addDays(dateText, days) {
   }).format(date);
 }
 
+function addMonths(dateText, months) {
+  const [year, month, day] = dateText.split("-").map(Number);
+  const targetMonthIndex = month - 1 + months;
+  const targetYear = year + Math.floor(targetMonthIndex / 12);
+  const normalizedMonth = ((targetMonthIndex % 12) + 12) % 12;
+  const lastDay = new Date(Date.UTC(targetYear, normalizedMonth + 1, 0)).getUTCDate();
+  const targetDay = Math.min(day, lastDay);
+  return `${targetYear}-${String(normalizedMonth + 1).padStart(2, "0")}-${String(targetDay).padStart(2, "0")}`;
+}
+
 function buildRange(input = {}) {
   const today = todayInputValue();
   const dateFrom = normalizeDate(input.dateFrom ?? input.date_from, today);
@@ -156,6 +166,11 @@ function toCsv(headers, rows) {
 function buildAdminReportsService(consumer) {
   async function dashboard(input = {}) {
     return consumer.getDashboard(buildRange(input));
+  }
+
+  async function inventoryAlerts() {
+    const today = todayInputValue();
+    return consumer.listInventoryAlerts(today, addDays(addMonths(today, 2), -1));
   }
 
   async function listFinancialMovements(input = {}) {
@@ -343,6 +358,7 @@ function buildAdminReportsService(consumer) {
 
   return {
     dashboard,
+    inventoryAlerts,
     listFinancialMovements,
     listSalesReport,
     listInventoryMovements,

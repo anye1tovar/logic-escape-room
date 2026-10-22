@@ -79,6 +79,9 @@ const AdminSupplies = lazy(() => import("./pages/Admin/Supplies/AdminSupplies"))
 const AdminSupplyPurchases = lazy(
   () => import("./pages/Admin/SupplyPurchases/AdminSupplyPurchases"),
 );
+const AdminInventoryAlerts = lazy(
+  () => import("./pages/Admin/InventoryAlerts/AdminInventoryAlerts"),
+);
 const AdminRecipes = lazy(() => import("./pages/Admin/Recipes/AdminRecipes"));
 const AdminCafeteriaProfit = lazy(
   () => import("./pages/Admin/CafeteriaProfit/AdminCafeteriaProfit"),
@@ -277,6 +280,7 @@ function App() {
                 element={<AdminInventoryPurchases />}
               />
               <Route path="cafeteria/insumos" element={<AdminSupplies />} />
+              <Route path="reportes/alertas-inventario" element={<AdminInventoryAlerts />} />
               <Route
                 path="cafeteria/compras-insumos"
                 element={<AdminSupplyPurchases />}

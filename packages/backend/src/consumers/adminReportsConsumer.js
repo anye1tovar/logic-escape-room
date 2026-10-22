@@ -265,6 +265,64 @@ async function getDashboard(range) {
   };
 }
 
+async function listInventoryAlerts(todayText, cutoffText) {
+  const [inventoryAlerts, expirationAlerts] = await Promise.all([
+    db.query(`
+      SELECT * FROM (
+        SELECT product.id, 'PRODUCT'::TEXT AS source_type, product.name,
+          COALESCE(category.name, product.category, 'Sin categoria') AS category,
+          product.unit, product.minimum_stock,
+          COALESCE((SELECT SUM(movement.quantity_delta) FROM inventory_movements movement
+            WHERE movement.product_id = product.id), 0)::NUMERIC(14, 3) AS current_stock
+        FROM cafeteria_products product
+        LEFT JOIN cafeteria_categories category ON category.id = product.category_id
+        WHERE product.track_inventory = TRUE AND product.minimum_stock IS NOT NULL
+        UNION ALL
+        SELECT supply.id, 'SUPPLY'::TEXT AS source_type, supply.name,
+          COALESCE(NULLIF(trim(supply.category), ''), 'Sin categoria') AS category,
+          supply.consumption_unit AS unit, supply.minimum_stock,
+          COALESCE((SELECT SUM(movement.quantity_delta) FROM supply_inventory_movements movement
+            WHERE movement.supply_id = supply.id), 0)::NUMERIC(14, 3) AS current_stock
+        FROM inventory_supplies supply
+        WHERE supply.active = TRUE AND supply.track_inventory = TRUE AND supply.minimum_stock IS NOT NULL
+      ) tracked
+      WHERE current_stock <= minimum_stock
+      ORDER BY current_stock ASC, lower(name) ASC;
+    `),
+    db.query(`
+      SELECT * FROM (
+        SELECT batch.id, 'PRODUCT'::TEXT AS source_type, product.name AS product_name,
+          COALESCE(category.name, product.category, 'Sin categoria') AS category,
+          batch.current_quantity, batch.expiration_date, batch.lot_number, product.unit
+        FROM inventory_batches batch
+        JOIN cafeteria_products product ON product.id = batch.product_id
+        LEFT JOIN cafeteria_categories category ON category.id = product.category_id
+        WHERE batch.status = 'ACTIVE' AND batch.current_quantity > 0
+          AND product.track_expiration = TRUE AND batch.expiration_date <= $1
+        UNION ALL
+        SELECT batch.id, 'SUPPLY'::TEXT AS source_type, supply.name AS product_name,
+          COALESCE(NULLIF(trim(supply.category), ''), 'Sin categoria') AS category,
+          batch.current_quantity, batch.expiration_date, batch.lot_number, supply.consumption_unit AS unit
+        FROM supply_batches batch
+        JOIN inventory_supplies supply ON supply.id = batch.supply_id
+        WHERE batch.status = 'ACTIVE' AND batch.current_quantity > 0
+          AND supply.active = TRUE AND supply.track_expiration = TRUE
+          AND batch.expiration_date IS NOT NULL AND batch.expiration_date <= $1
+      ) lots
+      ORDER BY expiration_date ASC, lower(product_name) ASC, id ASC;
+    `, [cutoffText]),
+  ]);
+  return {
+    inventoryAlerts: inventoryAlerts.rows || [],
+    expirationAlerts: (expirationAlerts.rows || []).map((row) => ({
+      ...row,
+      alert_level: row.expiration_date < todayText ? "VENCIDO" : "PROXIMO",
+    })),
+    today: todayText,
+    expiresThrough: cutoffText,
+  };
+}
+
 async function listFinancialMovements(filters) {
   const params = [filters.startMs, filters.endMs];
   const where = [
@@ -746,6 +804,7 @@ async function listCafeteriaProfitReport(filters) {
 module.exports = async function initConsumer() {
   return {
     getDashboard,
+    listInventoryAlerts,
     listFinancialMovements,
     listSalesReport,
     listProductsRanking,

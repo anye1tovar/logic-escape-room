@@ -1,4 +1,12 @@
 function buildAdminReportsController(service) {
+  async function inventoryAlerts(req, res) {
+    try {
+      res.json(await service.inventoryAlerts());
+    } catch (err) {
+      res.status(err.status || 500).json({ error: err.message });
+    }
+  }
+
   async function dashboard(req, res) {
     try {
       const data = await service.dashboard(req.query);
@@ -99,6 +107,7 @@ function buildAdminReportsController(service) {
   }
 
   return {
+    inventoryAlerts,
     dashboard,
     listFinancialMovements,
     listSalesReport,
