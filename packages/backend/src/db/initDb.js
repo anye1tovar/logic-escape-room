@@ -93,8 +93,14 @@ async function initSchema() {
       tracking_schedule_event_id TEXT,
       reservation_source TEXT NOT NULL DEFAULT 'web',
       out_of_hours BOOLEAN NOT NULL DEFAULT FALSE,
-      reprogrammed BOOLEAN NOT NULL DEFAULT FALSE
+      reprogrammed BOOLEAN NOT NULL DEFAULT FALSE,
+      created_at BIGINT
     );
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ADD COLUMN IF NOT EXISTS created_at BIGINT;
   `);
 
   await pool.query(`

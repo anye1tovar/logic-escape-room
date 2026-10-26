@@ -23,6 +23,7 @@ const RESERVATION_FIELDS = `
   reservation_source,
   out_of_hours,
   reprogrammed,
+  created_at,
   COALESCE((
     SELECT SUM(payment.amount)
     FROM reservation_payments payment
@@ -275,8 +276,19 @@ async function createReservationPayment(payload) {
       [movementId, payment.id]
     );
 
+    const confirmedReservationResult = await client.query(
+      `UPDATE reservations
+       SET status = 'CONFIRMED'
+       WHERE id = $1 AND status = 'PENDING'
+       RETURNING id;`,
+      [payload.reservationId]
+    );
+
     await client.query("COMMIT");
-    return updatedPaymentResult.rows[0] || payment;
+    return {
+      ...(updatedPaymentResult.rows[0] || payment),
+      reservation_status_changed: confirmedReservationResult.rowCount > 0,
+    };
   } catch (err) {
     await client.query("ROLLBACK");
     throw err;

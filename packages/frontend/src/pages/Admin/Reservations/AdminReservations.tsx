@@ -60,6 +60,7 @@ type ReservationRow = {
   reservation_source?: string | null;
   out_of_hours?: number | boolean | null;
   reprogrammed?: number | boolean | null;
+  created_at?: number | string | null;
   total_paid?: number | string | null;
   pending_amount?: number | string | null;
   active_visit_account_id?: number | null;
@@ -244,6 +245,16 @@ function formatDateTime(value: number | string | null | undefined) {
   return new Intl.DateTimeFormat("es-CO", {
     dateStyle: "medium",
     timeStyle: "short",
+  }).format(new Date(timestamp));
+}
+
+function formatReservationCreatedAt(value: number | string | null | undefined) {
+  const timestamp = Number(value);
+  if (!Number.isFinite(timestamp) || timestamp <= 0) return "";
+  return new Intl.DateTimeFormat("es-CO", {
+    dateStyle: "medium",
+    timeStyle: "short",
+    timeZone: COLOMBIA_TIMEZONE,
   }).format(new Date(timestamp));
 }
 
@@ -468,7 +479,7 @@ export default function AdminReservations() {
   async function loadFinancialAccounts() {
     try {
       const data = await adminRequest<FinancialAccountRow[]>(
-        "/api/admin/financial-accounts"
+        "/api/admin/financial-accounts/operation-accounts"
       );
       setFinancialAccounts(data || []);
     } catch {
@@ -892,7 +903,7 @@ export default function AdminReservations() {
             <TableHead>
               <TableRow>
                 <TableCell sx={{ minWidth: 40 }}>#</TableCell>
-                <TableCell sx={{ minWidth: 85 }}>Fecha y Hora</TableCell>
+                <TableCell sx={{ minWidth: 220 }}>Fecha y Hora</TableCell>
                 <TableCell sx={{ minWidth: 100 }}>Sala</TableCell>
                 <TableCell sx={{ minWidth: 200 }}>Cliente</TableCell>
                 <TableCell sx={{ minWidth: 250 }}>Teléfono</TableCell>
@@ -994,6 +1005,11 @@ export default function AdminReservations() {
                                   />
                                 ) : null}
                               </Stack>
+                              <Typography variant="caption" sx={{ opacity: 0.72 }}>
+                                {r.created_at
+                                  ? `Reserva creada: ${formatReservationCreatedAt(r.created_at)}`
+                                  : "Fecha de creación no disponible"}
+                              </Typography>
                             </Stack>
                           );
                         })()}

@@ -671,7 +671,7 @@ function buildAdminReservationsService(consumer, deps = {}) {
       { allowNull: true }
     );
     const createdAt = Date.now();
-    return consumer.createReservationPayment({
+    const payment = await consumer.createReservationPayment({
       reservationId,
       amount,
       financialAccountId,
@@ -680,6 +680,10 @@ function buildAdminReservationsService(consumer, deps = {}) {
       createdBy: normalizeUserId(context?.user),
       createdAt,
     });
+    if (payment?.reservation_status_changed) {
+      await sendReservationConfirmedMetaEvent(existing);
+    }
+    return payment;
   }
 
   async function voidReservationPayment(id, paymentIdInput, input, context = {}) {

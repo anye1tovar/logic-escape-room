@@ -29,8 +29,8 @@ async function createBooking({
 
   const result = await db.query(
     `INSERT INTO reservations
-      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, marketing_consent, marketing_consent_at, tracking_fbp, tracking_fbc, tracking_source_url, tracking_user_agent, tracking_ip, tracking_lead_event_id, tracking_schedule_event_id, reservation_source, out_of_hours, reprogrammed)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25)
+      (room_id, date, start_time, end_time, consult_code, first_name, last_name, phone, players, notes, total, status, is_first_time, marketing_consent, marketing_consent_at, tracking_fbp, tracking_fbc, tracking_source_url, tracking_user_agent, tracking_ip, tracking_lead_event_id, tracking_schedule_event_id, reservation_source, out_of_hours, reprogrammed, created_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
      RETURNING id;`,
     [
       roomId || null,
@@ -58,6 +58,7 @@ async function createBooking({
       reservationSource || "web",
       Boolean(outOfHours),
       false,
+      createdAt,
     ]
   );
 
