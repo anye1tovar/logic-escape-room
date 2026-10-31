@@ -385,11 +385,6 @@ export default function AdminVisitAccounts() {
     confirmAction?.action === "close" &&
     confirmActionPendingAmount > 0 &&
     !canForceClosePendingBalance;
-  const requiresCloseReason =
-    confirmAction?.action === "close" &&
-    confirmActionPendingAmount > 0 &&
-    canForceClosePendingBalance;
-
   const productCategories = useMemo(() => {
     return Array.from(
       new Set(
@@ -505,7 +500,14 @@ export default function AdminVisitAccounts() {
         `/api/admin/visit-accounts/${confirmAction.visit.id}/${confirmAction.action}`,
         {
           method: "POST",
-          body: { reason: confirmAction.reason || null },
+          body: {
+            reason:
+              confirmAction.action === "close" &&
+              confirmActionPendingAmount > 0 &&
+              canForceClosePendingBalance
+                ? "Cierre confirmado por administrador"
+                : confirmAction.reason || null,
+          },
         }
       );
       setConfirmAction(null);
@@ -1222,7 +1224,7 @@ export default function AdminVisitAccounts() {
               pendiente antes de cerrar la cuenta.
             </Alert>
           ) : null}
-          {!isBlockedPendingClose ? (
+          {!isBlockedPendingClose && confirmAction?.action === "cancel" ? (
             <TextField
               label="Motivo"
               value={confirmAction?.reason || ""}
@@ -1235,14 +1237,7 @@ export default function AdminVisitAccounts() {
               margin="dense"
               multiline
               minRows={2}
-              required={
-                confirmAction?.action === "cancel" || requiresCloseReason
-              }
-              helperText={
-                requiresCloseReason
-                  ? "Requerido para cerrar una cuenta con saldo pendiente."
-                  : undefined
-              }
+              required
             />
           ) : null}
         </DialogContent>
@@ -1251,7 +1246,7 @@ export default function AdminVisitAccounts() {
             onClick={() => setConfirmAction(null)}
             disabled={status.type === "loading"}
           >
-            Volver
+            Cancelar
           </Button>
           {!isBlockedPendingClose ? (
             <Button
@@ -1260,11 +1255,11 @@ export default function AdminVisitAccounts() {
               onClick={() => void confirmVisitAction()}
               disabled={
                 status.type === "loading" ||
-                ((confirmAction?.action === "cancel" || requiresCloseReason) &&
+                (confirmAction?.action === "cancel" &&
                   !confirmAction.reason.trim())
               }
             >
-              Confirmar
+              {confirmAction?.action === "close" ? "Continuar" : "Confirmar"}
             </Button>
           ) : null}
         </DialogActions>
