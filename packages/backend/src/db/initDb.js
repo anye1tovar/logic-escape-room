@@ -72,7 +72,7 @@ async function initSchema() {
       date TEXT NOT NULL,
       start_time TEXT NOT NULL,
       end_time TEXT NOT NULL,
-      actual_duration_ms INTEGER,
+      actual_duration_ms BIGINT,
       consult_code TEXT,
       first_name TEXT NOT NULL,
       last_name TEXT NOT NULL,
@@ -105,7 +105,12 @@ async function initSchema() {
 
   await pool.query(`
     ALTER TABLE reservations
-    ADD COLUMN IF NOT EXISTS actual_duration_ms INTEGER;
+    ADD COLUMN IF NOT EXISTS actual_duration_ms BIGINT;
+  `);
+
+  await pool.query(`
+    ALTER TABLE reservations
+    ALTER COLUMN actual_duration_ms TYPE BIGINT;
   `);
 
   await pool.query(`
@@ -176,6 +181,18 @@ async function initSchema() {
   await pool.query(`
     ALTER TABLE reservations
     ADD COLUMN IF NOT EXISTS timer_end_ms BIGINT;
+  `);
+
+  // Repair timer timestamps written by older code in Unix seconds.
+  await pool.query(`
+    UPDATE reservations
+    SET timer_start_ms = timer_start_ms * 1000
+    WHERE timer_start_ms IS NOT NULL AND ABS(timer_start_ms) < 100000000000;
+  `);
+  await pool.query(`
+    UPDATE reservations
+    SET timer_end_ms = timer_end_ms * 1000
+    WHERE timer_end_ms IS NOT NULL AND ABS(timer_end_ms) < 100000000000;
   `);
 
   await pool.query(`

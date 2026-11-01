@@ -50,7 +50,9 @@ function parseMs(value: number | string | null | undefined) {
   if (value == null || value === "") return null;
   const parsed = Number(value);
   if (!Number.isFinite(parsed)) return null;
-  return Math.trunc(parsed);
+  // Older timer values were sometimes persisted as Unix seconds. Normalize
+  // them before subtracting from Date.now(), which is always milliseconds.
+  return Math.trunc(Math.abs(parsed) < 100_000_000_000 ? parsed * 1000 : parsed);
 }
 
 function formatStartTime(value: string | null | undefined) {

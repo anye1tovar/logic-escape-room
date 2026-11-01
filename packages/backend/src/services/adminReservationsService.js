@@ -48,7 +48,9 @@ function buildAdminReservationsService(consumer, deps = {}) {
       err.status = 400;
       throw err;
     }
-    return Math.trunc(parsed);
+    // Accept legacy Unix-second values while keeping all timer calculations
+    // and writes in milliseconds.
+    return Math.trunc(Math.abs(parsed) < 100_000_000_000 ? parsed * 1000 : parsed);
   }
 
   function normalizeText(value, { allowEmpty = true } = {}) {
