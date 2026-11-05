@@ -908,6 +908,7 @@ function buildBookingService(consumer, deps = {}) {
         durationMinutes:
           roomRow.duration_minutes ?? roomRow.durationMinutes ?? null,
         difficulty: mapDifficulty(roomRow.difficulty),
+        coverImage: roomRow.cover_image ?? roomRow.coverImage ?? null,
         slots,
       };
     });

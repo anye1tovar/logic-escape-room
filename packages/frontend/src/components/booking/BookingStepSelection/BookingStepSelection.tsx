@@ -31,6 +31,7 @@ type AvailabilitySlot = {
 type AvailabilityRoom = {
   roomId: string;
   name: string;
+  coverImage?: string | null;
   minPlayers: number;
   maxPlayers: number;
   durationMinutes: number;
@@ -99,7 +100,16 @@ function formatOutOfHoursStart(value: Dayjs) {
   return `${value.format("YYYY-MM-DDTHH:mm:00")}${COLOMBIA_OFFSET}`;
 }
 
-function roomImage(roomId: string) {
+function roomImage(roomId: string, coverImage?: string | null) {
+  const image = coverImage?.trim();
+  if (image) {
+    if (/^https?:\/\//i.test(image) || image.startsWith("/")) {
+      return image.replace(/\.(png|jpe?g)$/i, ".webp");
+    }
+    const filename = image.split(/[\\/]/).pop();
+    if (filename) return `/rooms/${filename}`.replace(/\.(png|jpe?g)$/i, ".webp");
+  }
+
   switch (roomId) {
     case "portal":
       return portalImg;
@@ -688,7 +698,7 @@ export default function BookingStepSelection({
                     >
                       <div className="booking-room-card__image">
                         <img
-                          src={roomImage(room.roomId)}
+                          src={roomImage(room.roomId, room.coverImage)}
                           alt={room.name}
                           loading="lazy"
                           decoding="async"
