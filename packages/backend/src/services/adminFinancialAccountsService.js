@@ -421,15 +421,26 @@ function buildAdminFinancialAccountsService(consumer) {
     const rawCostCenter = String(
       input?.costCenter ?? input?.cost_center ?? ""
     ).trim().toUpperCase();
+    const rawSource = String(input?.source ?? "").trim().toUpperCase();
+    const page = Math.max(1, Math.trunc(Number(input?.page) || 1));
+    const pageSize = Math.min(100, Math.max(1, Math.trunc(Number(input?.pageSize) || 10)));
     if (rawCategory && !EXPENSE_CATEGORIES.has(rawCategory)) {
       throw badRequest("Invalid category");
     }
     if (rawCostCenter && !EXPENSE_COST_CENTERS_WITH_UNASSIGNED.has(rawCostCenter)) {
       throw badRequest("Invalid costCenter");
     }
+    const source = rawSource === "OWNER_PERSONAL_FUNDS"
+      ? rawSource
+      : rawSource
+        ? String(normalizeId(rawSource))
+        : null;
     return consumer.listExpenses({
       category: rawCategory || null,
       costCenter: rawCostCenter || null,
+      source,
+      limit: pageSize,
+      offset: (page - 1) * pageSize,
     });
   }
 

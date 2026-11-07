@@ -21,6 +21,7 @@ import {
   TableCell,
   TableContainer,
   TableHead,
+  TablePagination,
   TableRow,
   TextField,
   Typography,
@@ -127,7 +128,7 @@ type ExpenseFormState = {
   allocationPercentageCafeteria: string;
   allocationPercentageAdmin: string;
   allocationSource: "MANUAL" | "RULE";
-  occurredAt: number | null;
+  occurredAt: string;
   description: string;
   totalAmount: string;
   accountId: string;
@@ -141,6 +142,7 @@ type ExpenseFormState = {
 type ExpenseFilters = {
   category: string;
   costCenter: string;
+  source: string;
 };
 
 type ContributionFormState = {
@@ -282,6 +284,21 @@ function formatDateTime(value: number | string) {
   return new Date(timestamp).toLocaleString("es-CO");
 }
 
+function getBogotaDate(value = Date.now()) {
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Bogota",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(new Date(value));
+  const part = (type: string) => parts.find((item) => item.type === type)?.value;
+  return `${part("year")}-${part("month")}-${part("day")}`;
+}
+
+function dateInputToTimestamp(value: string) {
+  return new Date(`${value}T12:00:00-05:00`).getTime();
+}
+
 type AdminFinancialAccountsProps = {
   mode?: "accounts" | "movements";
 };
@@ -317,6 +334,9 @@ export default function AdminFinancialAccounts({
     "idle" | "loading" | "error"
   >("idle");
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
+  const [expenseTotal, setExpenseTotal] = useState(0);
+  const [expensePage, setExpensePage] = useState(0);
+  const [expensePageSize, setExpensePageSize] = useState(10);
   const [contributions, setContributions] = useState<OwnerContributionRow[]>(
     []
   );
@@ -328,7 +348,7 @@ export default function AdminFinancialAccounts({
     allocationPercentageCafeteria: "100",
     allocationPercentageAdmin: "0",
     allocationSource: "MANUAL",
-    occurredAt: null,
+    occurredAt: getBogotaDate(),
     description: "",
     totalAmount: "",
     accountId: "",
@@ -341,6 +361,7 @@ export default function AdminFinancialAccounts({
   const [expenseFilters, setExpenseFilters] = useState<ExpenseFilters>({
     category: "",
     costCenter: "",
+    source: "",
   });
   const [editingExpenseId, setEditingExpenseId] = useState<number | null>(null);
   const [contributionForm, setContributionForm] =
@@ -401,13 +422,16 @@ export default function AdminFinancialAccounts({
     }
   }
 
-  async function loadOperations() {
+  async function loadOperations(page = expensePage, pageSize = expensePageSize) {
     try {
       const params = new URLSearchParams();
       if (expenseFilters.category) params.set("category", expenseFilters.category);
       if (expenseFilters.costCenter) params.set("costCenter", expenseFilters.costCenter);
+      if (expenseFilters.source) params.set("source", expenseFilters.source);
+      params.set("page", String(page + 1));
+      params.set("pageSize", String(pageSize));
       const [expenseData, contributionData, transferData] = await Promise.all([
-        adminRequest<ExpenseRow[]>(
+        adminRequest<{ rows: ExpenseRow[]; total: number }>(
           `/api/admin/financial-accounts/expenses?${params.toString()}`
         ),
         adminRequest<OwnerContributionRow[]>(
@@ -415,7 +439,8 @@ export default function AdminFinancialAccounts({
         ),
         adminRequest<TransferRow[]>("/api/admin/financial-accounts/transfers"),
       ]);
-      setExpenses(expenseData || []);
+      setExpenses(expenseData?.rows || []);
+      setExpenseTotal(expenseData?.total || 0);
       setContributions(contributionData || []);
       setTransfers(transferData || []);
     } catch {
@@ -533,7 +558,7 @@ export default function AdminFinancialAccounts({
       allocationPercentageCafeteria: "100",
       allocationPercentageAdmin: "0",
       allocationSource: "MANUAL",
-      occurredAt: null,
+      occurredAt: getBogotaDate(),
       description: "",
       totalAmount: "",
       accountId: "",
@@ -614,7 +639,9 @@ export default function AdminFinancialAccounts({
       description: expenseForm.description,
       totalAmount,
       allocations,
-      occurredAt: expenseForm.occurredAt || undefined,
+      occurredAt: expenseForm.occurredAt
+        ? dateInputToTimestamp(expenseForm.occurredAt)
+        : undefined,
     };
   }
 
@@ -674,7 +701,7 @@ export default function AdminFinancialAccounts({
         expense.allocation_source === "PENDING"
           ? "RULE"
           : "MANUAL",
-      occurredAt: Number(expense.occurred_at),
+      occurredAt: getBogotaDate(Number(expense.occurred_at)),
       description: expense.description,
       totalAmount: String(expense.total_amount),
       accountId: logicAllocation?.financialAccountId
@@ -854,7 +881,9 @@ export default function AdminFinancialAccounts({
       expenseForm.category &&
       expenseForm.costCenter &&
       Number(expenseForm.totalAmount || 0) > 0 &&
-      expenseForm.accountId &&
+      (expenseForm.splitFunding
+        ? Number(expenseForm.accountAmount || 0) <= 0 || expenseForm.accountId
+        : expenseForm.accountId) &&
       (expenseForm.costCenter !== "MIXED" ||
         expenseForm.allocationSource === "RULE" ||
         (Number(expenseForm.allocationPercentageRooms || 0) >= 0 &&
@@ -868,9 +897,10 @@ export default function AdminFinancialAccounts({
         (Number(expenseForm.accountAmount || 0) +
           Number(expenseForm.ownerAmount || 0) ===
           Number(expenseForm.totalAmount || 0) &&
-          Number(expenseForm.accountAmount || 0) > 0 &&
+          Number(expenseForm.accountAmount || 0) >= 0 &&
           Number(expenseForm.ownerAmount || 0) > 0 &&
-          expenseForm.ownerName.trim().length > 0))
+          (Number(expenseForm.ownerAmount || 0) <= 0 ||
+            expenseForm.ownerName.trim().length > 0)))
   );
   const canCreateContribution = Boolean(
     contributionForm.financialAccountId &&
@@ -1377,6 +1407,17 @@ export default function AdminFinancialAccounts({
               fullWidth
             />
             <TextField
+              label="Fecha"
+              type="date"
+              value={expenseForm.occurredAt}
+              onChange={(e) =>
+                setExpenseForm((s) => ({ ...s, occurredAt: e.target.value }))
+              }
+              size="small"
+              InputLabelProps={{ shrink: true }}
+              fullWidth
+            />
+            <TextField
               label="Total"
               value={expenseForm.totalAmount}
               onChange={(e) =>
@@ -1519,7 +1560,7 @@ export default function AdminFinancialAccounts({
               Egresos
             </Typography>
             <Typography className="admin-crud__section-copy">
-              Ultimos egresos registrados y sus fuentes de financiacion.
+              Egresos registrados y sus fuentes de financiacion.
             </Typography>
           </div>
         </div>
@@ -1560,7 +1601,33 @@ export default function AdminFinancialAccounts({
               </MenuItem>
             ))}
           </PlaceholderSelect>
-          <Button variant="outlined" onClick={() => void loadOperations()}>
+          <PlaceholderSelect
+            label="Filtrar fuente"
+            value={expenseFilters.source}
+            onChange={(value) =>
+              setExpenseFilters((current) => ({ ...current, source: value }))
+            }
+            renderValue={(value) => {
+              if (!value) return "Todas las fuentes";
+              if (value === "OWNER_PERSONAL_FUNDS") return "Fondos personales";
+              return rows.find((account) => String(account.id) === value)?.name || value;
+            }}
+          >
+            <MenuItem value="">Todas las fuentes</MenuItem>
+            {rows.map((account) => (
+              <MenuItem key={account.id} value={String(account.id)}>
+                {account.name}{normalizeBoolean(account.active) ? "" : " (inactiva)"}
+              </MenuItem>
+            ))}
+            <MenuItem value="OWNER_PERSONAL_FUNDS">Fondos personales</MenuItem>
+          </PlaceholderSelect>
+          <Button
+            variant="outlined"
+            onClick={() => {
+              setExpensePage(0);
+              void loadOperations(0, expensePageSize);
+            }}
+          >
             Aplicar filtros
           </Button>
         </div>
@@ -1660,6 +1727,25 @@ export default function AdminFinancialAccounts({
             </TableBody>
           </Table>
         </TableContainer>
+        <TablePagination
+          component="div"
+          count={expenseTotal}
+          page={expensePage}
+          onPageChange={(_, nextPage) => {
+            setExpensePage(nextPage);
+            void loadOperations(nextPage, expensePageSize);
+          }}
+          rowsPerPage={expensePageSize}
+          onRowsPerPageChange={(event) => {
+            const nextPageSize = Number(event.target.value);
+            setExpensePageSize(nextPageSize);
+            setExpensePage(0);
+            void loadOperations(0, nextPageSize);
+          }}
+          rowsPerPageOptions={[10, 25, 50]}
+          labelRowsPerPage="Filas por página"
+          labelDisplayedRows={({ from, to, count }) => `${from}-${to} de ${count}`}
+        />
       </Paper>
 
       <Paper className="admin-crud__panel admin-crud__panel--accent">

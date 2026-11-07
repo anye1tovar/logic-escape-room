@@ -633,6 +633,26 @@ async function listExpenses(filters = {}) {
     values.push(filters.costCenter);
     clauses.push(`expense.cost_center = $${values.length}`);
   }
+  if (filters.source === "OWNER_PERSONAL_FUNDS") {
+    clauses.push(`EXISTS (
+      SELECT 1 FROM expense_funding_allocations source_allocation
+      WHERE source_allocation.expense_id = expense.id
+        AND source_allocation.source_type = 'OWNER_PERSONAL_FUNDS'
+    )`);
+  } else if (filters.source) {
+    values.push(Number(filters.source));
+    clauses.push(`EXISTS (
+      SELECT 1 FROM expense_funding_allocations source_allocation
+      WHERE source_allocation.expense_id = expense.id
+        AND source_allocation.financial_account_id = $${values.length}
+    )`);
+  }
+  const whereSql = clauses.length ? `WHERE ${clauses.join(" AND ")}` : "";
+  const countResult = await db.query(
+    `SELECT COUNT(*)::INTEGER AS total FROM expenses expense ${whereSql};`,
+    values
+  );
+  const queryValues = [...values, filters.limit || 10, filters.offset || 0];
   const result = await db.query(
     `
       SELECT
@@ -654,14 +674,14 @@ async function listExpenses(filters = {}) {
         ON allocation.expense_id = expense.id
       LEFT JOIN financial_accounts account
         ON account.id = allocation.financial_account_id
-      ${clauses.length ? `WHERE ${clauses.join(" AND ")}` : ""}
+      ${whereSql}
       GROUP BY expense.id
       ORDER BY expense.occurred_at DESC, expense.id DESC
-      LIMIT 100;
+      LIMIT $${queryValues.length - 1} OFFSET $${queryValues.length};
     `,
-    values
+    queryValues
   );
-  return result.rows || [];
+  return { rows: result.rows || [], total: Number(countResult.rows[0]?.total || 0) };
 }
 
 async function createOwnerContribution(payload) {
