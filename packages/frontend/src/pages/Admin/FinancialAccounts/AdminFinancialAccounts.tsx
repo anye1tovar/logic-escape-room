@@ -1,4 +1,4 @@
-import { type ReactNode, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useEffect, useMemo, useRef, useState } from "react";
 import { adminRequest } from "../../../api/adminClient";
 import {
   Alert,
@@ -334,6 +334,7 @@ export default function AdminFinancialAccounts({
     "idle" | "loading" | "error"
   >("idle");
   const [expenses, setExpenses] = useState<ExpenseRow[]>([]);
+  const expenseFormPanelRef = useRef<HTMLDivElement>(null);
   const [expenseTotal, setExpenseTotal] = useState(0);
   const [expensePage, setExpensePage] = useState(0);
   const [expensePageSize, setExpensePageSize] = useState(10);
@@ -718,6 +719,12 @@ export default function AdminFinancialAccounts({
           ? "NON_REIMBURSABLE"
           : "REIMBURSABLE",
     });
+    window.requestAnimationFrame(() => {
+      expenseFormPanelRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
   }
 
   async function voidExpense(id: number) {
@@ -1064,7 +1071,7 @@ export default function AdminFinancialAccounts({
         </div>
       </Paper>
 
-      <Paper className="admin-crud__panel">
+      <Paper ref={expenseFormPanelRef} className="admin-crud__panel">
         <div className="admin-crud__panel-inner admin-crud__section-header">
           <div>
             <Typography component="h2" className="admin-crud__section-title">
