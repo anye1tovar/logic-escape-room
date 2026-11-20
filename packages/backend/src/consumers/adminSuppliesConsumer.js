@@ -195,6 +195,53 @@ async function listInventoryMovements(supplyId) {
   return result.rows || [];
 }
 
+async function listBatches(supplyId) {
+  const result = await db.query(
+    `SELECT id, received_quantity, current_quantity, received_at, expiration_date, lot_number, status,
+       (expiration_date IS NOT NULL AND expiration_date < (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date::text) AS expired
+     FROM supply_batches WHERE supply_id = $1
+     ORDER BY expiration_date ASC NULLS LAST, id DESC;`, [supplyId],
+  );
+  return result.rows;
+}
+
+async function updateBatch(supplyId, batchId, payload) {
+  const result = await db.query(
+    `UPDATE supply_batches SET expiration_date = $3, lot_number = $4
+     WHERE supply_id = $1 AND id = $2 RETURNING *;`,
+    [supplyId, batchId, payload.expirationDate, payload.lotNumber],
+  );
+  return result.rows[0] || null;
+}
+
+async function discardBatch(supplyId, batchId, payload) {
+  const client = await db.pool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SELECT id FROM inventory_supplies WHERE id = $1 FOR UPDATE", [supplyId]);
+    const result = await client.query(
+      `SELECT *, (expiration_date IS NOT NULL AND expiration_date < (CURRENT_TIMESTAMP AT TIME ZONE 'America/Bogota')::date::text) AS expired
+       FROM supply_batches WHERE supply_id = $1 AND id = $2 FOR UPDATE`, [supplyId, batchId],
+    );
+    const batch = result.rows[0];
+    if (!batch) { const err = new Error("Lote no encontrado"); err.status = 404; throw err; }
+    if (!batch.expired || batch.status !== "ACTIVE" || Number(batch.current_quantity) <= 0) {
+      const err = new Error("El lote debe estar vencido y tener cantidad disponible"); err.status = 409; throw err;
+    }
+    await client.query("UPDATE supply_batches SET current_quantity = 0, status = 'DEPLETED' WHERE id = $1", [batchId]);
+    await client.query(
+      `INSERT INTO supply_inventory_movements (supply_id, supply_batch_id, type, quantity_delta, occurred_at, source_type, reason, created_by, created_at)
+       VALUES ($1, $2, 'WASTE', -$3, $4, 'MANUAL_INVENTORY', $5, $6, $4)`,
+      [supplyId, batchId, batch.current_quantity, payload.createdAt, payload.reason, payload.createdBy],
+    );
+    await client.query("COMMIT");
+    return { ok: true };
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally { client.release(); }
+}
+
 async function createInventoryMovement(payload) {
   const client = await db.pool.connect();
   try {
@@ -384,6 +431,9 @@ module.exports = async function initConsumer() {
     updateSupply,
     getSupplyStock,
     listInventoryMovements,
+    listBatches,
+    updateBatch,
+    discardBatch,
     listSupplyRecipeUsages,
     getSupplyUsageCounts,
     createInventoryMovement,

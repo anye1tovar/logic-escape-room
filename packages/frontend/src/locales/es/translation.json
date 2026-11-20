@@ -472,6 +472,8 @@
       "subtitle": "Revisa los datos y presiona el botón Reservar para apartar tu cupo.",
       "aria": "Resumen de la reserva",
       "labels": {
+        "name": "A nombre de",
+        "attendees": "Personas",
         "room": "Sala",
         "date": "Fecha",
         "time": "Hora",
@@ -547,7 +549,10 @@
       "resultFound": "Reserva encontrada. Estado actual: {{status}}.",
       "unknownStatus": "Desconocido ({{status}})",
       "detailFallback": "-",
+      "pendingPayment": "Para confirmar tu reserva, consigna el abono a la llave Bre-B: {{key}}",
       "labels": {
+        "name": "A nombre de",
+        "attendees": "Personas",
         "room": "Sala",
         "date": "Fecha",
         "time": "Hora"

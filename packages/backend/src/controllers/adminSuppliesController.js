@@ -39,6 +39,19 @@ function buildAdminSuppliesController(service) {
     }
   }
 
+  async function listBatches(req, res) {
+    try { res.json(await service.listBatches(req.params.id)); }
+    catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+  }
+  async function updateBatch(req, res) {
+    try { res.json(await service.updateBatch(req.params.id, req.params.batchId, req.body)); }
+    catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+  }
+  async function discardBatch(req, res) {
+    try { res.json(await service.discardBatch(req.params.id, req.params.batchId, req.body, { user: req.user })); }
+    catch (err) { res.status(err.status || 500).json({ error: err.message }); }
+  }
+
   async function listSupplyRecipeUsages(req, res) {
     try {
       res.json(await service.listSupplyRecipeUsages(req.params.id));
@@ -93,6 +106,9 @@ function buildAdminSuppliesController(service) {
     createSupply,
     updateSupply,
     listInventoryMovements,
+    listBatches,
+    updateBatch,
+    discardBatch,
     listSupplyRecipeUsages,
     getSupplyUsageDetails,
     createInventoryMovement,

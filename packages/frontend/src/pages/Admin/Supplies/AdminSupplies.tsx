@@ -97,6 +97,16 @@ type SupplyInventoryMovement = {
   lot_number: string | null;
 };
 
+type SupplyBatch = {
+  id: number;
+  received_quantity: number | string;
+  current_quantity: number | string;
+  expiration_date: string | null;
+  lot_number: string | null;
+  status: string;
+  expired: boolean;
+};
+
 const unitOptions = [
   "unidad",
   "g",
@@ -184,6 +194,12 @@ export default function AdminSupplies() {
   const [editing, setEditing] = useState<SupplyRow | null>(null);
   const [inventorySupply, setInventorySupply] = useState<SupplyRow | null>(null);
   const [inventoryForm, setInventoryForm] = useState<SupplyInventoryForm>(emptyInventoryForm);
+  const [batches, setBatches] = useState<SupplyBatch[]>([]);
+  const [editingBatch, setEditingBatch] = useState<SupplyBatch | null>(null);
+  const [batchDate, setBatchDate] = useState("");
+  const [batchLot, setBatchLot] = useState("");
+  const [batchError, setBatchError] = useState("");
+  const [batchBusy, setBatchBusy] = useState(false);
   const [inventoryMovements, setInventoryMovements] = useState<SupplyInventoryMovement[]>([]);
   const [recipeUsageSupply, setRecipeUsageSupply] = useState<SupplyRow | null>(null);
   const [recipeUsages, setRecipeUsages] = useState<RecipeUsage[]>([]);
@@ -374,18 +390,51 @@ export default function AdminSupplies() {
     setSavedEditForm(nextForm);
   }
 
+  async function refreshInventory(row: SupplyRow) {
+    const [movements, batchRows, supplies] = await Promise.all([
+      adminRequest<SupplyInventoryMovement[]>(`/api/admin/supplies/${row.id}/inventory-movements`),
+      adminRequest<SupplyBatch[]>(`/api/admin/supplies/${row.id}/batches`),
+      adminRequest<SupplyRow[]>("/api/admin/supplies"),
+    ]);
+    setInventoryMovements(movements);
+    setBatches(batchRows);
+    setRows(supplies);
+    setInventorySupply(supplies.find((supply) => supply.id === row.id) || row);
+  }
+
   async function openInventory(row: SupplyRow) {
     setInventorySupply(row);
     setInventoryForm(emptyInventoryForm);
+    setInventoryMovements([]);
+    setBatches([]);
+    setBatchError("");
+    try { await refreshInventory(row); }
+    catch (err) { setBatchError(err instanceof Error ? err.message : "No se pudo cargar el inventario."); }
+  }
+
+  async function saveBatch() {
+    if (!inventorySupply || !editingBatch) return;
+    setBatchBusy(true);
+    setBatchError("");
     try {
-      setInventoryMovements(
-        await adminRequest<SupplyInventoryMovement[]>(
-          `/api/admin/supplies/${row.id}/inventory-movements`,
-        ),
-      );
-    } catch {
-      setInventoryMovements([]);
-    }
+      await adminRequest(`/api/admin/supplies/${inventorySupply.id}/batches/${editingBatch.id}`, {
+        method: "PUT", body: { expirationDate: batchDate, lotNumber: batchLot },
+      });
+      setEditingBatch(null);
+      await refreshInventory(inventorySupply);
+    } catch (err) { setBatchError(err instanceof Error ? err.message : "No se pudo editar el lote."); }
+    finally { setBatchBusy(false); }
+  }
+
+  async function discardBatch(batch: SupplyBatch) {
+    if (!inventorySupply || !window.confirm(`?Dar de baja ${formatDecimal(batch.current_quantity)} ${inventorySupply.consumption_unit} del lote #${batch.id} por vencimiento?`)) return;
+    setBatchBusy(true);
+    setBatchError("");
+    try {
+      await adminRequest(`/api/admin/supplies/${inventorySupply.id}/batches/${batch.id}/discard`, { method: "POST" });
+      await refreshInventory(inventorySupply);
+    } catch (err) { setBatchError(err instanceof Error ? err.message : "No se pudo dar de baja el lote."); }
+    finally { setBatchBusy(false); }
   }
 
   async function registerInventoryMovement() {
@@ -719,6 +768,29 @@ export default function AdminSupplies() {
               fullWidth
             />
           ) : null}
+          {batchError ? <Alert severity="error">{batchError}</Alert> : null}
+          {inventorySupply && normalizeBoolean(inventorySupply.track_expiration) ? (
+            <div>
+              <Typography fontWeight={900} mb={1}>Lotes de inventario</Typography>
+              <Stack spacing={1}>
+                {batches.map((batch) => (
+                  <Paper key={batch.id} variant="outlined" sx={{ p: 1.5 }}>
+                    <Stack spacing={0.5}>
+                      <Typography fontWeight={700}>Lote #{batch.id}{batch.lot_number ? ` ? ${batch.lot_number}` : ""}</Typography>
+                      <Typography variant="body2">Disponible: {formatDecimal(batch.current_quantity)} {inventorySupply.consumption_unit} ? Recibido: {formatDecimal(batch.received_quantity)}</Typography>
+                      <Typography variant="body2">Vencimiento: {batch.expiration_date || "Sin fecha"}</Typography>
+                      <div><Chip size="small" label={Number(batch.current_quantity) <= 0 || batch.status !== "ACTIVE" ? "Sin disponible" : batch.expired ? "Vencido" : batch.expiration_date ? "Vigente" : "Sin fecha"} color={batch.expired && Number(batch.current_quantity) > 0 && batch.status === "ACTIVE" ? "error" : "default"} /></div>
+                      <Stack direction="row" spacing={1}>
+                        <Button size="small" disabled={batchBusy} onClick={() => { setEditingBatch(batch); setBatchDate(batch.expiration_date || ""); setBatchLot(batch.lot_number || ""); }}>Editar</Button>
+                        {batch.expired && batch.status === "ACTIVE" && Number(batch.current_quantity) > 0 ? <Button size="small" color="error" disabled={batchBusy} onClick={() => void discardBatch(batch)}>Dar de baja</Button> : null}
+                      </Stack>
+                    </Stack>
+                  </Paper>
+                ))}
+                {batches.length === 0 ? <Typography variant="body2" color="text.secondary">No hay lotes registrados.</Typography> : null}
+              </Stack>
+            </div>
+          ) : null}
           <div>
             <Typography fontWeight={900} mb={1}>
               Historial reciente
@@ -766,6 +838,17 @@ export default function AdminSupplies() {
           </Button>
         </div>
       </Drawer>
+      <Dialog open={editingBatch != null} onClose={() => setEditingBatch(null)} fullWidth maxWidth="xs">
+        <DialogTitle>Editar lote #{editingBatch?.id}</DialogTitle>
+        <DialogContent>
+          <Stack spacing={2} sx={{ pt: 1 }}>
+            <TextField label="Fecha de vencimiento" type="date" value={batchDate} onChange={(e) => setBatchDate(e.target.value)} InputLabelProps={{ shrink: true }} fullWidth required />
+            <TextField label="N?mero de lote" value={batchLot} onChange={(e) => setBatchLot(e.target.value)} fullWidth />
+            {batchError ? <Alert severity="error">{batchError}</Alert> : null}
+          </Stack>
+        </DialogContent>
+        <DialogActions><Button onClick={() => setEditingBatch(null)}>Cancelar</Button><Button variant="contained" disabled={!batchDate || batchBusy} onClick={() => void saveBatch()}>Guardar</Button></DialogActions>
+      </Dialog>
       <Dialog open={recipeUsageSupply != null} onClose={() => setRecipeUsageSupply(null)} fullWidth maxWidth="sm">
         <DialogTitle>Uso de {recipeUsageSupply?.name}</DialogTitle>
         <DialogContent>

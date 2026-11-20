@@ -476,6 +476,8 @@
       "subtitle": "Review the details and press Reserve to secure your spot.",
       "aria": "Booking summary",
       "labels": {
+        "name": "Booked by",
+        "attendees": "People",
         "room": "Room",
         "date": "Date",
         "time": "Time",
@@ -552,7 +554,10 @@
       "resultFound": "Booking found. Current status: {{status}}.",
       "unknownStatus": "Unknown ({{status}})",
       "detailFallback": "-",
+      "pendingPayment": "To confirm your booking, pay the deposit to this Bre-B key: {{key}}",
       "labels": {
+        "name": "Booked by",
+        "attendees": "People",
         "room": "Room",
         "date": "Date",
         "time": "Time"

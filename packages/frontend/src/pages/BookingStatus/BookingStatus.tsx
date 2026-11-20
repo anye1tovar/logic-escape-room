@@ -18,6 +18,9 @@ type LookupState =
       roomName?: string | null;
       date?: string | null;
       time?: string | null;
+      firstName?: string | null;
+      lastName?: string | null;
+      attendees?: number | null;
     }
   | { type: "error"; message: string };
 
@@ -105,6 +108,11 @@ export default function BookingStatus() {
         : detailFallback
       : null;
 
+  const detailName =
+    lookup.type === "success"
+      ? [lookup.firstName, lookup.lastName].filter(Boolean).join(" ") || detailFallback
+      : null;
+
   const runLookup = useCallback(
     async (nextCode: string, options?: { updateUrl?: boolean }) => {
       const consultCode = String(nextCode || "").trim();
@@ -135,6 +143,9 @@ export default function BookingStatus() {
           roomName: res.roomName ?? null,
           date: res.date ?? null,
           time: res.time ?? null,
+          firstName: res.firstName ?? null,
+          lastName: res.lastName ?? null,
+          attendees: res.attendees ?? null,
         });
       } catch (err: unknown) {
         if (lookupSeqRef.current !== seq) return;
@@ -274,6 +285,14 @@ export default function BookingStatus() {
                 {lookup.type === "success" ? (
                   <dl className="booking-status__details">
                     <div className="booking-status__detail">
+                      <dt className="booking-status__detail-label">{t("booking.status.labels.name")}</dt>
+                      <dd className="booking-status__detail-value">{detailName}</dd>
+                    </div>
+                    <div className="booking-status__detail">
+                      <dt className="booking-status__detail-label">{t("booking.status.labels.attendees")}</dt>
+                      <dd className="booking-status__detail-value">{lookup.attendees ?? detailFallback}</dd>
+                    </div>
+                    <div className="booking-status__detail">
                       <dt className="booking-status__detail-label">
                         {t("booking.status.labels.room")}
                       </dt>
@@ -298,6 +317,11 @@ export default function BookingStatus() {
                       </dd>
                     </div>
                   </dl>
+                ) : null}
+                {lookup.type === "success" && statusRank(lookup.status) === 1 ? (
+                  <p className="booking-status__result-text">
+                    {t("booking.status.pendingPayment", { key: "0091786913" })}
+                  </p>
                 ) : null}
 
                 <div

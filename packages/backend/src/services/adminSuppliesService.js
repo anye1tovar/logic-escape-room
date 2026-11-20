@@ -135,6 +135,33 @@ function buildAdminSuppliesService(consumer) {
     return consumer.listInventoryMovements(Math.trunc(id));
   }
 
+  function batchIds(idInput, batchInput) {
+    const id = Number(idInput), batchId = Number(batchInput);
+    if (!Number.isInteger(id) || id <= 0 || !Number.isInteger(batchId) || batchId <= 0) throw badRequest("Identificador inv?lido");
+    return [id, batchId];
+  }
+
+  async function listBatches(idInput) {
+    const id = Number(idInput);
+    if (!Number.isInteger(id) || id <= 0) throw badRequest("Identificador inv?lido");
+    if (!await consumer.getSupplyStock(id)) { const err = new Error("Insumo no encontrado"); err.status = 404; throw err; }
+    return consumer.listBatches(id);
+  }
+
+  async function updateBatch(idInput, batchInput, input) {
+    const [id, batchId] = batchIds(idInput, batchInput);
+    const expirationDate = normalizeDate(input?.expirationDate);
+    if (!expirationDate || Number.isNaN(Date.parse(`${expirationDate}T00:00:00Z`)) || new Date(`${expirationDate}T00:00:00Z`).toISOString().slice(0, 10) !== expirationDate) throw badRequest("La fecha de vencimiento no es v?lida");
+    const result = await consumer.updateBatch(id, batchId, { expirationDate, lotNumber: normalizeText(input?.lotNumber) });
+    if (!result) { const err = new Error("Lote no encontrado"); err.status = 404; throw err; }
+    return result;
+  }
+
+  async function discardBatch(idInput, batchInput, input, context = {}) {
+    const [id, batchId] = batchIds(idInput, batchInput);
+    return consumer.discardBatch(id, batchId, { reason: normalizeText(input?.reason) || "Baja por vencimiento", createdAt: Date.now(), createdBy: normalizeUserId(context.user) });
+  }
+
   async function createInventoryMovement(idInput, input, context = {}) {
     const id = Number(idInput);
     if (!Number.isFinite(id) || id <= 0) throw badRequest("id is required");
@@ -253,6 +280,9 @@ function buildAdminSuppliesService(consumer) {
     createSupply,
     updateSupply,
     listInventoryMovements,
+    listBatches,
+    updateBatch,
+    discardBatch,
     createInventoryMovement,
     setPhysicalCount,
     deleteSupply,

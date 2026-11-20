@@ -730,6 +730,9 @@ function buildBookingService(consumer, deps = {}) {
       roomName,
       date,
       time,
+      firstName: booking.first_name ?? booking.firstName ?? null,
+      lastName: booking.last_name ?? booking.lastName ?? null,
+      attendees: booking.players ?? booking.attendees ?? null,
     };
   }
 

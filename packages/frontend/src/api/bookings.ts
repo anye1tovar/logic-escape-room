@@ -35,6 +35,9 @@ export type BookingStatusResponse = {
   roomName?: string | null;
   date?: string | null;
   time?: string | null;
+  firstName?: string | null;
+  lastName?: string | null;
+  attendees?: number | null;
 };
 
 export async function fetchBookingStatus(
